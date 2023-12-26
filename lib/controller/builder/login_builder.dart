@@ -4,7 +4,8 @@ import 'package:app_backend/controller/request/bodies/request/auth_request.dart'
 import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/controller/trekko_signed_in.dart';
+import 'package:app_backend/controller/linked_trekko.dart';
+import 'package:app_backend/model/account/account_data.dart';
 
 class LoginBuilder extends TrekkoBuilder {
   final String projectUrl;
@@ -26,6 +27,6 @@ class LoginBuilder extends TrekkoBuilder {
     return server
         .signIn(AuthRequest(email, password))
         .catchError(onError<AuthResponse>)
-        .then((value) => TrekkoSignedIn(value.token));
+        .then((value) => LinkedTrekko(AccountData(projectUrl, email, value.token)));
   }
 }
