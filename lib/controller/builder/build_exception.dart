@@ -1,4 +1,4 @@
-class BuildException<T> implements Exception {
+class BuildException<T> {
   final T reason;
 
   BuildException(this.reason);
