@@ -1,4 +1,10 @@
-import 'package:app_backend/controller/request/trekko_request.dart';
+import 'dart:convert';
+
+import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
+import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
+import 'package:app_backend/controller/request/bodies/response/error_response.dart';
+import 'package:app_backend/controller/request/endpoint.dart';
+import 'package:app_backend/controller/request/request_exception.dart';
 import 'package:http/http.dart';
 import 'package:requests/requests.dart';
 
@@ -10,15 +16,15 @@ class TrekkoServer {
 
   TrekkoServer.withToken(this.baseUrl, this.token);
 
-  parseUrl<S, R>(TrekkoRequest<S, R> request) {
-    return baseUrl + request.endpoint.path;
+  parseUrl<S, R>(Endpoint endpoint) {
+    return baseUrl + endpoint.path;
   }
 
-  Map<String, String> buildHeader(TrekkoRequest request) {
+  Map<String, String> buildHeader(Endpoint endpoint) {
     Map<String, String> header = {};
     header["Content-Type"] = "application/json";
 
-    if (request.endpoint.needsAuth) {
+    if (endpoint.needsAuth) {
       if (token == null) {
         throw Exception("No authorization token provided");
       }
@@ -29,50 +35,61 @@ class TrekkoServer {
     return header;
   }
 
-  Future<R> sendRequest<T, R>(
-      Future<Response> Function(
-              String, Map<String, String> headers, String body)
-          requestCall,
-      TrekkoRequest<T, R> request) {
-    return requestCall(
-            parseUrl(request), buildHeader(request), parseRequest(request))
-        .then((value) => parseResponse(request, value));
-  }
-
-  Future<R> post<T, R>(TrekkoRequest<T, R> request) {
-    return sendRequest(
-        (url, header, body) => Requests.post(url, headers: header, body: body),
-        request);
-  }
-
-  Future<R> get<T, R>(TrekkoRequest<T, R> request) {
-    return sendRequest(
-        (url, header, body) => Requests.get(url, headers: header, body: body),
-        request);
-  }
-
-  Future<R> put<T, R>(TrekkoRequest<T, R> request) {
-    return sendRequest(
-        (url, header, body) => Requests.put(url, headers: header, body: body),
-        request);
-  }
-
-  Future<R> delete<T, R>(TrekkoRequest<T, R> request) {
-    return sendRequest(
-        (url, header, body) => Requests.delete(url, headers: header, body: body),
-        request);
-  }
-
-  static R parseResponse<S, R>(TrekkoRequest<S, R> request, Response response) {
-    if (request.expectedStatusCode != request.expectedStatusCode) {
-      // TODO: throw a proper exception
-      throw Exception("Wrong status code ${request.expectedStatusCode}");
+  T parseBody<T>(Response response, int expectedStatusCode,
+      T Function(Map<String, dynamic>) parser) {
+    if (response.statusCode != expectedStatusCode) {
+      var decoded;
+      try {
+        decoded = jsonDecode(response.body);
+      } catch (e) {
+        throw RequestException(response.statusCode, null);
+      }
+      throw RequestException(
+          response.statusCode, ErrorResponse.fromJson(decoded));
     }
 
-    return request.endpoint.responseParser(response.body);
+    return parser.call(jsonDecode(response.body));
   }
 
-  static String parseRequest<S, R>(TrekkoRequest<S, R> request) {
-    return request.endpoint.requestParser(request.body);
+  Future<T> sendRequest<T>(
+      Future<Response> Function(String,
+              {dynamic body,
+              RequestBodyEncoding bodyEncoding,
+              Map<String, String>? headers,
+              dynamic json,
+              bool persistCookies,
+              int? port,
+              Map<String, dynamic>? queryParameters,
+              int timeoutSeconds,
+              bool verify,
+              bool withCredentials})
+          requestCall,
+      Endpoint endpoint,
+      dynamic encode,
+      int expectedStatusCode,
+      T Function(Map<String, dynamic>) parser) {
+    return requestCall(parseUrl(endpoint),
+            headers: buildHeader(endpoint), body: encode.toJson())
+        .then((value) => parseBody(value, expectedStatusCode, parser));
+  }
+
+  Future<AuthResponse> signIn(AuthRequest request) {
+    return sendRequest(
+      Requests.post,
+      Endpoint.signIn,
+      request,
+      200,
+      AuthResponse.fromJson,
+    );
+  }
+
+  Future<AuthResponse> signUp(AuthRequest request) {
+    return sendRequest(
+      Requests.post,
+      Endpoint.signUp,
+      request,
+      201,
+      AuthResponse.fromJson,
+    );
   }
 }

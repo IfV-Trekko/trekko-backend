@@ -3,7 +3,4 @@ class BuildException<T> {
 
   BuildException(this.reason);
 
-  T getReason() {
-    return this.reason;
-  }
 }

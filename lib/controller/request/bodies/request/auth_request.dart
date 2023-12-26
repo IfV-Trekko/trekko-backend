@@ -1,3 +1,8 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'auth_request.g.dart';
+
+@JsonSerializable()
 class AuthRequest {
 
   final String email;
@@ -5,16 +10,8 @@ class AuthRequest {
 
   AuthRequest(this.email, this.password);
 
-  Map<String, dynamic> toJson() => {
-    'email': email,
-    'password': password,
-  };
+  Map<String, dynamic> toJson() => _$AuthRequestToJson(this);
 
-  factory AuthRequest.fromJson(Map<String, dynamic> json) {
-    return AuthRequest(
-      json['email'],
-      json['password'],
-    );
-  }
+  factory AuthRequest.fromJson(Map<String, dynamic> json) => _$AuthRequestFromJson(json);
 
 }

@@ -1,30 +1,25 @@
-enum Endpoint<S, R> {
-  signUp<AuthRequest, AuthResponse>(
+
+enum Endpoint {
+  signUp(
     "/auth/signup",
-    false,
-    (String body) => AuthResponse.fromJson(body),
-    (AuthBody body) => body.toJson(),
+    false
   ),
   signIn(
     "/auth/signin",
-    false,
-    (String body) => AuthResponse.fromJson(body),
-    (AuthBody body) => body.toJson(),
+    false
   ),
   donate(
-    "/trips/donate",
-    true,
+    "/trips/batch",
+    true
   ),
   trip(
     "/trips/%s",
-    true,
+    true
   );
 
   final String path;
   final bool needsAuth;
-  final R Function(String) responseParser;
-  final String Function(S) requestParser;
 
-  const Endpoint(
-      this.path, this.needsAuth, this.responseParser, this.requestParser);
+  const Endpoint(this.path, this.needsAuth);
+
 }
