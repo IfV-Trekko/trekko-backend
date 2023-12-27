@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/trip/trip_repository.dart';
+import 'package:app_backend/controller/database/trip/trip_repository.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:drift/drift.dart';
 

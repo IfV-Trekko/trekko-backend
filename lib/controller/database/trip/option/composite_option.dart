@@ -1,8 +1,6 @@
-import 'package:app_backend/controller/trip/option/composite_type.dart';
-import 'package:app_backend/controller/trip/option/query_option.dart';
-import 'package:app_backend/controller/trip/option/tree_option.dart';
-import 'package:app_backend/controller/trip/trip_repository.dart';
-import 'package:drift/drift.dart';
+import 'package:app_backend/controller/database/trip/option/composite_type.dart';
+import 'package:app_backend/controller/database/trip/option/query_option.dart';
+import 'package:app_backend/controller/database/trip/option/tree_option.dart';
 
 class CompositeOption implements TreeOption {
   final CompositeType _type;

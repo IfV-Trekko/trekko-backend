@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/trip/trip_repository.dart';
+import 'package:app_backend/controller/database/trip/trip_repository.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';

@@ -33,6 +33,5 @@ class TripRepository extends _$TripRepository {
     }
   }
 
-
-
+  Stream<List<Trip>> watchTrips() => select(trips).watch();
 }
