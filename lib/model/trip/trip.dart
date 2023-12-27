@@ -1,15 +1,14 @@
 import 'package:app_backend/model/trip/donation_state.dart';
-import 'package:app_backend/model/trip/trip_part.dart';
+import 'package:app_backend/model/trip/leg.dart';
+import 'package:drift/drift.dart';
 
-class Trip {
+class Trip extends Table {
 
-  final String uid;
-  final String id;
-  final String? comment;
-  final String? purpose;
-  final List<TripPart> tripParts;
-  final DonationState donationState;
-
-  Trip(this.uid, this.id, this.comment, this.purpose, this.tripParts, this.donationState);
+  TextColumn get uid => text()();
+  IntColumn get donationState => intEnum<DonationState>()();
+  TextColumn get comment => text().nullable()();
+  TextColumn get purpose => text().nullable()();
+  // will be filled by the db
+  final List<Leg> legs = [];
 
 }

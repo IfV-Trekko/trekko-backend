@@ -1,8 +1,13 @@
-final class TrackedPoint {
-  final double latitude;
-  final double longitude;
-  final double speed;
-  final DateTime timestamp;
+import 'package:app_backend/model/trip/leg.dart';
+import 'package:drift/drift.dart';
 
-  TrackedPoint(this.latitude, this.longitude, this.speed, this.timestamp);
+class TrackedPoint extends Table {
+
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get leg_id => text().references(Leg, #id)();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get speed => real()();
+  DateTimeColumn get timestamp => dateTime()();
+
 }

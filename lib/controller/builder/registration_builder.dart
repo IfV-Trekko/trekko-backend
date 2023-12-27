@@ -22,7 +22,7 @@ class RegistrationBuilder extends TrekkoBuilder {
 
   @override
   Map<int, Object> getErrorCodes() {
-    return RegistrationResult.values.asMap();
+    return RegistrationResult.values.asMap(); // TODO: Don't use order
   }
 
   @override

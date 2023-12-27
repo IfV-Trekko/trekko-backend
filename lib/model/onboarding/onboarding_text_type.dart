@@ -1,4 +1,0 @@
-enum OnboardingTextType {
-  whoText,
-  whatText
-}

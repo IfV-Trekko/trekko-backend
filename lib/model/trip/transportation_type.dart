@@ -1,3 +1,4 @@
+// Leave order and names as is!
 enum TransportationType {
   foot,
   bicycle,

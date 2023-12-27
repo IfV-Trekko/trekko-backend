@@ -1,6 +1,6 @@
-import 'package:app_backend/controller/query/filter_comparator.dart';
-import 'package:app_backend/controller/query/query_option.dart';
-import 'package:app_backend/controller/query/trip_attribute.dart';
+import 'package:app_backend/controller/trip/option/filter_comparator.dart';
+import 'package:app_backend/controller/trip/option/query_option.dart';
+import 'package:app_backend/controller/trip/option/trip_attribute.dart';
 
 class AttributeFilter implements QueryOption {
 

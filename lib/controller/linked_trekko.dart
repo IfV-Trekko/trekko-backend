@@ -6,4 +6,8 @@ class LinkedTrekko implements Trekko {
   final AccountData accountData;
 
   LinkedTrekko(this.accountData);
+
+  void test() {
+
+  }
 }
