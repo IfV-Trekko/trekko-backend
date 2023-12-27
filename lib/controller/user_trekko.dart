@@ -19,13 +19,16 @@ class UserTrekko implements Trekko {
     _tripRepository = TripRepository();
     _positionController = StreamController.broadcast();
 
+    _listenForLocationPermission();
+    _startTracking();
+  }
+
+  void _listenForLocationPermission() {
     Geolocator.getServiceStatusStream().listen((event) {
       if (event == ServiceStatus.disabled) {
         setTrackingState(TrackingState.paused);
       }
     });
-
-    _startTracking();
   }
 
   void _startTracking() {
