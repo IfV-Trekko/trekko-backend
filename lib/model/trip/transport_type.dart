@@ -1,5 +1,5 @@
 // Leave order and names as is!
-enum TransportationType {
+enum TransportType {
   foot,
   bicycle,
   car,

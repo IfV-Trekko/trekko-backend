@@ -1,21 +1,18 @@
 import 'package:app_backend/controller/trip/option/filter_comparator.dart';
 import 'package:app_backend/controller/trip/option/query_option.dart';
-import 'package:app_backend/controller/trip/option/trip_attribute.dart';
+import 'package:app_backend/model/trip/trip_attribute.dart';
 
 class AttributeFilter implements QueryOption {
 
   final TripAttribute attribute;
   final String value;
-  final FilterComparator? comparator;
+  final FilterComparator comparator;
 
-  AttributeFilter(this.attribute, this.value) : comparator = null;
-
-  AttributeFilter.withComparator(this.attribute, this.value, this.comparator);
+  AttributeFilter(this.attribute, this.value, [this.comparator = FilterComparator.equal]);
 
   @override
   String build() {
     // TODO: implement build
     throw UnimplementedError();
   }
-
 }

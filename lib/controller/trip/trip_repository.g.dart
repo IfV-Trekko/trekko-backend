@@ -3,11 +3,11 @@
 part of 'trip_repository.dart';
 
 // ignore_for_file: type=lint
-class $TripTable extends Trip with TableInfo<$TripTable, TripData> {
+class $TripsTable extends Trips with TableInfo<$TripsTable, Trip> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $TripTable(this.attachedDatabase, [this._alias]);
+  $TripsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _uidMeta = const VerificationMeta('uid');
   @override
   late final GeneratedColumn<String> uid = GeneratedColumn<String>(
@@ -19,7 +19,19 @@ class $TripTable extends Trip with TableInfo<$TripTable, TripData> {
   late final GeneratedColumnWithTypeConverter<DonationState, int>
       donationState = GeneratedColumn<int>('donation_state', aliasedName, false,
               type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<DonationState>($TripTable.$converterdonationState);
+          .withConverter<DonationState>($TripsTable.$converterdonationState);
+  static const VerificationMeta _startTimeMeta =
+      const VerificationMeta('startTime');
+  @override
+  late final GeneratedColumn<DateTime> startTime = GeneratedColumn<DateTime>(
+      'start_time', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _endTimeMeta =
+      const VerificationMeta('endTime');
+  @override
+  late final GeneratedColumn<DateTime> endTime = GeneratedColumn<DateTime>(
+      'end_time', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
   static const VerificationMeta _commentMeta =
       const VerificationMeta('comment');
   @override
@@ -33,14 +45,15 @@ class $TripTable extends Trip with TableInfo<$TripTable, TripData> {
       'purpose', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [uid, donationState, comment, purpose];
+  List<GeneratedColumn> get $columns =>
+      [uid, donationState, startTime, endTime, comment, purpose];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'trip';
+  static const String $name = 'trips';
   @override
-  VerificationContext validateIntegrity(Insertable<TripData> instance,
+  VerificationContext validateIntegrity(Insertable<Trip> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -51,6 +64,18 @@ class $TripTable extends Trip with TableInfo<$TripTable, TripData> {
       context.missing(_uidMeta);
     }
     context.handle(_donationStateMeta, const VerificationResult.success());
+    if (data.containsKey('start_time')) {
+      context.handle(_startTimeMeta,
+          startTime.isAcceptableOrUnknown(data['start_time']!, _startTimeMeta));
+    } else if (isInserting) {
+      context.missing(_startTimeMeta);
+    }
+    if (data.containsKey('end_time')) {
+      context.handle(_endTimeMeta,
+          endTime.isAcceptableOrUnknown(data['end_time']!, _endTimeMeta));
+    } else if (isInserting) {
+      context.missing(_endTimeMeta);
+    }
     if (data.containsKey('comment')) {
       context.handle(_commentMeta,
           comment.isAcceptableOrUnknown(data['comment']!, _commentMeta));
@@ -65,14 +90,18 @@ class $TripTable extends Trip with TableInfo<$TripTable, TripData> {
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  TripData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Trip map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return TripData(
+    return Trip(
       uid: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}uid'])!,
-      donationState: $TripTable.$converterdonationState.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}donation_state'])!),
+      donationState: $TripsTable.$converterdonationState.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.int, data['${effectivePrefix}donation_state'])!),
+      startTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}start_time'])!,
+      endTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_time'])!,
       comment: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}comment']),
       purpose: attachedDatabase.typeMapping
@@ -81,135 +110,48 @@ class $TripTable extends Trip with TableInfo<$TripTable, TripData> {
   }
 
   @override
-  $TripTable createAlias(String alias) {
-    return $TripTable(attachedDatabase, alias);
+  $TripsTable createAlias(String alias) {
+    return $TripsTable(attachedDatabase, alias);
   }
 
   static JsonTypeConverter2<DonationState, int, int> $converterdonationState =
       const EnumIndexConverter<DonationState>(DonationState.values);
 }
 
-class TripData extends DataClass implements Insertable<TripData> {
-  final String uid;
-  final DonationState donationState;
-  final String? comment;
-  final String? purpose;
-  const TripData(
-      {required this.uid,
-      required this.donationState,
-      this.comment,
-      this.purpose});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['uid'] = Variable<String>(uid);
-    {
-      map['donation_state'] = Variable<int>(
-          $TripTable.$converterdonationState.toSql(donationState));
-    }
-    if (!nullToAbsent || comment != null) {
-      map['comment'] = Variable<String>(comment);
-    }
-    if (!nullToAbsent || purpose != null) {
-      map['purpose'] = Variable<String>(purpose);
-    }
-    return map;
-  }
-
-  TripCompanion toCompanion(bool nullToAbsent) {
-    return TripCompanion(
-      uid: Value(uid),
-      donationState: Value(donationState),
-      comment: comment == null && nullToAbsent
-          ? const Value.absent()
-          : Value(comment),
-      purpose: purpose == null && nullToAbsent
-          ? const Value.absent()
-          : Value(purpose),
-    );
-  }
-
-  factory TripData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TripData(
-      uid: serializer.fromJson<String>(json['uid']),
-      donationState: $TripTable.$converterdonationState
-          .fromJson(serializer.fromJson<int>(json['donationState'])),
-      comment: serializer.fromJson<String?>(json['comment']),
-      purpose: serializer.fromJson<String?>(json['purpose']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'uid': serializer.toJson<String>(uid),
-      'donationState': serializer.toJson<int>(
-          $TripTable.$converterdonationState.toJson(donationState)),
-      'comment': serializer.toJson<String?>(comment),
-      'purpose': serializer.toJson<String?>(purpose),
-    };
-  }
-
-  TripData copyWith(
-          {String? uid,
-          DonationState? donationState,
-          Value<String?> comment = const Value.absent(),
-          Value<String?> purpose = const Value.absent()}) =>
-      TripData(
-        uid: uid ?? this.uid,
-        donationState: donationState ?? this.donationState,
-        comment: comment.present ? comment.value : this.comment,
-        purpose: purpose.present ? purpose.value : this.purpose,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('TripData(')
-          ..write('uid: $uid, ')
-          ..write('donationState: $donationState, ')
-          ..write('comment: $comment, ')
-          ..write('purpose: $purpose')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(uid, donationState, comment, purpose);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TripData &&
-          other.uid == this.uid &&
-          other.donationState == this.donationState &&
-          other.comment == this.comment &&
-          other.purpose == this.purpose);
-}
-
-class TripCompanion extends UpdateCompanion<TripData> {
+class TripsCompanion extends UpdateCompanion<Trip> {
   final Value<String> uid;
   final Value<DonationState> donationState;
+  final Value<DateTime> startTime;
+  final Value<DateTime> endTime;
   final Value<String?> comment;
   final Value<String?> purpose;
   final Value<int> rowid;
-  const TripCompanion({
+  const TripsCompanion({
     this.uid = const Value.absent(),
     this.donationState = const Value.absent(),
+    this.startTime = const Value.absent(),
+    this.endTime = const Value.absent(),
     this.comment = const Value.absent(),
     this.purpose = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  TripCompanion.insert({
+  TripsCompanion.insert({
     required String uid,
     required DonationState donationState,
+    required DateTime startTime,
+    required DateTime endTime,
     this.comment = const Value.absent(),
     this.purpose = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : uid = Value(uid),
-        donationState = Value(donationState);
-  static Insertable<TripData> custom({
+        donationState = Value(donationState),
+        startTime = Value(startTime),
+        endTime = Value(endTime);
+  static Insertable<Trip> custom({
     Expression<String>? uid,
     Expression<int>? donationState,
+    Expression<DateTime>? startTime,
+    Expression<DateTime>? endTime,
     Expression<String>? comment,
     Expression<String>? purpose,
     Expression<int>? rowid,
@@ -217,21 +159,27 @@ class TripCompanion extends UpdateCompanion<TripData> {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
       if (donationState != null) 'donation_state': donationState,
+      if (startTime != null) 'start_time': startTime,
+      if (endTime != null) 'end_time': endTime,
       if (comment != null) 'comment': comment,
       if (purpose != null) 'purpose': purpose,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  TripCompanion copyWith(
+  TripsCompanion copyWith(
       {Value<String>? uid,
       Value<DonationState>? donationState,
+      Value<DateTime>? startTime,
+      Value<DateTime>? endTime,
       Value<String?>? comment,
       Value<String?>? purpose,
       Value<int>? rowid}) {
-    return TripCompanion(
+    return TripsCompanion(
       uid: uid ?? this.uid,
       donationState: donationState ?? this.donationState,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
       comment: comment ?? this.comment,
       purpose: purpose ?? this.purpose,
       rowid: rowid ?? this.rowid,
@@ -246,7 +194,13 @@ class TripCompanion extends UpdateCompanion<TripData> {
     }
     if (donationState.present) {
       map['donation_state'] = Variable<int>(
-          $TripTable.$converterdonationState.toSql(donationState.value));
+          $TripsTable.$converterdonationState.toSql(donationState.value));
+    }
+    if (startTime.present) {
+      map['start_time'] = Variable<DateTime>(startTime.value);
+    }
+    if (endTime.present) {
+      map['end_time'] = Variable<DateTime>(endTime.value);
     }
     if (comment.present) {
       map['comment'] = Variable<String>(comment.value);
@@ -262,9 +216,11 @@ class TripCompanion extends UpdateCompanion<TripData> {
 
   @override
   String toString() {
-    return (StringBuffer('TripCompanion(')
+    return (StringBuffer('TripsCompanion(')
           ..write('uid: $uid, ')
           ..write('donationState: $donationState, ')
+          ..write('startTime: $startTime, ')
+          ..write('endTime: $endTime, ')
           ..write('comment: $comment, ')
           ..write('purpose: $purpose, ')
           ..write('rowid: $rowid')
@@ -273,11 +229,11 @@ class TripCompanion extends UpdateCompanion<TripData> {
   }
 }
 
-class $LegTable extends Leg with TableInfo<$LegTable, LegData> {
+class $LegsTable extends Legs with TableInfo<$LegsTable, Leg> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $LegTable(this.attachedDatabase, [this._alias]);
+  $LegsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -295,25 +251,25 @@ class $LegTable extends Leg with TableInfo<$LegTable, LegData> {
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES trip (uid)'));
+          GeneratedColumn.constraintIsAlways('REFERENCES trips (uid)'));
   static const VerificationMeta _transportationTypeMeta =
       const VerificationMeta('transportationType');
   @override
-  late final GeneratedColumnWithTypeConverter<TransportationType, int>
+  late final GeneratedColumnWithTypeConverter<TransportType, int>
       transportationType = GeneratedColumn<int>(
               'transportation_type', aliasedName, false,
               type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<TransportationType>(
-              $LegTable.$convertertransportationType);
+          .withConverter<TransportType>(
+              $LegsTable.$convertertransportationType);
   @override
   List<GeneratedColumn> get $columns => [id, trip_id, transportationType];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'leg';
+  static const String $name = 'legs';
   @override
-  VerificationContext validateIntegrity(Insertable<LegData> instance,
+  VerificationContext validateIntegrity(Insertable<Leg> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -333,122 +289,45 @@ class $LegTable extends Leg with TableInfo<$LegTable, LegData> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  LegData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Leg map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return LegData(
-      id: attachedDatabase.typeMapping
+    return Leg(
+      attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      trip_id: attachedDatabase.typeMapping
+      attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}trip_id'])!,
-      transportationType: $LegTable.$convertertransportationType.fromSql(
+      $LegsTable.$convertertransportationType.fromSql(
           attachedDatabase.typeMapping.read(DriftSqlType.int,
               data['${effectivePrefix}transportation_type'])!),
     );
   }
 
   @override
-  $LegTable createAlias(String alias) {
-    return $LegTable(attachedDatabase, alias);
+  $LegsTable createAlias(String alias) {
+    return $LegsTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<TransportationType, int, int>
+  static JsonTypeConverter2<TransportType, int, int>
       $convertertransportationType =
-      const EnumIndexConverter<TransportationType>(TransportationType.values);
+      const EnumIndexConverter<TransportType>(TransportType.values);
 }
 
-class LegData extends DataClass implements Insertable<LegData> {
-  final int id;
-  final String trip_id;
-  final TransportationType transportationType;
-  const LegData(
-      {required this.id,
-      required this.trip_id,
-      required this.transportationType});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['trip_id'] = Variable<String>(trip_id);
-    {
-      map['transportation_type'] = Variable<int>(
-          $LegTable.$convertertransportationType.toSql(transportationType));
-    }
-    return map;
-  }
-
-  LegCompanion toCompanion(bool nullToAbsent) {
-    return LegCompanion(
-      id: Value(id),
-      trip_id: Value(trip_id),
-      transportationType: Value(transportationType),
-    );
-  }
-
-  factory LegData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return LegData(
-      id: serializer.fromJson<int>(json['id']),
-      trip_id: serializer.fromJson<String>(json['trip_id']),
-      transportationType: $LegTable.$convertertransportationType
-          .fromJson(serializer.fromJson<int>(json['transportationType'])),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'trip_id': serializer.toJson<String>(trip_id),
-      'transportationType': serializer.toJson<int>(
-          $LegTable.$convertertransportationType.toJson(transportationType)),
-    };
-  }
-
-  LegData copyWith(
-          {int? id, String? trip_id, TransportationType? transportationType}) =>
-      LegData(
-        id: id ?? this.id,
-        trip_id: trip_id ?? this.trip_id,
-        transportationType: transportationType ?? this.transportationType,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('LegData(')
-          ..write('id: $id, ')
-          ..write('trip_id: $trip_id, ')
-          ..write('transportationType: $transportationType')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, trip_id, transportationType);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is LegData &&
-          other.id == this.id &&
-          other.trip_id == this.trip_id &&
-          other.transportationType == this.transportationType);
-}
-
-class LegCompanion extends UpdateCompanion<LegData> {
+class LegsCompanion extends UpdateCompanion<Leg> {
   final Value<int> id;
   final Value<String> trip_id;
-  final Value<TransportationType> transportationType;
-  const LegCompanion({
+  final Value<TransportType> transportationType;
+  const LegsCompanion({
     this.id = const Value.absent(),
     this.trip_id = const Value.absent(),
     this.transportationType = const Value.absent(),
   });
-  LegCompanion.insert({
+  LegsCompanion.insert({
     this.id = const Value.absent(),
     required String trip_id,
-    required TransportationType transportationType,
+    required TransportType transportationType,
   })  : trip_id = Value(trip_id),
         transportationType = Value(transportationType);
-  static Insertable<LegData> custom({
+  static Insertable<Leg> custom({
     Expression<int>? id,
     Expression<String>? trip_id,
     Expression<int>? transportationType,
@@ -460,11 +339,11 @@ class LegCompanion extends UpdateCompanion<LegData> {
     });
   }
 
-  LegCompanion copyWith(
+  LegsCompanion copyWith(
       {Value<int>? id,
       Value<String>? trip_id,
-      Value<TransportationType>? transportationType}) {
-    return LegCompanion(
+      Value<TransportType>? transportationType}) {
+    return LegsCompanion(
       id: id ?? this.id,
       trip_id: trip_id ?? this.trip_id,
       transportationType: transportationType ?? this.transportationType,
@@ -481,7 +360,7 @@ class LegCompanion extends UpdateCompanion<LegData> {
       map['trip_id'] = Variable<String>(trip_id.value);
     }
     if (transportationType.present) {
-      map['transportation_type'] = Variable<int>($LegTable
+      map['transportation_type'] = Variable<int>($LegsTable
           .$convertertransportationType
           .toSql(transportationType.value));
     }
@@ -490,7 +369,7 @@ class LegCompanion extends UpdateCompanion<LegData> {
 
   @override
   String toString() {
-    return (StringBuffer('LegCompanion(')
+    return (StringBuffer('LegsCompanion(')
           ..write('id: $id, ')
           ..write('trip_id: $trip_id, ')
           ..write('transportationType: $transportationType')
@@ -499,12 +378,12 @@ class LegCompanion extends UpdateCompanion<LegData> {
   }
 }
 
-class $TrackedPointTable extends TrackedPoint
-    with TableInfo<$TrackedPointTable, TrackedPointData> {
+class $TrackedPointsTable extends TrackedPoints
+    with TableInfo<$TrackedPointsTable, TrackedPoint> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $TrackedPointTable(this.attachedDatabase, [this._alias]);
+  $TrackedPointsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -516,12 +395,12 @@ class $TrackedPointTable extends TrackedPoint
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
   static const VerificationMeta _leg_idMeta = const VerificationMeta('leg_id');
   @override
-  late final GeneratedColumn<String> leg_id = GeneratedColumn<String>(
+  late final GeneratedColumn<int> leg_id = GeneratedColumn<int>(
       'leg_id', aliasedName, false,
-      type: DriftSqlType.string,
+      type: DriftSqlType.int,
       requiredDuringInsert: true,
       defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES leg (id)'));
+          GeneratedColumn.constraintIsAlways('REFERENCES legs (id)'));
   static const VerificationMeta _latitudeMeta =
       const VerificationMeta('latitude');
   @override
@@ -552,9 +431,9 @@ class $TrackedPointTable extends TrackedPoint
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'tracked_point';
+  static const String $name = 'tracked_points';
   @override
-  VerificationContext validateIntegrity(Insertable<TrackedPointData> instance,
+  VerificationContext validateIntegrity(Insertable<TrackedPoint> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -597,13 +476,13 @@ class $TrackedPointTable extends TrackedPoint
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  TrackedPointData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  TrackedPoint map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return TrackedPointData(
+    return TrackedPoint(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       leg_id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}leg_id'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}leg_id'])!,
       latitude: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}latitude'])!,
       longitude: attachedDatabase.typeMapping
@@ -616,125 +495,19 @@ class $TrackedPointTable extends TrackedPoint
   }
 
   @override
-  $TrackedPointTable createAlias(String alias) {
-    return $TrackedPointTable(attachedDatabase, alias);
+  $TrackedPointsTable createAlias(String alias) {
+    return $TrackedPointsTable(attachedDatabase, alias);
   }
 }
 
-class TrackedPointData extends DataClass
-    implements Insertable<TrackedPointData> {
-  final int id;
-  final String leg_id;
-  final double latitude;
-  final double longitude;
-  final double speed;
-  final DateTime timestamp;
-  const TrackedPointData(
-      {required this.id,
-      required this.leg_id,
-      required this.latitude,
-      required this.longitude,
-      required this.speed,
-      required this.timestamp});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['leg_id'] = Variable<String>(leg_id);
-    map['latitude'] = Variable<double>(latitude);
-    map['longitude'] = Variable<double>(longitude);
-    map['speed'] = Variable<double>(speed);
-    map['timestamp'] = Variable<DateTime>(timestamp);
-    return map;
-  }
-
-  TrackedPointCompanion toCompanion(bool nullToAbsent) {
-    return TrackedPointCompanion(
-      id: Value(id),
-      leg_id: Value(leg_id),
-      latitude: Value(latitude),
-      longitude: Value(longitude),
-      speed: Value(speed),
-      timestamp: Value(timestamp),
-    );
-  }
-
-  factory TrackedPointData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TrackedPointData(
-      id: serializer.fromJson<int>(json['id']),
-      leg_id: serializer.fromJson<String>(json['leg_id']),
-      latitude: serializer.fromJson<double>(json['latitude']),
-      longitude: serializer.fromJson<double>(json['longitude']),
-      speed: serializer.fromJson<double>(json['speed']),
-      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'leg_id': serializer.toJson<String>(leg_id),
-      'latitude': serializer.toJson<double>(latitude),
-      'longitude': serializer.toJson<double>(longitude),
-      'speed': serializer.toJson<double>(speed),
-      'timestamp': serializer.toJson<DateTime>(timestamp),
-    };
-  }
-
-  TrackedPointData copyWith(
-          {int? id,
-          String? leg_id,
-          double? latitude,
-          double? longitude,
-          double? speed,
-          DateTime? timestamp}) =>
-      TrackedPointData(
-        id: id ?? this.id,
-        leg_id: leg_id ?? this.leg_id,
-        latitude: latitude ?? this.latitude,
-        longitude: longitude ?? this.longitude,
-        speed: speed ?? this.speed,
-        timestamp: timestamp ?? this.timestamp,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('TrackedPointData(')
-          ..write('id: $id, ')
-          ..write('leg_id: $leg_id, ')
-          ..write('latitude: $latitude, ')
-          ..write('longitude: $longitude, ')
-          ..write('speed: $speed, ')
-          ..write('timestamp: $timestamp')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, leg_id, latitude, longitude, speed, timestamp);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TrackedPointData &&
-          other.id == this.id &&
-          other.leg_id == this.leg_id &&
-          other.latitude == this.latitude &&
-          other.longitude == this.longitude &&
-          other.speed == this.speed &&
-          other.timestamp == this.timestamp);
-}
-
-class TrackedPointCompanion extends UpdateCompanion<TrackedPointData> {
+class TrackedPointsCompanion extends UpdateCompanion<TrackedPoint> {
   final Value<int> id;
-  final Value<String> leg_id;
+  final Value<int> leg_id;
   final Value<double> latitude;
   final Value<double> longitude;
   final Value<double> speed;
   final Value<DateTime> timestamp;
-  const TrackedPointCompanion({
+  const TrackedPointsCompanion({
     this.id = const Value.absent(),
     this.leg_id = const Value.absent(),
     this.latitude = const Value.absent(),
@@ -742,9 +515,9 @@ class TrackedPointCompanion extends UpdateCompanion<TrackedPointData> {
     this.speed = const Value.absent(),
     this.timestamp = const Value.absent(),
   });
-  TrackedPointCompanion.insert({
+  TrackedPointsCompanion.insert({
     this.id = const Value.absent(),
-    required String leg_id,
+    required int leg_id,
     required double latitude,
     required double longitude,
     required double speed,
@@ -754,9 +527,9 @@ class TrackedPointCompanion extends UpdateCompanion<TrackedPointData> {
         longitude = Value(longitude),
         speed = Value(speed),
         timestamp = Value(timestamp);
-  static Insertable<TrackedPointData> custom({
+  static Insertable<TrackedPoint> custom({
     Expression<int>? id,
-    Expression<String>? leg_id,
+    Expression<int>? leg_id,
     Expression<double>? latitude,
     Expression<double>? longitude,
     Expression<double>? speed,
@@ -772,14 +545,14 @@ class TrackedPointCompanion extends UpdateCompanion<TrackedPointData> {
     });
   }
 
-  TrackedPointCompanion copyWith(
+  TrackedPointsCompanion copyWith(
       {Value<int>? id,
-      Value<String>? leg_id,
+      Value<int>? leg_id,
       Value<double>? latitude,
       Value<double>? longitude,
       Value<double>? speed,
       Value<DateTime>? timestamp}) {
-    return TrackedPointCompanion(
+    return TrackedPointsCompanion(
       id: id ?? this.id,
       leg_id: leg_id ?? this.leg_id,
       latitude: latitude ?? this.latitude,
@@ -796,7 +569,7 @@ class TrackedPointCompanion extends UpdateCompanion<TrackedPointData> {
       map['id'] = Variable<int>(id.value);
     }
     if (leg_id.present) {
-      map['leg_id'] = Variable<String>(leg_id.value);
+      map['leg_id'] = Variable<int>(leg_id.value);
     }
     if (latitude.present) {
       map['latitude'] = Variable<double>(latitude.value);
@@ -815,7 +588,7 @@ class TrackedPointCompanion extends UpdateCompanion<TrackedPointData> {
 
   @override
   String toString() {
-    return (StringBuffer('TrackedPointCompanion(')
+    return (StringBuffer('TrackedPointsCompanion(')
           ..write('id: $id, ')
           ..write('leg_id: $leg_id, ')
           ..write('latitude: $latitude, ')
@@ -829,12 +602,13 @@ class TrackedPointCompanion extends UpdateCompanion<TrackedPointData> {
 
 abstract class _$TripRepository extends GeneratedDatabase {
   _$TripRepository(QueryExecutor e) : super(e);
-  late final $TripTable trip = $TripTable(this);
-  late final $LegTable leg = $LegTable(this);
-  late final $TrackedPointTable trackedPoint = $TrackedPointTable(this);
+  late final $TripsTable trips = $TripsTable(this);
+  late final $LegsTable legs = $LegsTable(this);
+  late final $TrackedPointsTable trackedPoints = $TrackedPointsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [trip, leg, trackedPoint];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [trips, legs, trackedPoints];
 }

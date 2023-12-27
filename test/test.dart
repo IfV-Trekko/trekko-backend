@@ -7,4 +7,9 @@ void main() {
     var builder = LoginBuilder("https://google.de", "test", "test");
     expect(builder.build(), throwsA(predicate((e) => e is BuildException)));
   });
+
+  test("Insert trip with legs and tracked points", () async {
+    var builder = LoginBuilder("https://google.de", "test", "test");
+    expect(builder.build(), throwsA(predicate((e) => e is BuildException)));
+  });
 }
