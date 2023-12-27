@@ -1,0 +1,6 @@
+enum TrackingState {
+
+  running,
+  paused;
+
+}
