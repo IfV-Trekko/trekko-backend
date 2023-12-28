@@ -11,8 +11,6 @@
 migrate_working_dir/
 
 *.swp
-lib/model/account
-
 DerivedData/
 
 .generated/
