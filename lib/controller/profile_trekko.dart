@@ -1,39 +1,49 @@
 import 'dart:async';
 
 import 'package:app_backend/controller/analysis/trip_analysis.dart';
-import 'package:app_backend/controller/database/trip/trip_repository.dart';
 import 'package:app_backend/controller/onboarding/onboarder.dart';
 import 'package:app_backend/controller/tracking_state.dart';
 import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/model/account/account_data.dart';
+import 'package:app_backend/model/account/profile.dart';
+import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
 
-class UserTrekko implements Trekko {
-  final AccountData _accountData;
+class ProfiledTrekko implements Trekko {
+
+  final Profile _profile;
   late TrackingState _trackingState;
-  late TripRepository _tripRepository;
+  late Isar _isar;
   late StreamController<Position> _positionController;
 
-  UserTrekko(this._accountData) {
+  ProfiledTrekko(this._profile) {
     _trackingState = TrackingState.paused;
-    _tripRepository = TripRepository();
     _positionController = StreamController.broadcast();
-
-    _listenForLocationPermission();
-    _startTracking();
   }
 
-  void _listenForLocationPermission() {
-    Geolocator.getServiceStatusStream().listen((event) {
+  Future<void> init() async {
+    await _listenForLocationPermission();
+    await _startTracking();
+
+    var dir = await getApplicationDocumentsDirectory();
+    _isar = await Isar.open(
+      [TripSchema],
+      directory: dir.path,
+    );
+  }
+
+  Future<void> _listenForLocationPermission() async {
+    await Geolocator.getServiceStatusStream().listen((event) {
       if (event == ServiceStatus.disabled) {
         setTrackingState(TrackingState.paused);
       }
     });
   }
 
-  void _startTracking() {
+  Future<void> _startTracking() async {
     StreamSubscription? subscription;
-    this.getTrackingState().listen((event) {
+    await this.getTrackingState().listen((event) {
       if (event == TrackingState.running) {
         subscription = Geolocator.getPositionStream().listen((event) {
           _positionController.add(event);
@@ -43,15 +53,20 @@ class UserTrekko implements Trekko {
       }
     });
   }
+  
+  @override
+  Profile getProfile() {
+    return _profile;
+  }
 
   @override
-  Stream<TripAnalysis> analyze() {
+  Stream<TripAnalysis> analyze(Query<Trip> query) {
     // TODO: implement analyze
     throw UnimplementedError();
   }
 
   @override
-  Future donate() {
+  Future donate(Query<Trip> query) {
     // TODO: implement donate
     throw UnimplementedError();
   }
@@ -63,8 +78,15 @@ class UserTrekko implements Trekko {
   }
 
   @override
-  TripRepository getTripRepository() {
-    return _tripRepository;
+  Future<void> saveTrip(Trip trip) async {
+    await _isar.writeTxn(() async {
+      await _isar.trips.put(trip);
+    });
+  }
+
+  @override
+  QueryBuilder<Trip, Trip, QWhere> getTripQuery() {
+    return _isar.trips.where();
   }
 
   @override

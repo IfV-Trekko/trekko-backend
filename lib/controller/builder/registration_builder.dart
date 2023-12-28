@@ -4,8 +4,9 @@ import 'package:app_backend/controller/request/bodies/request/auth_request.dart'
 import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/controller/user_trekko.dart';
-import 'package:app_backend/model/account/account_data.dart';
+import 'package:app_backend/controller/profile_trekko.dart';
+import 'package:app_backend/model/account/profile.dart';
+import 'package:app_backend/model/account/preferences.dart';
 
 class RegistrationBuilder extends TrekkoBuilder {
 
@@ -30,6 +31,6 @@ class RegistrationBuilder extends TrekkoBuilder {
     return server
         .signUp(AuthRequest(email, password))
         .catchError(onError<AuthResponse>)
-        .then((value) => UserTrekko(AccountData(projectUrl, email, value.token)));
+        .then((value) => ProfiledTrekko(Profile(projectUrl, email, value.token, Preferences())));
   }
 }

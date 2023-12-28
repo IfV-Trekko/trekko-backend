@@ -1,9 +1,12 @@
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/login_builder.dart';
-import 'package:app_backend/controller/database/trip/trip_repository.dart';
+import 'package:app_backend/controller/profile_trekko.dart';
+import 'package:app_backend/model/account/preferences.dart';
+import 'package:app_backend/model/account/profile.dart';
 import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isar/isar.dart';
 import 'package:test/test.dart' as test;
 
 void main() {
@@ -17,9 +20,9 @@ void main() {
   });
 
   test.test("Insert trip with legs and tracked points and check if inserted", () async {
-    var repo = TripRepository();
-    await repo.addTrip(Trip(
-      uid: "test",
+    var repo = ProfiledTrekko(Profile("https://google.de", "test", "test", Preferences()));
+    await repo.init();
+    await repo.saveTrip(Trip(
       donationState: DonationState.donated,
       startTime: DateTime.now(),
       endTime: DateTime.now(),
@@ -27,8 +30,6 @@ void main() {
       purpose: "test",
     ));
 
-    await repo.watchTrips().listen((event) {
-      print(event);
-    });
+    expect(await repo.getTripQuery().count(), 1);
   });
 }

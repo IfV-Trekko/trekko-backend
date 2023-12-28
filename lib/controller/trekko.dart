@@ -1,20 +1,28 @@
 import 'dart:async';
 
 import 'package:app_backend/controller/analysis/trip_analysis.dart';
-import 'package:app_backend/controller/database/trip/trip_repository.dart';
 import 'package:app_backend/controller/onboarding/onboarder.dart';
 import 'package:app_backend/controller/tracking_state.dart';
+import 'package:app_backend/model/account/profile.dart';
+import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:isar/isar.dart';
 
 abstract class Trekko {
 
+  Future<void> init();
+
+  Profile getProfile();
+
   Onboarder getOnboarder();
 
-  TripRepository getTripRepository();
+  Future<void> saveTrip(Trip trip);
 
-  Stream<TripAnalysis> analyze(); // TODO: Filter
+  QueryBuilder<Trip, Trip, QWhere> getTripQuery();
 
-  Future donate(); // TODO: Filter
+  Stream<TripAnalysis> analyze(Query<Trip> query);
+
+  Future<void> donate(Query<Trip> query);
 
   Future<Stream<Position>> getPosition();
 
