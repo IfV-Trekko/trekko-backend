@@ -57,7 +57,7 @@ void _trackedPointSerialize(
 ) {
   writer.writeDouble(offsets[0], object.latitude);
   writer.writeDouble(offsets[1], object.longitude);
-  writer.writeDouble(offsets[2], object.speed);
+  writer.writeDouble(offsets[2], object.speed_in_kmh);
   writer.writeDateTime(offsets[3], object.timestamp);
 }
 
