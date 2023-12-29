@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:app_backend/controller/analysis/trip_analysis.dart';
+import 'package:app_backend/controller/analysis/cached_analysis_builder.dart';
+import 'package:app_backend/controller/analysis/trips_analysis.dart';
 import 'package:app_backend/controller/onboarding/onboarder.dart';
 import 'package:app_backend/controller/tracking_state.dart';
 import 'package:app_backend/controller/trekko.dart';
@@ -60,9 +61,8 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Stream<TripAnalysis> analyze(Query<Trip> query) {
-    // TODO: implement analyze
-    throw UnimplementedError();
+  Stream<TripsAnalysis> analyze(Query<Trip> query) {
+    return CachedAnalysisBuilder().build(query);
   }
 
   @override
