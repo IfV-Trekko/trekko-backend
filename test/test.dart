@@ -1,3 +1,5 @@
+import 'package:app_backend/controller/analysis/calculation_reduction.dart';
+import 'package:app_backend/controller/analysis/trip_data.dart';
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/login_builder.dart';
 import 'package:app_backend/controller/profile_trekko.dart';
@@ -29,6 +31,23 @@ void main() {
       comment: "test",
       purpose: "test",
     ));
+
+    test.test("Analyse trip", () async {
+      var repo = ProfiledTrekko(Profile("https://google.de", "test", "test", Preferences()));
+
+      repo.saveTrip(Trip(
+        donationState: DonationState.donated,
+        startTime: DateTime.now(),
+        endTime: DateTime.now().add(Duration(seconds: 1)),
+        comment: "test",
+        purpose: "test",
+      ));
+
+      var analysis = await repo.analyze(repo.getTripQuery().build());
+
+      expect((await analysis.first).getData(TripData.duration_in_seconds, CalculationReduction.AVERAGE), 1);
+      expect((await analysis.first).getData(TripData.distance_in_meters, CalculationReduction.AVERAGE), 0);
+    });
 
     expect(await repo.getTripQuery().count(), 1);
   });
