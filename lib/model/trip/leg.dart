@@ -10,6 +10,8 @@ class Leg {
   @enumerated
   final TransportType transportationType;
   final List<TrackedPoint> trackedPoints;
+  
+  Leg.fromTransportType(this.transportationType) : trackedPoints = [];
 
   Leg() : transportationType = TransportType.car, trackedPoints = [];
 

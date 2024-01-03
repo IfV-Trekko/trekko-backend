@@ -5,6 +5,8 @@ import 'package:app_backend/controller/analysis/trips_analysis.dart';
 import 'package:app_backend/controller/onboarding/onboarder.dart';
 import 'package:app_backend/controller/tracking_state.dart';
 import 'package:app_backend/controller/trekko.dart';
+import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
+import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/account/profile.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator/geolocator.dart';
@@ -51,6 +53,17 @@ class ProfiledTrekko implements Trekko {
         });
       } else {
         subscription?.cancel();
+      }
+    });
+
+    TripWrapper tripWrapper = AnalyzingTripWrapper();
+    _positionController.stream.listen((event) async {
+      double endTripProbability = await tripWrapper.calculateEndProbability();
+      if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.9) {
+        await saveTrip(await tripWrapper.get());
+        tripWrapper = AnalyzingTripWrapper();
+      } else {
+        await tripWrapper.add(event);
       }
     });
   }
