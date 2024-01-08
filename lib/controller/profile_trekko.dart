@@ -87,14 +87,14 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Stream<TripsAnalysis> analyze(Query<Trip> query) {
-    return CachedAnalysisBuilder().build(query);
-  }
-
-  @override
   Future donate(Query<Trip> query) {
     // TODO: implement donate
     throw UnimplementedError();
+  }
+
+  @override
+  Stream<TripsAnalysis> analyze(Query<Trip> query) {
+    return CachedAnalysisBuilder().build(query);
   }
 
   @override
