@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:app_backend/controller/analysis/cached_analysis_builder.dart';
 import 'package:app_backend/controller/analysis/trips_analysis.dart';
-import 'package:app_backend/controller/onboarding/onboarder.dart';
 import 'package:app_backend/controller/tracking_state.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:app_backend/model/account/onboarding/onboarding_text_type.dart';
 import 'package:app_backend/model/account/profile.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator/geolocator.dart';
@@ -69,8 +69,21 @@ class ProfiledTrekko implements Trekko {
   }
   
   @override
-  Profile getProfile() {
-    return _profile;
+  Stream<Profile> getProfile() {
+    return Stream.periodic(Duration(milliseconds: 100), (i) => _profile)
+        .distinct();
+  }
+
+  @override
+  Future<String> loadText(OnboardingTextType type) {
+    // TODO: implement loadText
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveProfile(Profile profile) {
+    // TODO: implement saveProfile
+    throw UnimplementedError();
   }
 
   @override
@@ -81,12 +94,6 @@ class ProfiledTrekko implements Trekko {
   @override
   Future donate(Query<Trip> query) {
     // TODO: implement donate
-    throw UnimplementedError();
-  }
-
-  @override
-  Onboarder getOnboarder() {
-    // TODO: implement getOnboarder
     throw UnimplementedError();
   }
 
