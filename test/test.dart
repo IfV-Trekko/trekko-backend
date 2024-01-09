@@ -30,6 +30,7 @@ void main() {
       endTime: DateTime.now(),
       comment: "test",
       purpose: "test",
+      legs: [],
     ));
 
     test.test("Analyse trip", () async {
@@ -41,6 +42,7 @@ void main() {
         endTime: DateTime.now().add(Duration(seconds: 1)),
         comment: "test",
         purpose: "test",
+        legs: [],
       ));
 
       var analysis = await repo.analyze(repo.getTripQuery().build());

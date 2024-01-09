@@ -23,9 +23,9 @@ const TrackedPointSchema = Schema(
       name: r'longitude',
       type: IsarType.double,
     ),
-    r'speed': PropertySchema(
+    r'speed_in_kmh': PropertySchema(
       id: 2,
-      name: r'speed',
+      name: r'speed_in_kmh',
       type: IsarType.double,
     ),
     r'timestamp': PropertySchema(
@@ -225,13 +225,14 @@ extension TrackedPointQueryFilter
     });
   }
 
-  QueryBuilder<TrackedPoint, TrackedPoint, QAfterFilterCondition> speedEqualTo(
+  QueryBuilder<TrackedPoint, TrackedPoint, QAfterFilterCondition>
+      speed_in_kmhEqualTo(
     double value, {
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'speed',
+        property: r'speed_in_kmh',
         value: value,
         epsilon: epsilon,
       ));
@@ -239,7 +240,7 @@ extension TrackedPointQueryFilter
   }
 
   QueryBuilder<TrackedPoint, TrackedPoint, QAfterFilterCondition>
-      speedGreaterThan(
+      speed_in_kmhGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -247,14 +248,15 @@ extension TrackedPointQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'speed',
+        property: r'speed_in_kmh',
         value: value,
         epsilon: epsilon,
       ));
     });
   }
 
-  QueryBuilder<TrackedPoint, TrackedPoint, QAfterFilterCondition> speedLessThan(
+  QueryBuilder<TrackedPoint, TrackedPoint, QAfterFilterCondition>
+      speed_in_kmhLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -262,14 +264,15 @@ extension TrackedPointQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'speed',
+        property: r'speed_in_kmh',
         value: value,
         epsilon: epsilon,
       ));
     });
   }
 
-  QueryBuilder<TrackedPoint, TrackedPoint, QAfterFilterCondition> speedBetween(
+  QueryBuilder<TrackedPoint, TrackedPoint, QAfterFilterCondition>
+      speed_in_kmhBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -278,7 +281,7 @@ extension TrackedPointQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'speed',
+        property: r'speed_in_kmh',
         lower: lower,
         includeLower: includeLower,
         upper: upper,

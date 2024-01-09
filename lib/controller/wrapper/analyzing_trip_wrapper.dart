@@ -42,7 +42,8 @@ class AnalyzingTripWrapper implements TripWrapper {
             .trackedPoints[legs[legs.length - 1].trackedPoints.length - 1]
             .timestamp,
         comment: null,
-        purpose: null);
+        purpose: null,
+        legs: []);
 
     legs.forEach((element) {
       trip.legs.add(element);

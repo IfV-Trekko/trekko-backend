@@ -124,6 +124,13 @@ Trip _tripDeserialize(
         _TripdonationStateValueEnumMap[reader.readByteOrNull(offsets[1])] ??
             DonationState.donated,
     endTime: reader.readDateTime(offsets[2]),
+    legs: reader.readObjectList<Leg>(
+          offsets[3],
+          LegSchema.deserialize,
+          allOffsets,
+          Leg(),
+        ) ??
+        [],
     purpose: reader.readStringOrNull(offsets[4]),
     startTime: reader.readDateTime(offsets[5]),
   );

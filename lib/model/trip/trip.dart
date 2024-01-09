@@ -15,7 +15,7 @@ class Trip {
   final DateTime endTime;
   final String? comment;
   final String? purpose;
-  final List<Leg> legs = [];
+  final List<Leg> legs;
 
   Trip({
     required this.donationState,
@@ -23,5 +23,6 @@ class Trip {
     required this.endTime,
     required this.comment,
     required this.purpose,
+    required this.legs,
   });
 }

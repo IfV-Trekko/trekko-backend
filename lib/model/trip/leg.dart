@@ -11,7 +11,7 @@ class Leg {
   final TransportType transportationType;
   final List<TrackedPoint> trackedPoints;
   
-  Leg.fromTransportType(this.transportationType) : trackedPoints = [];
+  Leg.withData(this.transportationType, this.trackedPoints);
 
   Leg() : transportationType = TransportType.car, trackedPoints = [];
 

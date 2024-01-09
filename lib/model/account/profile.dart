@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 @collection
 class Profile {
 
+  final Id id = Isar.autoIncrement;
   final String projectUrl;
   final String email;
   final String token;
