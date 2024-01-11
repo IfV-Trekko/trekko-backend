@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:app_backend/controller/analysis/cached_analysis_builder.dart';
 import 'package:app_backend/controller/analysis/trips_analysis.dart';
+import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
+import 'package:app_backend/controller/request/trekko_server.dart';
+import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/tracking_state.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/account/onboarding/onboarding_text_type.dart';
 import 'package:app_backend/model/account/profile.dart';
+import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
@@ -19,10 +23,12 @@ class ProfiledTrekko implements Trekko {
   late TrackingState _trackingState;
   late Isar _isar;
   late StreamController<Position> _positionController;
+  late TrekkoServer _server; // TODO: Init
 
   ProfiledTrekko(this._profile) {
     _trackingState = TrackingState.paused;
     _positionController = StreamController.broadcast();
+    _server = UrlTrekkoServer.withToken(_profile.projectUrl, _profile.token);
   }
 
   Future<void> init() async {
@@ -87,9 +93,37 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future donate(Query<Trip> query) {
-    // TODO: implement donate
-    throw UnimplementedError();
+  Future<void> donate(Query<Trip> query) async {
+    await query.findAll().then((trips) async {
+      await _server.donateTrips(TripsRequest.fromTrips(trips));
+    });
+  }
+
+  @override
+  Future<bool> deleteTrip(int tripId) async {
+    return await _isar.trips.delete(tripId).then((found) async {
+      if (found) {
+        await _server.deleteTrip(tripId.toString());
+      }
+      return found;
+    });
+  }
+
+  @override
+  Future<Trip> mergeTrips(Query<Trip> trips) async {
+    return await trips.findAll().then((trips) async {
+      TripWrapper tripWrapper = AnalyzingTripWrapper();
+      List<TrackedPoint> points = trips.map((trip) => trip.legs).expand((leg) => leg).expand((p) => p.trackedPoints).toList();
+      points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      for (var point in points) {
+        await tripWrapper.add(point.toPosition());
+      }
+      Trip merged = await tripWrapper.get();
+      trips.forEach((trip) async => await deleteTrip(trip.id));
+      await saveTrip(merged);
+      await donate(_isar.trips.where().idEqualTo(merged.id).build());
+      return merged;
+    });
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:app_backend/controller/builder/trekko_builder.dart';
 import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
 import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
+import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/profile_trekko.dart';
 import 'package:app_backend/model/account/profile.dart';
@@ -18,7 +19,7 @@ class RegistrationBuilder extends TrekkoBuilder {
   late final TrekkoServer server;
 
   RegistrationBuilder(this.projectUrl, this.email, this.password, this.passwordConfirmation, this.code) {
-    server = TrekkoServer(projectUrl);
+    server = UrlTrekkoServer(projectUrl);
   }
 
   @override

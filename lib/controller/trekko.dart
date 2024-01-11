@@ -20,6 +20,10 @@ abstract class Trekko {
 
   Future<void> saveTrip(Trip trip);
 
+  Future<bool> deleteTrip(int tripId);
+
+  Future<Trip> mergeTrips(Query<Trip> trips);
+
   QueryBuilder<Trip, Trip, QWhere> getTripQuery();
 
   Stream<TripsAnalysis> analyze(Query<Trip> query);
