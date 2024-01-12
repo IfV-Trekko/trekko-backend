@@ -18,6 +18,7 @@ import 'package:app_backend/controller/request/request_exception.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:http/http.dart';
 import 'package:requests/requests.dart';
+import 'package:sprintf/sprintf.dart';
 
 class UrlTrekkoServer implements TrekkoServer {
   final String baseUrl;
@@ -27,8 +28,8 @@ class UrlTrekkoServer implements TrekkoServer {
 
   UrlTrekkoServer.withToken(this.baseUrl, this.token);
 
-  _parseUrl<S, R>(Endpoint endpoint) {
-    return baseUrl + endpoint.path;
+  _parseUrl<S, R>(Endpoint endpoint, List<String> pathParams) {
+    return baseUrl + sprintf(endpoint.path, pathParams);
   }
 
   Map<String, String> _buildHeader(Endpoint endpoint) {
@@ -78,8 +79,9 @@ class UrlTrekkoServer implements TrekkoServer {
       Endpoint endpoint,
       dynamic encode,
       int expectedStatusCode,
-      T Function(Map<String, dynamic>) parser) {
-    return requestCall(_parseUrl(endpoint),
+      T Function(Map<String, dynamic>) parser,
+      {List<String> pathParams = const []}) {
+    return requestCall(_parseUrl(endpoint, pathParams),
             headers: _buildHeader(endpoint), body: encode.toJson())
         .then((value) => _parseBody(value, expectedStatusCode, parser));
   }
@@ -154,10 +156,11 @@ class UrlTrekkoServer implements TrekkoServer {
   Future<ServerTrip> updateTrip(ServerTrip trip) {
     return _sendRequest(
       Requests.put,
-      Endpoint.trip, // TODO: Replace tripId in endpoint
+      Endpoint.trip,
       trip,
       200,
       ServerTrip.fromJson,
+      pathParams: [trip.uid],
     );
   }
 
@@ -165,10 +168,11 @@ class UrlTrekkoServer implements TrekkoServer {
   Future<EmptyResponse> deleteTrip(String tripId) {
     return _sendRequest(
       Requests.delete,
-      Endpoint.trip, // TODO: Replace tripId in endpoint
+      Endpoint.trip,
       EmptyRequest(),
       204,
       EmptyResponse.fromJson,
+      pathParams: [tripId],
     );
   }
 
