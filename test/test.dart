@@ -2,7 +2,7 @@ import 'package:app_backend/controller/analysis/calculation_reduction.dart';
 import 'package:app_backend/controller/analysis/trip_data.dart';
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/login_builder.dart';
-import 'package:app_backend/controller/profile_trekko.dart';
+import 'package:app_backend/controller/profiled_trekko.dart';
 import 'package:app_backend/model/account/preferences.dart';
 import 'package:app_backend/model/account/profile.dart';
 import 'package:app_backend/model/trip/donation_state.dart';
