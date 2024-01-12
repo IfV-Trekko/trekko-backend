@@ -81,8 +81,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<String> loadText(OnboardingTextType type) {
-    // TODO: implement loadText
-    throw UnimplementedError();
+    return Future.value("Matthias bitte implementiere diese Funktion."); // TODO: implement loadText
   }
 
   @override
