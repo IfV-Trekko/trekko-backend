@@ -1,5 +1,9 @@
 import 'package:app_backend/model/trip/trip.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'server_trip.g.dart';
+
+@JsonSerializable()
 class ServerTrip {
 
   final String uid;
@@ -20,5 +24,9 @@ class ServerTrip {
     transportTypes = trip.legs.map((e) => e.transportationType.toString()).toList(),
     purpose = trip.purpose,
     comment = trip.comment;
+
+  Map<String, dynamic> toJson() => _$ServerTripToJson(this);
+
+  factory ServerTrip.fromJson(Map<String, dynamic> json) => _$ServerTripFromJson(json);
 
 }
