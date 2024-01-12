@@ -3,7 +3,7 @@ import 'package:app_backend/model/trip/transport_type.dart';
 
 enum TransportTypeData implements TransportTypeDataProvider {
 
-  foot;
+  by_foot;
 
   @override
   Future<double> getMaximumSpeed() {
@@ -17,6 +17,6 @@ enum TransportTypeData implements TransportTypeDataProvider {
 
   @override
   TransportType getTransportType() {
-    return TransportType.foot;
+    return TransportType.by_foot;
   }
 }

@@ -1,10 +1,16 @@
 // Leave order and names as is!
 enum TransportType {
-  foot,
-  bicycle,
-  car,
-  publicTransport,
-  ship,
-  plane,
-  other
+  by_foot("BY_FOOT"),
+  bicycle("BICYCLE"),
+  car("CAR"),
+  publicTransport("PUBLIC_TRANSPORT"),
+  ship("SHIP"),
+  plane("PLANE"),
+  other("OTHER");
+
+  final String name;
+
+  const TransportType(this.name);
+
+  String toString() => name;
 }

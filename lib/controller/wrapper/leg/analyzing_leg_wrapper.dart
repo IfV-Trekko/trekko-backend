@@ -33,7 +33,7 @@ class AnalyzingLegWrapper implements LegWrapper {
   @override
   Future<Leg> get() async {
     double maxProbability = 0;
-    TransportTypeData maxData = TransportTypeData.foot;
+    TransportTypeData maxData = TransportTypeData.by_foot;
     for (TransportTypeData data in TransportTypeData.values) {
       double probability = await calculateProbability(data);
       if (probability > maxProbability) {

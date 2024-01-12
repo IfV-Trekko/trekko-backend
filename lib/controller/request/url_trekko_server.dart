@@ -1,12 +1,18 @@
 import 'dart:convert';
 
 import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
+import 'package:app_backend/controller/request/bodies/request/change_password_request.dart';
 import 'package:app_backend/controller/request/bodies/request/code_request.dart';
+import 'package:app_backend/controller/request/bodies/request/empty_request.dart';
+import 'package:app_backend/controller/request/bodies/request/send_code_request.dart';
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:app_backend/controller/request/bodies/response/empty_response.dart';
 import 'package:app_backend/controller/request/bodies/response/error_response.dart';
+import 'package:app_backend/controller/request/bodies/response/form_response.dart';
 import 'package:app_backend/controller/request/bodies/response/trips_response.dart';
+import 'package:app_backend/controller/request/bodies/server_profile.dart';
+import 'package:app_backend/controller/request/bodies/server_trip.dart';
 import 'package:app_backend/controller/request/endpoint.dart';
 import 'package:app_backend/controller/request/request_exception.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
@@ -14,7 +20,6 @@ import 'package:http/http.dart';
 import 'package:requests/requests.dart';
 
 class UrlTrekkoServer implements TrekkoServer {
-
   final String baseUrl;
   final String? token;
 
@@ -102,6 +107,17 @@ class UrlTrekkoServer implements TrekkoServer {
   }
 
   @override
+  Future<EmptyResponse> sendCode(SendCodeRequest request) {
+    return _sendRequest(
+      Requests.post,
+      Endpoint.forgot_password,
+      request,
+      200,
+      EmptyResponse.fromJson,
+    );
+  }
+
+  @override
   Future<EmptyResponse> confirmEmail(CodeRequest request) {
     return _sendRequest(
       Requests.post,
@@ -113,14 +129,90 @@ class UrlTrekkoServer implements TrekkoServer {
   }
 
   @override
-  Future<EmptyResponse> deleteTrip(String tripId) {
-    // TODO: implement deleteTrip
-    throw UnimplementedError();
+  Future<EmptyResponse> changePassword(ChangePasswordRequest request) {
+    return _sendRequest(
+      Requests.post,
+      Endpoint.forgot_password,
+      request,
+      200,
+      EmptyResponse.fromJson,
+    );
   }
 
   @override
   Future<TripsResponse> donateTrips(TripsRequest request) {
-    // TODO: implement donateTrips
-    throw UnimplementedError();
+    return _sendRequest(
+      Requests.post,
+      Endpoint.donate,
+      request,
+      201,
+      TripsResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<ServerTrip> updateTrip(ServerTrip trip) {
+    return _sendRequest(
+      Requests.put,
+      Endpoint.trip, // TODO: Replace tripId in endpoint
+      trip,
+      200,
+      ServerTrip.fromJson,
+    );
+  }
+
+  @override
+  Future<EmptyResponse> deleteTrip(String tripId) {
+    return _sendRequest(
+      Requests.delete,
+      Endpoint.trip, // TODO: Replace tripId in endpoint
+      EmptyRequest(),
+      204,
+      EmptyResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<ServerProfile> getProfile() {
+    return _sendRequest(
+      Requests.get,
+      Endpoint.profile,
+      EmptyRequest(),
+      200,
+      ServerProfile.fromJson,
+    );
+  }
+
+  @override
+  Future<EmptyResponse> updateProfile(ServerProfile profile) {
+    return _sendRequest(
+      Requests.put,
+      Endpoint.profile,
+      profile,
+      200,
+      EmptyResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<EmptyResponse> deleteAccount() {
+    return _sendRequest(
+      Requests.delete,
+      Endpoint.profile,
+      EmptyRequest(),
+      204,
+      EmptyResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<FormResponse> getForm() {
+    return _sendRequest(
+      Requests.get,
+      Endpoint.form,
+      EmptyRequest(),
+      200,
+      FormResponse.fromJson,
+    );
   }
 }

@@ -92,14 +92,14 @@ P _legDeserializeProp<P>(
     case 1:
       return (_LegtransportationTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
-          TransportType.foot) as P;
+          TransportType.by_foot) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 const _LegtransportationTypeEnumValueMap = {
-  'foot': 0,
+  'by_foot': 0,
   'bicycle': 1,
   'car': 2,
   'publicTransport': 3,
@@ -108,7 +108,7 @@ const _LegtransportationTypeEnumValueMap = {
   'other': 6,
 };
 const _LegtransportationTypeValueEnumMap = {
-  0: TransportType.foot,
+  0: TransportType.by_foot,
   1: TransportType.bicycle,
   2: TransportType.car,
   3: TransportType.publicTransport,
