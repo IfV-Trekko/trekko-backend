@@ -5,13 +5,12 @@ part 'form_response.g.dart';
 
 @JsonSerializable()
 class FormResponse {
-
   final List<ServerFormEntry> fields;
 
   FormResponse(this.fields);
 
   Map<String, dynamic> toJson() => _$FormResponseToJson(this);
 
-  factory FormResponse.fromJson(Map<String, dynamic> json) => _$FormResponseFromJson(json);
-
+  factory FormResponse.fromJson(Map<String, dynamic> json) =>
+      _$FormResponseFromJson(json);
 }

@@ -4,13 +4,12 @@ part 'send_code_request.g.dart';
 
 @JsonSerializable()
 class SendCodeRequest {
-
   final String email;
 
   SendCodeRequest(this.email);
 
   Map<String, dynamic> toJson() => _$SendCodeRequestToJson(this);
 
-  factory SendCodeRequest.fromJson(Map<String, dynamic> json) => _$SendCodeRequestFromJson(json);
-
+  factory SendCodeRequest.fromJson(Map<String, dynamic> json) =>
+      _$SendCodeRequestFromJson(json);
 }

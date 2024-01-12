@@ -1,5 +1,4 @@
 class EmptyRequest {
-
   EmptyRequest();
 
   Map<String, dynamic> toJson() => {};
@@ -7,5 +6,4 @@ class EmptyRequest {
   factory EmptyRequest.fromJson(Map<String, dynamic> json) {
     return EmptyRequest();
   }
-
 }

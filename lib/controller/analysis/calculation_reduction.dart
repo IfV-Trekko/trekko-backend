@@ -1,5 +1,4 @@
 enum CalculationReduction {
-
   AVERAGE,
   SUM,
   MAX,

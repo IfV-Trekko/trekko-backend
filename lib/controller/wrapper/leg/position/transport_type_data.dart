@@ -2,7 +2,6 @@ import 'package:app_backend/controller/wrapper/leg/position/transport_type_data_
 import 'package:app_backend/model/trip/transport_type.dart';
 
 enum TransportTypeData implements TransportTypeDataProvider {
-
   by_foot;
 
   @override

@@ -11,7 +11,6 @@ import 'package:app_backend/controller/request/bodies/server_profile.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
 
 abstract class TrekkoServer {
-
   Future<AuthResponse> signIn(AuthRequest request);
 
   Future<AuthResponse> signUp(AuthRequest request);

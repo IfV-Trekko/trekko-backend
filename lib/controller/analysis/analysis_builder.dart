@@ -3,7 +3,5 @@ import 'package:app_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
 
 abstract class AnalysisBuilder {
-
   Stream<TripsAnalysis> build(Query<Trip> trips);
-
 }

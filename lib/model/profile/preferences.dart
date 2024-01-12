@@ -5,7 +5,5 @@ part 'preferences.g.dart';
 
 @embedded
 class Preferences {
-
   final List<OnboardingQuestion> onboardingQuestions = [];
-
 }

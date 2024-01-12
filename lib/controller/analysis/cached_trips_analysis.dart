@@ -4,10 +4,10 @@ import 'package:app_backend/controller/analysis/trip_data.dart';
 import 'package:app_backend/controller/analysis/trips_analysis.dart';
 
 class CachedTripsAnalysis implements TripsAnalysis {
-
   Map<AnalysisOption, double> _data;
 
-  CachedTripsAnalysis(Map<AnalysisOption, double> data) : this._data = Map()..addAll(data);
+  CachedTripsAnalysis(Map<AnalysisOption, double> data)
+      : this._data = Map()..addAll(data);
 
   @override
   double getData(TripData data, CalculationReduction reduction) {

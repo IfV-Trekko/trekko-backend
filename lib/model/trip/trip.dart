@@ -7,7 +7,6 @@ part 'trip.g.dart';
 
 @collection
 class Trip {
-
   final Id id = Isar.autoIncrement;
   @enumerated
   final DonationState donationState;

@@ -1,4 +1,1 @@
-enum OnboardingTextType {
-  whoText,
-  whatText
-}
+enum OnboardingTextType { whoText, whatText }

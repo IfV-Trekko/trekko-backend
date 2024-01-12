@@ -4,7 +4,6 @@ part 'form_entry_option.g.dart';
 
 @JsonSerializable()
 class FormEntryOption {
-
   final String key;
   final String title;
 
@@ -12,6 +11,6 @@ class FormEntryOption {
 
   Map<String, dynamic> toJson() => _$FormEntryOptionToJson(this);
 
-  factory FormEntryOption.fromJson(Map<String, dynamic> json) => _$FormEntryOptionFromJson(json);
-
+  factory FormEntryOption.fromJson(Map<String, dynamic> json) =>
+      _$FormEntryOptionFromJson(json);
 }

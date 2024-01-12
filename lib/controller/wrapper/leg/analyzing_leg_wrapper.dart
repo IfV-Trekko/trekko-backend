@@ -43,7 +43,9 @@ class AnalyzingLegWrapper implements LegWrapper {
     }
 
     Leg leg = Leg.withData(maxData.getTransportType(), []);
-    positions.map(TrackedPoint.fromPosition).forEach((tp) => leg.trackedPoints.add(tp));
+    positions
+        .map(TrackedPoint.fromPosition)
+        .forEach((tp) => leg.trackedPoints.add(tp));
     return Future.value(leg);
   }
 }

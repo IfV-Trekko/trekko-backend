@@ -5,7 +5,6 @@ part 'server_form_entry.g.dart';
 
 @JsonSerializable()
 class ServerFormEntry {
-
   final String key;
   final String title;
   final String type;
@@ -16,6 +15,6 @@ class ServerFormEntry {
 
   Map<String, dynamic> toJson() => _$ServerFormEntryToJson(this);
 
-  factory ServerFormEntry.fromJson(Map<String, dynamic> json) => _$ServerFormEntryFromJson(json);
-
+  factory ServerFormEntry.fromJson(Map<String, dynamic> json) =>
+      _$ServerFormEntryFromJson(json);
 }

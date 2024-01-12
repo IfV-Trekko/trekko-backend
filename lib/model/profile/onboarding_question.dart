@@ -11,7 +11,13 @@ class OnboardingQuestion {
   final List<String>? options;
   String? value;
 
-  OnboardingQuestion() : key = "", title = '', required = false, regex = null, options = null;
+  OnboardingQuestion()
+      : key = "",
+        title = '',
+        required = false,
+        regex = null,
+        options = null;
 
-  OnboardingQuestion.withData(this.key, this.title, this.required, this.regex, this.options);
+  OnboardingQuestion.withData(
+      this.key, this.title, this.required, this.regex, this.options);
 }

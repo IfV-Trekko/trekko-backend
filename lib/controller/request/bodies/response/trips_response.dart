@@ -2,7 +2,6 @@ import 'package:app_backend/controller/request/bodies/server_trip.dart';
 import 'package:app_backend/model/trip/trip.dart';
 
 class TripsResponse {
-
   late final List<ServerTrip> trips;
 
   TripsResponse(this.trips);
@@ -11,13 +10,12 @@ class TripsResponse {
     this.trips = trips.map((trip) => ServerTrip.fromTrip(trip)).toList();
   }
 
-  Map<String, dynamic> toJson() => {
-    'trips': trips.map((trip) => trip.toJson()).toList()
-  };
+  Map<String, dynamic> toJson() =>
+      {'trips': trips.map((trip) => trip.toJson()).toList()};
 
   factory TripsResponse.fromJson(Map<String, dynamic> json) {
-    return TripsResponse(
-      (json['trips'] as List<dynamic>).map((trip) => ServerTrip.fromJson(trip)).toList()
-    );
+    return TripsResponse((json['trips'] as List<dynamic>)
+        .map((trip) => ServerTrip.fromJson(trip))
+        .toList());
   }
 }
