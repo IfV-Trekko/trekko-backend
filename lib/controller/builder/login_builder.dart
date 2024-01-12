@@ -6,8 +6,8 @@ import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/profiled_trekko.dart';
-import 'package:app_backend/model/account/profile.dart';
-import 'package:app_backend/model/account/preferences.dart';
+import 'package:app_backend/model/profile/profile.dart';
+import 'package:app_backend/model/profile/preferences.dart';
 
 class LoginBuilder extends TrekkoBuilder {
   final String projectUrl;

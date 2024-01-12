@@ -1,4 +1,4 @@
-import 'package:app_backend/model/account/onboarding/onboarding_question.dart';
+import 'package:app_backend/model/profile/onboarding_question.dart';
 import 'package:isar/isar.dart';
 
 part 'preferences.g.dart';

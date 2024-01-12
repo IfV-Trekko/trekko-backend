@@ -1,6 +1,6 @@
 import 'package:app_backend/controller/request/bodies/server_profile.dart';
-import 'package:app_backend/model/account/onboarding/onboarding_question.dart';
-import 'package:app_backend/model/account/preferences.dart';
+import 'package:app_backend/model/profile/onboarding_question.dart';
+import 'package:app_backend/model/profile/preferences.dart';
 import 'package:isar/isar.dart';
 
 part 'profile.g.dart';
