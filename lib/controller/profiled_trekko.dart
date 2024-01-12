@@ -137,9 +137,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> saveTrip(Trip trip) async {
-    await _isar.writeTxn(() async {
-      await _isar.trips.put(trip);
-    });
+    await _isar.trips.put(trip);
   }
 
   @override
