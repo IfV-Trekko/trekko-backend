@@ -18,12 +18,11 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ProfiledTrekko implements Trekko {
-
   final Profile _profile;
   late TrackingState _trackingState;
   late Isar _isar;
   late StreamController<Position> _positionController;
-  late TrekkoServer _server; // TODO: Init
+  late TrekkoServer _server;
 
   ProfiledTrekko(this._profile) {
     _trackingState = TrackingState.paused;
@@ -73,7 +72,7 @@ class ProfiledTrekko implements Trekko {
       }
     });
   }
-  
+
   @override
   Stream<Profile> getProfile() {
     return Stream.periodic(Duration(milliseconds: 100), (i) => _profile)
@@ -87,9 +86,10 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future<void> saveProfile(Profile profile) {
-    // TODO: implement saveProfile
-    throw UnimplementedError();
+  Future<void> saveProfile(Profile profile) async {
+    _isar.profiles
+        .put(profile)
+        .then((value) => _server.updateProfile(profile.toServerProfile()));
   }
 
   @override
@@ -113,7 +113,11 @@ class ProfiledTrekko implements Trekko {
   Future<Trip> mergeTrips(Query<Trip> trips) async {
     return await trips.findAll().then((trips) async {
       TripWrapper tripWrapper = AnalyzingTripWrapper();
-      List<TrackedPoint> points = trips.map((trip) => trip.legs).expand((leg) => leg).expand((p) => p.trackedPoints).toList();
+      List<TrackedPoint> points = trips
+          .map((trip) => trip.legs)
+          .expand((leg) => leg)
+          .expand((p) => p.trackedPoints)
+          .toList();
       points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
       for (var point in points) {
         await tripWrapper.add(point.toPosition());
