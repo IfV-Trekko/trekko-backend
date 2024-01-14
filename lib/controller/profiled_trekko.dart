@@ -6,6 +6,7 @@ import 'package:app_backend/controller/request/bodies/request/trips_request.dart
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
+import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
@@ -15,7 +16,6 @@ import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
 
 class ProfiledTrekko implements Trekko {
   final Profile _profile;
@@ -34,11 +34,8 @@ class ProfiledTrekko implements Trekko {
     await _listenForLocationPermission();
     await _startTracking();
 
-    var dir = await getApplicationDocumentsDirectory();
-    _isar = await Isar.open(
-      [TripSchema],
-      directory: dir.path,
-    );
+    _isar = await DatabaseUtils.establishConnection();
+    await _isar.profiles.put(_profile);
   }
 
   Future<void> _listenForLocationPermission() async {

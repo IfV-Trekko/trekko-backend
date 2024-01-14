@@ -22,7 +22,7 @@ void main() {
   });
 
   test.test("Insert trip with legs and tracked points and check if inserted", () async {
-    var repo = ProfiledTrekko(Profile("https://google.de", "test", "test", Preferences()));
+    var repo = ProfiledTrekko(Profile("https://google.de", "test", "test", DateTime.now(), Preferences()));
     await repo.init();
     await repo.saveTrip(Trip(
       donationState: DonationState.donated,
@@ -34,7 +34,7 @@ void main() {
     ));
 
     test.test("Analyse trip", () async {
-      var repo = ProfiledTrekko(Profile("https://google.de", "test", "test", Preferences()));
+      var repo = ProfiledTrekko(Profile("https://google.de", "test", "test", DateTime.now(), Preferences()));
 
       repo.saveTrip(Trip(
         donationState: DonationState.donated,

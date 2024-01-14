@@ -1,7 +1,9 @@
+import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/registration_result.dart';
 import 'package:app_backend/controller/builder/trekko_builder.dart';
 import 'package:app_backend/controller/profiled_trekko.dart';
 import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
+import 'package:app_backend/controller/request/bodies/request/code_request.dart';
 import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
@@ -10,29 +12,40 @@ import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
 
 class RegistrationBuilder extends TrekkoBuilder {
-  final String projectUrl;
-  final String email;
-  final String password;
-  final String passwordConfirmation;
-  final String code;
-  late final TrekkoServer server;
+  final String _projectUrl;
+  final String _email;
+  final String _password;
+  final String _passwordConfirmation;
+  final String _code;
+  late final TrekkoServer _server;
 
-  RegistrationBuilder(this.projectUrl, this.email, this.password,
-      this.passwordConfirmation, this.code) {
-    server = UrlTrekkoServer(projectUrl);
+  RegistrationBuilder(this._projectUrl, this._email, this._password,
+      this._passwordConfirmation, this._code) {
+    _server = UrlTrekkoServer(_projectUrl);
   }
 
   @override
   Map<int, Object> getErrorCodes() {
-    return RegistrationResult.values.asMap(); // TODO: Don't use order
+    return RegistrationResult.map;
   }
 
   @override
   Future<Trekko> build() {
-    return server
-        .signUp(AuthRequest(email, password))
+    if (_password != _passwordConfirmation) {
+      throw BuildException(RegistrationResult.failedPasswordRepeat);
+    }
+
+    if (_code.isEmpty) {
+      throw BuildException(RegistrationResult.failedBadCode);
+    }
+
+    return _server
+        .signUp(AuthRequest(_email, _password))
         .catchError(onError<AuthResponse>)
-        .then((value) => ProfiledTrekko(
-            Profile(projectUrl, email, value.token, Preferences())));
+        .then((value) async {
+      await _server.confirmEmail(CodeRequest(_code));
+      return ProfiledTrekko(Profile(
+          _projectUrl, _email, value.token, DateTime.now(), Preferences()));
+    });
   }
 }

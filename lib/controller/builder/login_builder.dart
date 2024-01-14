@@ -10,26 +10,26 @@ import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
 
 class LoginBuilder extends TrekkoBuilder {
-  final String projectUrl;
-  final String email;
-  final String password;
-  late final TrekkoServer server;
+  final String _projectUrl;
+  final String _email;
+  final String _password;
+  late final TrekkoServer _server;
 
-  LoginBuilder(this.projectUrl, this.email, this.password) {
-    server = UrlTrekkoServer(projectUrl);
+  LoginBuilder(this._projectUrl, this._email, this._password) {
+    _server = UrlTrekkoServer(_projectUrl);
   }
 
   @override
   Map<int, Object> getErrorCodes() {
-    return LoginResult.values.asMap(); // TODO: Don't use order
+    return LoginResult.map;
   }
 
   @override
   Future<Trekko> build() {
-    return server
-        .signIn(AuthRequest(email, password))
+    return _server
+        .signIn(AuthRequest(_email, _password))
         .catchError(onError<AuthResponse>)
-        .then((value) => ProfiledTrekko(
-            Profile(projectUrl, email, value.token, Preferences())));
+        .then((value) => ProfiledTrekko(Profile(
+            _projectUrl, _email, value.token, DateTime.now(), Preferences())));
   }
 }

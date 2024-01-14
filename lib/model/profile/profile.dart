@@ -8,12 +8,15 @@ part 'profile.g.dart';
 @collection
 class Profile {
   final Id id = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
   final String projectUrl;
+  @Index(unique: true, replace: true)
   final String email;
   final String token;
+  final DateTime lastLogin;
   final Preferences preferences;
 
-  Profile(this.projectUrl, this.email, this.token, this.preferences);
+  Profile(this.projectUrl, this.email, this.token, this.lastLogin, this.preferences);
 
   ServerProfile toServerProfile() {
     Map<String, String> data = {};
