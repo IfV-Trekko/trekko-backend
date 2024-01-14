@@ -1,3 +1,4 @@
+import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
@@ -7,45 +8,52 @@ import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator_platform_interface/src/models/position.dart';
 
 class AnalyzingTripWrapper implements TripWrapper {
-  final List<Leg> legs = [];
-  LegWrapper legWrapper = AnalyzingLegWrapper();
+  final List<Leg> _legs = [];
+  LegWrapper _legWrapper = AnalyzingLegWrapper();
 
   @override
   Future<double> calculateEndProbability() {
-    return Future.value(0); // TODO: Implement
+    return PositionUtils.calculateEndProbability(
+        Duration(minutes: 15),
+        9,
+        _legs
+            .expand(
+                (element) => element.trackedPoints.map((t) => t.toPosition()))
+            .toList());
   }
 
   @override
   Future<void> add(Position position) async {
-    double probability = await legWrapper.calculateEndProbability();
-    if (legWrapper.collectedDataPoints() > 0 && probability > 0.9) {
-      legs.add(await legWrapper.get());
-      legWrapper = AnalyzingLegWrapper();
+    double probability = await _legWrapper.calculateEndProbability();
+    if (_legWrapper.collectedDataPoints() > 0 && probability > 0.9) {
+      _legs.add(await _legWrapper.get());
+      _legWrapper = AnalyzingLegWrapper();
     } else {
-      legWrapper.add(position);
+      _legWrapper.add(position);
     }
   }
 
   @override
   int collectedDataPoints() {
-    return legs.length;
+    return _legs.length;
   }
 
   @override
   Future<Trip> get() async {
-    if (legWrapper.collectedDataPoints() != 0) legs.add(await legWrapper.get());
+    if (_legWrapper.collectedDataPoints() != 0)
+      _legs.add(await _legWrapper.get());
 
     Trip trip = Trip(
         donationState: DonationState.undefined,
-        startTime: legs[0].trackedPoints[0].timestamp,
-        endTime: legs[legs.length - 1]
-            .trackedPoints[legs[legs.length - 1].trackedPoints.length - 1]
+        startTime: _legs[0].trackedPoints[0].timestamp,
+        endTime: _legs[_legs.length - 1]
+            .trackedPoints[_legs[_legs.length - 1].trackedPoints.length - 1]
             .timestamp,
         comment: null,
         purpose: null,
         legs: []);
 
-    legs.forEach((element) {
+    _legs.forEach((element) {
       trip.legs.add(element);
     });
     return Future.value(trip);

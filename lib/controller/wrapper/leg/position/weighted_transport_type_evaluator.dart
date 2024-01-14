@@ -10,7 +10,22 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
 
   @override
   Future<double> evaluate(List<Position> positions) {
-    return Future.value(0); // TODO: implement evaluate
+    double sum = 0;
+    double max = 0;
+    for (int i = 0; i < positions.length - 1; i++) {
+      sum += positions[i].speed;
+      if (positions[i].speed > max) max = positions[i].speed;
+    }
+    double averageSpeed = sum / positions.length;
+    double maximumSpeed = max;
+    double averageSpeedWeight = 0.5;
+    double maximumSpeedWeight = 0.5;
+    double averageSpeedFactor = averageSpeed / averageSpeedWeight;
+    double maximumSpeedFactor = maximumSpeed / maximumSpeedWeight;
+    double averageSpeedProbability = averageSpeedFactor / 100;
+    double maximumSpeedProbability = maximumSpeedFactor / 100;
+    double probability = (averageSpeedProbability + maximumSpeedProbability) / 2;
+    return Future.value(probability);
   }
 
   @override
