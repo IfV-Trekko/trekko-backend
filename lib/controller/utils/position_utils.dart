@@ -8,6 +8,14 @@ final class PositionUtils {
         a.latitude, a.longitude, b.latitude, b.longitude);
   }
 
+  static double distanceBetweenPoints(List<Position> positions) {
+    double distance = 0;
+    for (int i = 1; i < positions.length; i++) {
+      distance += distanceBetween(positions[i - 1], positions[i]);
+    }
+    return distance;
+  }
+
   static double maxDistance(List<Position> positions) {
     double max = 0;
     Position anchor = positions[positions.length - 1];

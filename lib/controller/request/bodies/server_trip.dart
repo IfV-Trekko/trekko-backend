@@ -1,3 +1,4 @@
+import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -20,8 +21,10 @@ class ServerTrip {
       : uid = trip.id.toString(),
         startTimestamp = trip.startTime.millisecondsSinceEpoch,
         endTimestamp = trip.endTime.millisecondsSinceEpoch,
-        distance = 0,
-        // TODO: Calculate distance
+        distance = PositionUtils.distanceBetweenPoints(trip.legs
+            .expand((e) => e.trackedPoints)
+            .map((e) => e.toPosition())
+            .toList()),
         transportTypes =
             trip.legs.map((e) => e.transportationType.toString()).toList(),
         purpose = trip.purpose,
