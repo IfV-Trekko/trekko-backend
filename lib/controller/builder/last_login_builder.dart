@@ -8,7 +8,6 @@ import 'package:app_backend/model/profile/profile.dart';
 import 'package:isar/isar.dart';
 
 class LastLoginBuilder extends TrekkoBuilder {
-
   Isar? _database;
 
   Future<Isar> _getDatabase() async {
@@ -26,8 +25,14 @@ class LastLoginBuilder extends TrekkoBuilder {
         throw Exception("No last profile found.");
       }
 
-      Profile? latestProfile = await value.profiles.where().sortByLastLoginDesc().findFirst();
-      return ProfiledTrekko(latestProfile!);
+      Profile? latestProfile =
+          await value.profiles.where().sortByLastLoginDesc().findFirst();
+      return ProfiledTrekko(Profile(
+          latestProfile!.projectUrl,
+          latestProfile.email,
+          latestProfile.token,
+          DateTime.now(),
+          latestProfile.preferences));
     });
   }
 
