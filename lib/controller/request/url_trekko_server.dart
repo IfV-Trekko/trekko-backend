@@ -16,20 +16,26 @@ import 'package:app_backend/controller/request/bodies/server_trip.dart';
 import 'package:app_backend/controller/request/endpoint.dart';
 import 'package:app_backend/controller/request/request_exception.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
+import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
-import 'package:requests/requests.dart';
+import 'package:http/retry.dart';
 import 'package:sprintf/sprintf.dart';
 
 class UrlTrekkoServer implements TrekkoServer {
+  // TODO: Close client
+  final http.Client _client;
   final String baseUrl;
   final String? token;
 
-  UrlTrekkoServer(this.baseUrl) : this.token = null;
+  UrlTrekkoServer(this.baseUrl)
+      : this.token = null,
+        _client = RetryClient(http.Client());
 
-  UrlTrekkoServer.withToken(this.baseUrl, this.token);
+  UrlTrekkoServer.withToken(this.baseUrl, this.token)
+      : _client = RetryClient(http.Client());
 
-  _parseUrl<S, R>(Endpoint endpoint, List<String> pathParams) {
-    return baseUrl + sprintf(endpoint.path, pathParams);
+  Uri _parseUrl<S, R>(Endpoint endpoint, List<String> pathParams) {
+    return Uri.parse(baseUrl + sprintf(endpoint.path, pathParams));
   }
 
   Map<String, String> _buildHeader(Endpoint endpoint) {
@@ -63,18 +69,17 @@ class UrlTrekkoServer implements TrekkoServer {
     return parser.call(jsonDecode(response.body));
   }
 
+  Future<T> _sendGet<T>(Endpoint endpoint, int expectedStatusCode,
+      T Function(Map<String, dynamic>) parser,
+      {List<String> pathParams = const []}) {
+    return _client
+        .get(_parseUrl(endpoint, pathParams), headers: _buildHeader(endpoint))
+        .then((value) => _parseBody(value, expectedStatusCode, parser));
+  }
+
   Future<T> _sendRequest<T>(
-      Future<Response> Function(String,
-              {dynamic body,
-              RequestBodyEncoding bodyEncoding,
-              Map<String, String>? headers,
-              dynamic json,
-              bool persistCookies,
-              int? port,
-              Map<String, dynamic>? queryParameters,
-              int timeoutSeconds,
-              bool verify,
-              bool withCredentials})
+      Future<Response> Function(Uri,
+              {Object? body, Encoding? encoding, Map<String, String>? headers})
           requestCall,
       Endpoint endpoint,
       dynamic encode,
@@ -82,14 +87,14 @@ class UrlTrekkoServer implements TrekkoServer {
       T Function(Map<String, dynamic>) parser,
       {List<String> pathParams = const []}) {
     return requestCall(_parseUrl(endpoint, pathParams),
-            headers: _buildHeader(endpoint), json: encode.toJson())
+            headers: _buildHeader(endpoint), body: json.encode(encode.toJson()))
         .then((value) => _parseBody(value, expectedStatusCode, parser));
   }
 
   @override
   Future<AuthResponse> signIn(AuthRequest request) {
     return _sendRequest(
-      Requests.post,
+      _client.post,
       Endpoint.signIn,
       request,
       200,
@@ -100,7 +105,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<AuthResponse> signUp(AuthRequest request) {
     return _sendRequest(
-      Requests.post,
+      _client.post,
       Endpoint.signUp,
       request,
       201,
@@ -111,7 +116,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<EmptyResponse> sendCode(SendCodeRequest request) {
     return _sendRequest(
-      Requests.post,
+      _client.post,
       Endpoint.forgot_password,
       request,
       200,
@@ -122,7 +127,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<EmptyResponse> confirmEmail(CodeRequest request) {
     return _sendRequest(
-      Requests.post,
+      _client.post,
       Endpoint.emailConfirm,
       request,
       200,
@@ -133,7 +138,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<EmptyResponse> changePassword(ChangePasswordRequest request) {
     return _sendRequest(
-      Requests.post,
+      _client.post,
       Endpoint.forgot_password,
       request,
       200,
@@ -144,7 +149,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<TripsResponse> donateTrips(TripsRequest request) {
     return _sendRequest(
-      Requests.post,
+      _client.post,
       Endpoint.donate,
       request,
       201,
@@ -155,7 +160,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<ServerTrip> updateTrip(ServerTrip trip) {
     return _sendRequest(
-      Requests.put,
+      _client.put,
       Endpoint.trip,
       trip,
       200,
@@ -167,7 +172,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<EmptyResponse> deleteTrip(String tripId) {
     return _sendRequest(
-      Requests.delete,
+      _client.delete,
       Endpoint.trip,
       EmptyRequest(),
       204,
@@ -178,10 +183,8 @@ class UrlTrekkoServer implements TrekkoServer {
 
   @override
   Future<ServerProfile> getProfile() {
-    return _sendRequest(
-      Requests.get,
+    return _sendGet(
       Endpoint.profile,
-      EmptyRequest(),
       200,
       ServerProfile.fromJson,
     );
@@ -190,7 +193,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<EmptyResponse> updateProfile(ServerProfile profile) {
     return _sendRequest(
-      Requests.put,
+      _client.put,
       Endpoint.profile,
       profile,
       200,
@@ -201,7 +204,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<EmptyResponse> deleteAccount() {
     return _sendRequest(
-      Requests.delete,
+      _client.delete,
       Endpoint.profile,
       EmptyRequest(),
       204,
@@ -211,10 +214,8 @@ class UrlTrekkoServer implements TrekkoServer {
 
   @override
   Future<FormResponse> getForm() {
-    return _sendRequest(
-      Requests.get,
+    return _sendGet(
       Endpoint.form,
-      EmptyRequest(),
       200,
       FormResponse.fromJson,
     );
