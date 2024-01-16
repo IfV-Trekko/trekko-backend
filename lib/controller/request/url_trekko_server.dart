@@ -82,7 +82,7 @@ class UrlTrekkoServer implements TrekkoServer {
       T Function(Map<String, dynamic>) parser,
       {List<String> pathParams = const []}) {
     return requestCall(_parseUrl(endpoint, pathParams),
-            headers: _buildHeader(endpoint), body: encode.toJson())
+            headers: _buildHeader(endpoint), json: encode.toJson())
         .then((value) => _parseBody(value, expectedStatusCode, parser));
   }
 
