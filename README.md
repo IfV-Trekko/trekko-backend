@@ -38,7 +38,7 @@ Each of these builders may throw a `BuildException` if the required data is inva
 The exception will include a reason, which will either be a `LoginResult` or a `RegistrationResult`.
 
 ## Handling Streams in Flutter
-Streams in Flutter are used to handle asynchronous data sequences. The `StreamBuilder widget is particularly useful for this purpose.
+Streams in Flutter are used to handle asynchronous data sequences. The `StreamBuilder` widget is particularly useful for this purpose.
 
 The following example shows how to use the `StreamBuilder` widget to handle a stream of `Profile` objects:
 
