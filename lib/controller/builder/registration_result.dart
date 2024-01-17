@@ -1,5 +1,4 @@
 enum RegistrationResult {
-  success(0),
   failedBadCode(1),
   failedWeakPassword(2),
   failedPasswordRepeat(3),
