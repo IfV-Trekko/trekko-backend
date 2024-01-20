@@ -10,11 +10,13 @@ abstract class TrekkoBuilder {
       throw exception;
     }
 
-    if (exception.reason == null) {
+    Map<int, Object> errorCodes = getErrorCodes();
+    if (exception.reason == null ||
+        errorCodes[exception.reason!.reasonCode] == null) {
       throw BuildException(getErrorCodes()[-1]);
     }
 
-    throw BuildException(getErrorCodes()[exception.reason!.reasonCode]);
+    throw BuildException(errorCodes[exception.reason!.reasonCode]);
   }
 
   Map<int, Object> getErrorCodes();
