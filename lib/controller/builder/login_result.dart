@@ -1,5 +1,4 @@
 enum LoginResult {
-  success(0),
   failedWrongPassword(1),
   failedNoSuchEmail(2),
   failedSessionExpired(3),
