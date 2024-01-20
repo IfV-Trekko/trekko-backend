@@ -12,7 +12,7 @@ class LastLoginBuilder extends TrekkoBuilder {
   Isar? _database;
 
   Future<Isar> _getDatabase() async {
-    return _database ?? await DatabaseUtils.establishConnection();
+    return _database ?? (_database = await DatabaseUtils.establishConnection());
   }
 
   Future<bool> hasData() async {
