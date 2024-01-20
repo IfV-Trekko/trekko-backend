@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_backend/controller/builder/login_result.dart';
 import 'package:app_backend/controller/builder/trekko_builder.dart';
 import 'package:app_backend/controller/profiled_trekko.dart';
 import 'package:app_backend/controller/trekko.dart';
@@ -19,6 +20,11 @@ class LastLoginBuilder extends TrekkoBuilder {
   }
 
   @override
+  Map<int, Object> getErrorCodes() {
+    return LoginResult.map;
+  }
+
+  @override
   Future<Trekko> build() {
     return _getDatabase().then((value) async {
       if (await hasData() == false) {
@@ -34,10 +40,5 @@ class LastLoginBuilder extends TrekkoBuilder {
           DateTime.now(),
           latestProfile.preferences));
     });
-  }
-
-  @override
-  Map<int, Object> getErrorCodes() {
-    return {};
   }
 }
