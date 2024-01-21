@@ -34,7 +34,6 @@ class AnalyzingTripWrapper implements TripWrapper {
           });
 
       List<double> bounds = [];
-
       _legs.forEach((leg) {
         leg.trackedPoints.forEach((point) {
           if (bounds.length == 0) {
@@ -52,7 +51,7 @@ class AnalyzingTripWrapper implements TripWrapper {
       });
 
       double probability = 0;
-      List<ClusterPosition> clusters = fluster.clusters(bounds, 17);
+      List<ClusterPosition> clusters = fluster.clusters(bounds, 0);
 
 
       return probability;
