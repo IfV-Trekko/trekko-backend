@@ -36,7 +36,9 @@ class ProfiledTrekko implements Trekko {
     await _startTracking();
 
     _isar = await DatabaseUtils.establishConnection();
-    await _isar.profiles.put(_profile);
+    await _isar.writeTxn((isar) async {
+      await isar.profiles.put(_profile);
+    } as Future Function());
   }
 
   Future<void> _listenForLocationPermission() async {
@@ -79,15 +81,17 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<String> loadText(OnboardingTextType type) {
-    return Future.value("Matthias bitte implementiere diese Funktion."); // TODO: implement loadText
+    return Future.value(
+        "Matthias bitte implementiere diese Funktion."); // TODO: implement loadText
   }
 
   @override
   Future<void> savePreferences(Preferences preferences) async {
     this._profile.preferences = preferences;
-    _isar.profiles
+    return _isar.writeTxn(() async => await _isar.profiles
         .put(this._profile)
-        .then((value) => _server.updateProfile(this._profile.toServerProfile()));
+        .then((value) async =>
+            await _server.updateProfile(this._profile.toServerProfile())));
   }
 
   @override
@@ -99,11 +103,13 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<bool> deleteTrip(int tripId) async {
-    return await _isar.trips.delete(tripId).then((found) async {
-      if (found) {
-        await _server.deleteTrip(tripId.toString());
-      }
-      return found;
+    return _isar.writeTxn(() async {
+      return _isar.trips.delete(tripId).then((found) async {
+        if (found) {
+          await _server.deleteTrip(tripId.toString());
+        }
+        return found;
+      });
     });
   }
 
@@ -135,7 +141,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> saveTrip(Trip trip) async {
-    await _isar.trips.put(trip);
+    return _isar.writeTxn(() async => await _isar.trips.put(trip));
   }
 
   @override
