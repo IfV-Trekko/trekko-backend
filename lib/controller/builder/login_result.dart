@@ -4,9 +4,9 @@ enum LoginResult {
   failedSessionExpired(3),
   failedOther(-1);
 
-  final int code;
+  final int _code;
 
-  const LoginResult(this.code);
+  const LoginResult(this._code);
 
   static Map<int, LoginResult> get map => Map.fromIterable(values, key: (e) => e._code, value: (e) => e);
 }
