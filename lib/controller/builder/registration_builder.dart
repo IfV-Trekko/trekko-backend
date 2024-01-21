@@ -1,15 +1,12 @@
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/registration_result.dart';
 import 'package:app_backend/controller/builder/trekko_builder.dart';
-import 'package:app_backend/controller/profiled_trekko.dart';
 import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
 import 'package:app_backend/controller/request/bodies/request/code_request.dart';
 import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/model/profile/preferences.dart';
-import 'package:app_backend/model/profile/profile.dart';
 
 class RegistrationBuilder extends TrekkoBuilder {
   final String _projectUrl;
@@ -44,8 +41,7 @@ class RegistrationBuilder extends TrekkoBuilder {
         .catchError(onError<AuthResponse>)
         .then((value) async {
       await _server.confirmEmail(CodeRequest(_code));
-      return ProfiledTrekko(Profile(
-          _projectUrl, _email, value.token, DateTime.now(), Preferences()));
+      return makeTrekko(_projectUrl, _email, value.token);
     });
   }
 }
