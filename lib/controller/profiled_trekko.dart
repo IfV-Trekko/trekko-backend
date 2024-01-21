@@ -36,9 +36,9 @@ class ProfiledTrekko implements Trekko {
     await _startTracking();
 
     _isar = await DatabaseUtils.establishConnection();
-    await _isar.writeTxn((isar) async {
-      await isar.profiles.put(_profile);
-    } as Future Function());
+    await _isar.writeTxn(() async {
+      await _isar.profiles.put(_profile);
+    });
   }
 
   Future<void> _listenForLocationPermission() async {
