@@ -196,7 +196,7 @@ class UrlTrekkoServer implements TrekkoServer {
       _client.put,
       Endpoint.profile,
       profile,
-      200,
+      201,
       EmptyResponse.fromJson,
     );
   }
