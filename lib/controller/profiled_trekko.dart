@@ -10,6 +10,7 @@ import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
+import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
 import 'package:app_backend/model/tracking_state.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
@@ -82,10 +83,11 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future<void> saveProfile(Profile profile) async {
+  Future<void> savePreferences(Preferences preferences) async {
+    this._profile.preferences = preferences;
     _isar.profiles
-        .put(profile)
-        .then((value) => _server.updateProfile(profile.toServerProfile()));
+        .put(this._profile)
+        .then((value) => _server.updateProfile(this._profile.toServerProfile()));
   }
 
   @override

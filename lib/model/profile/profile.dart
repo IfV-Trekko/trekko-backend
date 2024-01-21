@@ -14,7 +14,7 @@ class Profile {
   final String email;
   final String token;
   final DateTime lastLogin;
-  final Preferences preferences;
+  Preferences preferences;
 
   Profile(this.projectUrl, this.email, this.token, this.lastLogin, this.preferences);
 

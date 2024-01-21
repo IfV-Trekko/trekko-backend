@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_backend/controller/analysis/trips_analysis.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
+import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
 import 'package:app_backend/model/tracking_state.dart';
 import 'package:app_backend/model/trip/trip.dart';
@@ -13,7 +14,7 @@ abstract class Trekko {
 
   Stream<Profile> getProfile();
 
-  Future<void> saveProfile(Profile profile);
+  Future<void> savePreferences(Preferences preferences);
 
   Future<String> loadText(OnboardingTextType type);
 

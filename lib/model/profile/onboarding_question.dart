@@ -19,5 +19,5 @@ class OnboardingQuestion {
         options = null;
 
   OnboardingQuestion.withData(
-      this.key, this.title, this.required, this.regex, this.options);
+      this.key, this.title, this.required, this.regex, this.options, this.value);
 }
