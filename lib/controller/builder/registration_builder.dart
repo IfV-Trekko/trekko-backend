@@ -32,11 +32,11 @@ class RegistrationBuilder extends TrekkoBuilder {
   @override
   Future<Trekko> build() {
     if (_password != _passwordConfirmation) {
-      throw BuildException(RegistrationResult.failedPasswordRepeat);
+      throw BuildException(null, RegistrationResult.failedPasswordRepeat);
     }
 
     if (_code.isEmpty) {
-      throw BuildException(RegistrationResult.failedBadCode);
+      throw BuildException(null, RegistrationResult.failedBadCode);
     }
 
     return _server

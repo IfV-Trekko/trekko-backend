@@ -4,7 +4,10 @@ part 'auth_request.g.dart';
 
 @JsonSerializable()
 class AuthRequest {
+
+  @JsonKey(name: "email")
   final String email;
+  @JsonKey(name: "password")
   final String password;
 
   AuthRequest(this.email, this.password);

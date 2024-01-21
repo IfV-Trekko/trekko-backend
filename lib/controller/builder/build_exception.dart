@@ -1,5 +1,6 @@
 class BuildException<T> {
   final T reason;
+  final Exception? cause;
 
-  BuildException(this.reason);
+  BuildException(this.cause, this.reason);
 }

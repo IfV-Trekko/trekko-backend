@@ -6,17 +6,13 @@ import 'package:app_backend/controller/trekko.dart';
 
 abstract class TrekkoBuilder {
   FutureOr<T> onError<T>(exception) {
-    if (!(exception is RequestException)) {
-      throw exception;
-    }
-
     Map<int, Object> errorCodes = getErrorCodes();
-    if (exception.reason == null ||
+    if (!(exception is RequestException) || exception.reason == null ||
         errorCodes[exception.reason!.reasonCode] == null) {
-      throw BuildException(getErrorCodes()[-1]);
+      throw BuildException(exception, getErrorCodes()[-1]);
     }
 
-    throw BuildException(errorCodes[exception.reason!.reasonCode]);
+    throw BuildException(exception, errorCodes[exception.reason!.reasonCode]);
   }
 
   Map<int, Object> getErrorCodes();
