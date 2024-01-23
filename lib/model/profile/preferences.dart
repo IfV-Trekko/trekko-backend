@@ -8,29 +8,29 @@ part 'preferences.g.dart';
 @embedded
 class Preferences {
 
-  List<QuestionAnswer> _questionAnswers;
+  List<QuestionAnswer> questionAnswers; // TODO: Private
   @enumerated
   BatteryUsageSetting batteryUsageSetting;
 
-  Preferences() : _questionAnswers = [], batteryUsageSetting = BatteryUsageSetting.medium;
+  Preferences() : questionAnswers = [], batteryUsageSetting = BatteryUsageSetting.medium;
 
-  Preferences.withData(this._questionAnswers, this.batteryUsageSetting);
+  Preferences.withData(this.questionAnswers, this.batteryUsageSetting);
 
   String? getQuestionAnswer(String key) {
-    if (this._questionAnswers.any((element) => element.key == key)) {
-      return this._questionAnswers.firstWhere((element) => element.key == key).answer;
+    if (this.questionAnswers.any((element) => element.key == key)) {
+      return this.questionAnswers.firstWhere((element) => element.key == key).answer;
     }
     return null;
   }
 
   void setQuestionAnswer(String key, String answer) {
-    this._questionAnswers.removeWhere((element) => element.key == key);
-    this._questionAnswers.add(QuestionAnswer.withData(key, answer));
+    this.questionAnswers.removeWhere((element) => element.key == key);
+    this.questionAnswers.add(QuestionAnswer.withData(key, answer));
   }
 
   ServerProfile toServerProfile() {
     Map<String, String> data = {};
-    this._questionAnswers.forEach((element) {
+    this.questionAnswers.forEach((element) {
       data[element.key] = element.answer;
     });
     return ServerProfile(data);

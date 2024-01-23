@@ -7,13 +7,13 @@ part 'onboarding_question.g.dart';
 
 @embedded
 class OnboardingQuestion {
-  final String key;
-  final String title;
+  String key; // TODO: Add final
+  String title;
   @enumerated
-  final QuestionType type;
-  final bool? required;
-  final String? regex;
-  final List<QuestionAnswer>? options;
+  QuestionType type;
+  bool? required;
+  String? regex;
+  List<QuestionAnswer>? options;
 
   OnboardingQuestion()
       : key = "",

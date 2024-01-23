@@ -109,6 +109,19 @@ OnboardingQuestion _onboardingQuestionDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = OnboardingQuestion();
+  object.key = reader.readString(offsets[0]);
+  object.options = reader.readObjectList<QuestionAnswer>(
+    offsets[1],
+    QuestionAnswerSchema.deserialize,
+    allOffsets,
+    QuestionAnswer(),
+  );
+  object.regex = reader.readStringOrNull(offsets[2]);
+  object.required = reader.readBoolOrNull(offsets[3]);
+  object.title = reader.readString(offsets[4]);
+  object.type =
+      _OnboardingQuestiontypeValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+          QuestionType.boolean;
   return object;
 }
 
