@@ -15,43 +15,43 @@ class AnalyzingTripWrapper implements TripWrapper {
   @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() {
-      final fluster = Fluster<ClusterPosition>(
-          minZoom: 0,
-          maxZoom: 17,
-          radius: 150,
-          extent: 512,
-          nodeSize: 64,
-          points: _legs
-              .expand((element) => element.trackedPoints
-              .map((e) => ClusterPosition(
-              latitude: e.latitude, longitude: e.longitude))
-              .toList())
-              .toList(),
-          createCluster:
-              (BaseCluster cluster, double longitude, double latitude) {
-            return ClusterPosition(
-                latitude: latitude, longitude: longitude, clusterId: cluster.id);
-          });
-
-      List<double> bounds = [];
-      _legs.forEach((leg) {
-        leg.trackedPoints.forEach((point) {
-          if (bounds.length == 0) {
-            bounds.add(point.longitude);
-            bounds.add(point.latitude);
-            bounds.add(point.longitude);
-            bounds.add(point.latitude);
-          } else {
-            if (point.longitude < bounds[0]) bounds[0] = point.longitude;
-            if (point.latitude < bounds[1]) bounds[1] = point.latitude;
-            if (point.longitude > bounds[2]) bounds[2] = point.longitude;
-            if (point.latitude > bounds[3]) bounds[3] = point.latitude;
-          }
-        });
-      });
+      // final fluster = Fluster<ClusterPosition>(
+      //     minZoom: 0,
+      //     maxZoom: 17,
+      //     radius: 150,
+      //     extent: 512,
+      //     nodeSize: 64,
+      //     points: _legs
+      //         .expand((element) => element.trackedPoints
+      //         .map((e) => ClusterPosition(
+      //         latitude: e.latitude, longitude: e.longitude))
+      //         .toList())
+      //         .toList(),
+      //     createCluster:
+      //         (BaseCluster cluster, double longitude, double latitude) {
+      //       return ClusterPosition(
+      //           latitude: latitude, longitude: longitude, clusterId: cluster.id);
+      //     });
+      //
+      // List<double> bounds = [];
+      // _legs.forEach((leg) {
+      //   leg.trackedPoints.forEach((point) {
+      //     if (bounds.length == 0) {
+      //       bounds.add(point.longitude);
+      //       bounds.add(point.latitude);
+      //       bounds.add(point.longitude);
+      //       bounds.add(point.latitude);
+      //     } else {
+      //       if (point.longitude < bounds[0]) bounds[0] = point.longitude;
+      //       if (point.latitude < bounds[1]) bounds[1] = point.latitude;
+      //       if (point.longitude > bounds[2]) bounds[2] = point.longitude;
+      //       if (point.latitude > bounds[3]) bounds[3] = point.latitude;
+      //     }
+      //   });
+      // });
 
       double probability = 0;
-      List<ClusterPosition> clusters = fluster.clusters(bounds, 0);
+      // List<ClusterPosition> clusters = fluster.clusters(bounds, 0);
 
 
       return probability;
