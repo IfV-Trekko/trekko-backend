@@ -139,6 +139,7 @@ Profile _profileDeserialize(
         ) ??
         Preferences(),
   );
+  object.id = id;
   return object;
 }
 
@@ -177,7 +178,9 @@ List<IsarLinkBase<dynamic>> _profileGetLinks(Profile object) {
   return [];
 }
 
-void _profileAttach(IsarCollection<dynamic> col, Id id, Profile object) {}
+void _profileAttach(IsarCollection<dynamic> col, Id id, Profile object) {
+  object.id = id;
+}
 
 extension ProfileByIndex on IsarCollection<Profile> {
   Future<Profile?> getByProjectUrl(String projectUrl) {

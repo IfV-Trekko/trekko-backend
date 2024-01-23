@@ -134,6 +134,7 @@ Trip _tripDeserialize(
     purpose: reader.readStringOrNull(offsets[4]),
     startTime: reader.readDateTime(offsets[5]),
   );
+  object.id = id;
   return object;
 }
 
@@ -187,7 +188,9 @@ List<IsarLinkBase<dynamic>> _tripGetLinks(Trip object) {
   return [];
 }
 
-void _tripAttach(IsarCollection<dynamic> col, Id id, Trip object) {}
+void _tripAttach(IsarCollection<dynamic> col, Id id, Trip object) {
+  object.id = id;
+}
 
 extension TripQueryWhereSort on QueryBuilder<Trip, Trip, QWhere> {
   QueryBuilder<Trip, Trip, QAfterWhere> anyId() {

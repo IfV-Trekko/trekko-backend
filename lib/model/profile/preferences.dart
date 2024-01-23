@@ -7,6 +7,7 @@ part 'preferences.g.dart';
 @embedded
 class Preferences {
   final List<OnboardingQuestion> onboardingQuestions;
+  @enumerated
   final BatteryUsageSetting batteryUsageSetting;
 
   Preferences() : onboardingQuestions = [], batteryUsageSetting = BatteryUsageSetting.medium;

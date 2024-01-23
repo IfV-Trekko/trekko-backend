@@ -13,8 +13,14 @@ const PreferencesSchema = Schema(
   name: r'Preferences',
   id: 4252616732994050084,
   properties: {
-    r'onboardingQuestions': PropertySchema(
+    r'batteryUsageSetting': PropertySchema(
       id: 0,
+      name: r'batteryUsageSetting',
+      type: IsarType.byte,
+      enumMap: _PreferencesbatteryUsageSettingEnumValueMap,
+    ),
+    r'onboardingQuestions': PropertySchema(
+      id: 1,
       name: r'onboardingQuestions',
       type: IsarType.objectList,
       target: r'OnboardingQuestion',
@@ -50,8 +56,9 @@ void _preferencesSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
+  writer.writeByte(offsets[0], object.batteryUsageSetting.index);
   writer.writeObjectList<OnboardingQuestion>(
-    offsets[0],
+    offsets[1],
     allOffsets,
     OnboardingQuestionSchema.serialize,
     object.onboardingQuestions,
@@ -76,6 +83,10 @@ P _preferencesDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (_PreferencesbatteryUsageSettingValueEnumMap[
+              reader.readByteOrNull(offset)] ??
+          BatteryUsageSetting.low) as P;
+    case 1:
       return (reader.readObjectList<OnboardingQuestion>(
             offset,
             OnboardingQuestionSchema.deserialize,
@@ -88,8 +99,75 @@ P _preferencesDeserializeProp<P>(
   }
 }
 
+const _PreferencesbatteryUsageSettingEnumValueMap = {
+  'low': 0,
+  'medium': 1,
+  'high': 2,
+};
+const _PreferencesbatteryUsageSettingValueEnumMap = {
+  0: BatteryUsageSetting.low,
+  1: BatteryUsageSetting.medium,
+  2: BatteryUsageSetting.high,
+};
+
 extension PreferencesQueryFilter
     on QueryBuilder<Preferences, Preferences, QFilterCondition> {
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      batteryUsageSettingEqualTo(BatteryUsageSetting value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'batteryUsageSetting',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      batteryUsageSettingGreaterThan(
+    BatteryUsageSetting value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'batteryUsageSetting',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      batteryUsageSettingLessThan(
+    BatteryUsageSetting value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'batteryUsageSetting',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      batteryUsageSettingBetween(
+    BatteryUsageSetting lower,
+    BatteryUsageSetting upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'batteryUsageSetting',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
       onboardingQuestionsLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
