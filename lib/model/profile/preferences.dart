@@ -16,8 +16,11 @@ class Preferences {
 
   Preferences.withData(this._questionAnswers, this.batteryUsageSetting);
 
-  QuestionAnswer getQuestionAnswer(String key) {
-    return this._questionAnswers.firstWhere((element) => element.key == key);
+  QuestionAnswer? getQuestionAnswer(String key) {
+    if (this._questionAnswers.any((element) => element.key == key)) {
+      return this._questionAnswers.firstWhere((element) => element.key == key);
+    }
+    return null;
   }
 
   void setQuestionAnswer(String key, String answer) {
