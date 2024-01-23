@@ -141,6 +141,7 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> savePreferences(Preferences preferences) async {
     Profile profile = await getProfile().first;
+    profile.preferences = preferences;
     return await _server.updateProfile(preferences.toServerProfile()).then(
         (value) =>
             _isar.writeTxn(() async => await _isar.profiles.put(profile)));
