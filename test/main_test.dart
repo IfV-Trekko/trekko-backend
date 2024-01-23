@@ -10,6 +10,7 @@ import 'package:app_backend/controller/request/bodies/response/auth_response.dar
 import 'package:app_backend/controller/request/request_exception.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
+import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
 import 'package:app_backend/model/trip/donation_state.dart';

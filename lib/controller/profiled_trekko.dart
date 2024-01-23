@@ -167,6 +167,7 @@ class ProfiledTrekko implements Trekko {
 
     if (state == TrackingState.running) {
       LocationPermission permission = await Geolocator.requestPermission();
+      await Geolocator.openLocationSettings();
       if (permission != LocationPermission.always) {
         return false;
       }
