@@ -11,20 +11,24 @@ class Trip {
   Id id = Isar.autoIncrement;
   @enumerated
   DonationState donationState;
-  DateTime startTime;
-  DateTime endTime;
   String? comment;
   String? purpose;
   List<Leg> legs;
 
   Trip({
     required this.donationState,
-    required this.startTime,
-    required this.endTime,
     required this.comment,
     required this.purpose,
     required this.legs,
   });
+
+  DateTime getStartTime() {
+    return this.legs.first.trackedPoints.first.timestamp;
+  }
+
+  DateTime getEndTime() {
+    return this.legs.last.trackedPoints.last.timestamp;
+  }
   
   List<TransportType> getTransportTypes() {
     return this.legs.map((e) => e.transportType).toList();

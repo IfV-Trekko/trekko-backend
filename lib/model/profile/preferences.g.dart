@@ -18,12 +18,6 @@ const PreferencesSchema = Schema(
       name: r'batteryUsageSetting',
       type: IsarType.byte,
       enumMap: _PreferencesbatteryUsageSettingEnumValueMap,
-    ),
-    r'questionAnswers': PropertySchema(
-      id: 1,
-      name: r'questionAnswers',
-      type: IsarType.objectList,
-      target: r'QuestionAnswer',
     )
   },
   estimateSize: _preferencesEstimateSize,
@@ -38,15 +32,6 @@ int _preferencesEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.questionAnswers.length * 3;
-  {
-    final offsets = allOffsets[QuestionAnswer]!;
-    for (var i = 0; i < object.questionAnswers.length; i++) {
-      final value = object.questionAnswers[i];
-      bytesCount +=
-          QuestionAnswerSchema.estimateSize(value, offsets, allOffsets);
-    }
-  }
   return bytesCount;
 }
 
@@ -57,12 +42,6 @@ void _preferencesSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeByte(offsets[0], object.batteryUsageSetting.index);
-  writer.writeObjectList<QuestionAnswer>(
-    offsets[1],
-    allOffsets,
-    QuestionAnswerSchema.serialize,
-    object.questionAnswers,
-  );
 }
 
 Preferences _preferencesDeserialize(
@@ -75,13 +54,6 @@ Preferences _preferencesDeserialize(
   object.batteryUsageSetting = _PreferencesbatteryUsageSettingValueEnumMap[
           reader.readByteOrNull(offsets[0])] ??
       BatteryUsageSetting.low;
-  object.questionAnswers = reader.readObjectList<QuestionAnswer>(
-        offsets[1],
-        QuestionAnswerSchema.deserialize,
-        allOffsets,
-        QuestionAnswer(),
-      ) ??
-      [];
   return object;
 }
 
@@ -96,14 +68,6 @@ P _preferencesDeserializeProp<P>(
       return (_PreferencesbatteryUsageSettingValueEnumMap[
               reader.readByteOrNull(offset)] ??
           BatteryUsageSetting.low) as P;
-    case 1:
-      return (reader.readObjectList<QuestionAnswer>(
-            offset,
-            QuestionAnswerSchema.deserialize,
-            allOffsets,
-            QuestionAnswer(),
-          ) ??
-          []) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -177,103 +141,7 @@ extension PreferencesQueryFilter
       ));
     });
   }
-
-  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      questionAnswersLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'questionAnswers',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      questionAnswersIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'questionAnswers',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      questionAnswersIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'questionAnswers',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      questionAnswersLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'questionAnswers',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      questionAnswersLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'questionAnswers',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      questionAnswersLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'questionAnswers',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
 }
 
 extension PreferencesQueryObject
-    on QueryBuilder<Preferences, Preferences, QFilterCondition> {
-  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      questionAnswersElement(FilterQuery<QuestionAnswer> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'questionAnswers');
-    });
-  }
-}
+    on QueryBuilder<Preferences, Preferences, QFilterCondition> {}
