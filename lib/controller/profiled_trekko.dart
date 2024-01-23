@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_backend/controller/analysis/cached_analysis_builder.dart';
 import 'package:app_backend/controller/analysis/trips_analysis.dart';
+import 'package:app_backend/controller/location_settings.dart';
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
@@ -53,7 +54,10 @@ class ProfiledTrekko implements Trekko {
     StreamSubscription? subscription;
     await this.getTrackingState().listen((event) {
       if (event == TrackingState.running) {
-        subscription = Geolocator.getPositionStream().listen((event) {
+        subscription = Geolocator.getPositionStream(
+                locationSettings:
+                    getSettings(_profile.preferences.batteryUsageSetting))
+            .listen((event) {
           _positionController.add(event);
         });
       } else {
