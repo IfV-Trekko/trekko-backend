@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test("Building a Trekko with invalid login data", () async {
     try {
-      await LoginBuilder("http://localhost:8080", "realAccount1@web.de", "1aA!hklj32r4hkjl324ra").build();
+      await LoginBuilder("http://localhost:8080", "notExistingAccount@web.de", "1aA!hklj32r4hkjl324ra").build();
       fail("Expected exception");
     } catch (e) {
       expect(e, isA<BuildException>());
