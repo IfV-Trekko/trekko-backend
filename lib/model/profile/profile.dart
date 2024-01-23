@@ -1,6 +1,7 @@
-import 'package:app_backend/controller/request/bodies/server_profile.dart';
 import 'package:app_backend/model/profile/onboarding_question.dart';
 import 'package:app_backend/model/profile/preferences.dart';
+import 'package:app_backend/model/profile/question_answer.dart';
+import 'package:app_backend/model/tracking_state.dart';
 import 'package:isar/isar.dart';
 
 part 'profile.g.dart';
@@ -8,21 +9,17 @@ part 'profile.g.dart';
 @collection
 class Profile {
   Id id = Isar.autoIncrement;
-  @Index(unique: true, replace: true)
+  @Index(unique: true)
   final String projectUrl;
-  @Index(unique: true, replace: true)
+  @Index(unique: true)
   final String email;
-  final String token;
-  final DateTime lastLogin;
+  String token;
+  DateTime lastLogin;
+  @enumerated
+  TrackingState trackingState = TrackingState.paused;
+  List<OnboardingQuestion> onboardingQuestions;
   Preferences preferences;
 
-  Profile(this.projectUrl, this.email, this.token, this.lastLogin, this.preferences);
-
-  ServerProfile toServerProfile() {
-    Map<String, String> data = {};
-    this.preferences.onboardingQuestions.forEach((element) {
-      if (element.value != null) data[element.key] = element.value!;
-    });
-    return ServerProfile(data);
-  }
+  Profile(this.projectUrl, this.email, this.token, this.lastLogin,
+      this.trackingState, this.onboardingQuestions, this.preferences);
 }

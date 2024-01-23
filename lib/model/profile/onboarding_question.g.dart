@@ -21,7 +21,8 @@ const OnboardingQuestionSchema = Schema(
     r'options': PropertySchema(
       id: 1,
       name: r'options',
-      type: IsarType.stringList,
+      type: IsarType.objectList,
+      target: r'QuestionAnswer',
     ),
     r'regex': PropertySchema(
       id: 2,
@@ -38,10 +39,11 @@ const OnboardingQuestionSchema = Schema(
       name: r'title',
       type: IsarType.string,
     ),
-    r'value': PropertySchema(
+    r'type': PropertySchema(
       id: 5,
-      name: r'value',
-      type: IsarType.string,
+      name: r'type',
+      type: IsarType.byte,
+      enumMap: _OnboardingQuestiontypeEnumValueMap,
     )
   },
   estimateSize: _onboardingQuestionEstimateSize,
@@ -62,9 +64,11 @@ int _onboardingQuestionEstimateSize(
     if (list != null) {
       bytesCount += 3 + list.length * 3;
       {
+        final offsets = allOffsets[QuestionAnswer]!;
         for (var i = 0; i < list.length; i++) {
           final value = list[i];
-          bytesCount += value.length * 3;
+          bytesCount +=
+              QuestionAnswerSchema.estimateSize(value, offsets, allOffsets);
         }
       }
     }
@@ -76,12 +80,6 @@ int _onboardingQuestionEstimateSize(
     }
   }
   bytesCount += 3 + object.title.length * 3;
-  {
-    final value = object.value;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   return bytesCount;
 }
 
@@ -92,11 +90,16 @@ void _onboardingQuestionSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.key);
-  writer.writeStringList(offsets[1], object.options);
+  writer.writeObjectList<QuestionAnswer>(
+    offsets[1],
+    allOffsets,
+    QuestionAnswerSchema.serialize,
+    object.options,
+  );
   writer.writeString(offsets[2], object.regex);
   writer.writeBool(offsets[3], object.required);
   writer.writeString(offsets[4], object.title);
-  writer.writeString(offsets[5], object.value);
+  writer.writeByte(offsets[5], object.type.index);
 }
 
 OnboardingQuestion _onboardingQuestionDeserialize(
@@ -106,7 +109,6 @@ OnboardingQuestion _onboardingQuestionDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = OnboardingQuestion();
-  object.value = reader.readStringOrNull(offsets[5]);
   return object;
 }
 
@@ -120,19 +122,39 @@ P _onboardingQuestionDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readStringList(offset)) as P;
+      return (reader.readObjectList<QuestionAnswer>(
+        offset,
+        QuestionAnswerSchema.deserialize,
+        allOffsets,
+        QuestionAnswer(),
+      )) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (_OnboardingQuestiontypeValueEnumMap[
+              reader.readByteOrNull(offset)] ??
+          QuestionType.boolean) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _OnboardingQuestiontypeEnumValueMap = {
+  'boolean': 0,
+  'select': 1,
+  'number': 2,
+  'text': 3,
+};
+const _OnboardingQuestiontypeValueEnumMap = {
+  0: QuestionType.boolean,
+  1: QuestionType.select,
+  2: QuestionType.number,
+  3: QuestionType.text,
+};
 
 extension OnboardingQuestionQueryFilter
     on QueryBuilder<OnboardingQuestion, OnboardingQuestion, QFilterCondition> {
@@ -286,142 +308,6 @@ extension OnboardingQuestionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'options',
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'options',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'options',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'options',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'options',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'options',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'options',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'options',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'options',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'options',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      optionsElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'options',
-        value: '',
       ));
     });
   }
@@ -670,7 +556,25 @@ extension OnboardingQuestionQueryFilter
   }
 
   QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      requiredEqualTo(bool value) {
+      requiredIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'required',
+      ));
+    });
+  }
+
+  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
+      requiredIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'required',
+      ));
+    });
+  }
+
+  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
+      requiredEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'required',
@@ -816,159 +720,68 @@ extension OnboardingQuestionQueryFilter
   }
 
   QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'value',
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'value',
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+      typeEqualTo(QuestionType value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
+        property: r'type',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueGreaterThan(
-    String? value, {
+      typeGreaterThan(
+    QuestionType value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'value',
+        property: r'type',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueLessThan(
-    String? value, {
+      typeLessThan(
+    QuestionType value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'value',
+        property: r'type',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueBetween(
-    String? lower,
-    String? upper, {
+      typeBetween(
+    QuestionType lower,
+    QuestionType upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'value',
+        property: r'type',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'value',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'value',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'value',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
-      valueIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'value',
-        value: '',
       ));
     });
   }
 }
 
 extension OnboardingQuestionQueryObject
-    on QueryBuilder<OnboardingQuestion, OnboardingQuestion, QFilterCondition> {}
+    on QueryBuilder<OnboardingQuestion, OnboardingQuestion, QFilterCondition> {
+  QueryBuilder<OnboardingQuestion, OnboardingQuestion, QAfterFilterCondition>
+      optionsElement(FilterQuery<QuestionAnswer> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'options');
+    });
+  }
+}

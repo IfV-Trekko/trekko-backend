@@ -26,7 +26,7 @@ class ServerTrip {
             .map((e) => e.toPosition())
             .toList()),
         transportTypes =
-            trip.legs.map((e) => e.transportationType.toString()).toList(),
+            trip.legs.map((e) => e.transportType.toString()).toList(),
         purpose = trip.purpose,
         comment = trip.comment;
 

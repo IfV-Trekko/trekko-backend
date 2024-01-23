@@ -5,6 +5,7 @@ part 'form_response.g.dart';
 
 @JsonSerializable()
 class FormResponse {
+  @JsonKey(name: "fields")
   final List<ServerFormEntry> fields;
 
   FormResponse(this.fields);

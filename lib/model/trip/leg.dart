@@ -7,12 +7,12 @@ part 'leg.g.dart';
 @embedded
 class Leg {
   @enumerated
-  final TransportType transportationType;
+  final TransportType transportType;
   final List<TrackedPoint> trackedPoints;
 
-  Leg.withData(this.transportationType, this.trackedPoints);
+  Leg.withData(this.transportType, this.trackedPoints);
 
   Leg()
-      : transportationType = TransportType.car,
+      : transportType = TransportType.car,
         trackedPoints = [];
 }

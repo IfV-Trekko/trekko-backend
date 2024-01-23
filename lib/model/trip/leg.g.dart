@@ -19,11 +19,11 @@ const LegSchema = Schema(
       type: IsarType.objectList,
       target: r'TrackedPoint',
     ),
-    r'transportationType': PropertySchema(
+    r'transportType': PropertySchema(
       id: 1,
-      name: r'transportationType',
+      name: r'transportType',
       type: IsarType.byte,
-      enumMap: _LegtransportationTypeEnumValueMap,
+      enumMap: _LegtransportTypeEnumValueMap,
     )
   },
   estimateSize: _legEstimateSize,
@@ -61,7 +61,7 @@ void _legSerialize(
     TrackedPointSchema.serialize,
     object.trackedPoints,
   );
-  writer.writeByte(offsets[1], object.transportationType.index);
+  writer.writeByte(offsets[1], object.transportType.index);
 }
 
 Leg _legDeserialize(
@@ -90,15 +90,14 @@ P _legDeserializeProp<P>(
           ) ??
           []) as P;
     case 1:
-      return (_LegtransportationTypeValueEnumMap[
-              reader.readByteOrNull(offset)] ??
+      return (_LegtransportTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           TransportType.by_foot) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-const _LegtransportationTypeEnumValueMap = {
+const _LegtransportTypeEnumValueMap = {
   'by_foot': 0,
   'bicycle': 1,
   'car': 2,
@@ -107,7 +106,7 @@ const _LegtransportationTypeEnumValueMap = {
   'plane': 5,
   'other': 6,
 };
-const _LegtransportationTypeValueEnumMap = {
+const _LegtransportTypeValueEnumMap = {
   0: TransportType.by_foot,
   1: TransportType.bicycle,
   2: TransportType.car,
@@ -202,43 +201,43 @@ extension LegQueryFilter on QueryBuilder<Leg, Leg, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Leg, Leg, QAfterFilterCondition> transportationTypeEqualTo(
+  QueryBuilder<Leg, Leg, QAfterFilterCondition> transportTypeEqualTo(
       TransportType value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'transportationType',
+        property: r'transportType',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Leg, Leg, QAfterFilterCondition> transportationTypeGreaterThan(
+  QueryBuilder<Leg, Leg, QAfterFilterCondition> transportTypeGreaterThan(
     TransportType value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'transportationType',
+        property: r'transportType',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Leg, Leg, QAfterFilterCondition> transportationTypeLessThan(
+  QueryBuilder<Leg, Leg, QAfterFilterCondition> transportTypeLessThan(
     TransportType value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'transportationType',
+        property: r'transportType',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Leg, Leg, QAfterFilterCondition> transportationTypeBetween(
+  QueryBuilder<Leg, Leg, QAfterFilterCondition> transportTypeBetween(
     TransportType lower,
     TransportType upper, {
     bool includeLower = true,
@@ -246,7 +245,7 @@ extension LegQueryFilter on QueryBuilder<Leg, Leg, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'transportationType',
+        property: r'transportType',
         lower: lower,
         includeLower: includeLower,
         upper: upper,

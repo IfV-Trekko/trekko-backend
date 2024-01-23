@@ -9,9 +9,11 @@ class ServerFormEntry {
   final String title;
   final String type;
   final bool required;
-  final List<FormEntryOption> options;
+  final String? regex;
+  final List<FormEntryOption>? options;
 
-  ServerFormEntry(this.key, this.title, this.type, this.required, this.options);
+  ServerFormEntry(
+      this.key, this.title, this.type, this.required, this.regex, this.options);
 
   Map<String, dynamic> toJson() => _$ServerFormEntryToJson(this);
 

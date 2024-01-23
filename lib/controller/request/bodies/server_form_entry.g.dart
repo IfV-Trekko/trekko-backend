@@ -12,8 +12,9 @@ ServerFormEntry _$ServerFormEntryFromJson(Map<String, dynamic> json) =>
       json['title'] as String,
       json['type'] as String,
       json['required'] as bool,
-      (json['options'] as List<dynamic>)
-          .map((e) => FormEntryOption.fromJson(e as Map<String, dynamic>))
+      json['regex'] as String?,
+      (json['options'] as List<dynamic>?)
+          ?.map((e) => FormEntryOption.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -23,5 +24,6 @@ Map<String, dynamic> _$ServerFormEntryToJson(ServerFormEntry instance) =>
       'title': instance.title,
       'type': instance.type,
       'required': instance.required,
+      'regex': instance.regex,
       'options': instance.options,
     };

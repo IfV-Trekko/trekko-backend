@@ -33,12 +33,10 @@ class LastLoginBuilder extends TrekkoBuilder {
 
       Profile? latestProfile =
           await value.profiles.where().sortByLastLoginDesc().findFirst();
-      return ProfiledTrekko(Profile(
-          latestProfile!.projectUrl,
-          latestProfile.email,
-          latestProfile.token,
-          DateTime.now(),
-          latestProfile.preferences));
+      return ProfiledTrekko(
+          projectUrl: latestProfile!.projectUrl,
+          email: latestProfile.email,
+          token: latestProfile.token);
     });
   }
 }

@@ -23,7 +23,7 @@ const PreferencesSchema = Schema(
       id: 1,
       name: r'onboardingQuestions',
       type: IsarType.objectList,
-      target: r'OnboardingQuestion',
+      target: r'QuestionAnswer',
     )
   },
   estimateSize: _preferencesEstimateSize,
@@ -40,11 +40,11 @@ int _preferencesEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.onboardingQuestions.length * 3;
   {
-    final offsets = allOffsets[OnboardingQuestion]!;
+    final offsets = allOffsets[QuestionAnswer]!;
     for (var i = 0; i < object.onboardingQuestions.length; i++) {
       final value = object.onboardingQuestions[i];
       bytesCount +=
-          OnboardingQuestionSchema.estimateSize(value, offsets, allOffsets);
+          QuestionAnswerSchema.estimateSize(value, offsets, allOffsets);
     }
   }
   return bytesCount;
@@ -57,10 +57,10 @@ void _preferencesSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeByte(offsets[0], object.batteryUsageSetting.index);
-  writer.writeObjectList<OnboardingQuestion>(
+  writer.writeObjectList<QuestionAnswer>(
     offsets[1],
     allOffsets,
-    OnboardingQuestionSchema.serialize,
+    QuestionAnswerSchema.serialize,
     object.onboardingQuestions,
   );
 }
@@ -72,6 +72,16 @@ Preferences _preferencesDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Preferences();
+  object.batteryUsageSetting = _PreferencesbatteryUsageSettingValueEnumMap[
+          reader.readByteOrNull(offsets[0])] ??
+      BatteryUsageSetting.low;
+  object.onboardingQuestions = reader.readObjectList<QuestionAnswer>(
+        offsets[1],
+        QuestionAnswerSchema.deserialize,
+        allOffsets,
+        QuestionAnswer(),
+      ) ??
+      [];
   return object;
 }
 
@@ -87,11 +97,11 @@ P _preferencesDeserializeProp<P>(
               reader.readByteOrNull(offset)] ??
           BatteryUsageSetting.low) as P;
     case 1:
-      return (reader.readObjectList<OnboardingQuestion>(
+      return (reader.readObjectList<QuestionAnswer>(
             offset,
-            OnboardingQuestionSchema.deserialize,
+            QuestionAnswerSchema.deserialize,
             allOffsets,
-            OnboardingQuestion(),
+            QuestionAnswer(),
           ) ??
           []) as P;
     default:
@@ -261,7 +271,7 @@ extension PreferencesQueryFilter
 extension PreferencesQueryObject
     on QueryBuilder<Preferences, Preferences, QFilterCondition> {
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      onboardingQuestionsElement(FilterQuery<OnboardingQuestion> q) {
+      onboardingQuestionsElement(FilterQuery<QuestionAnswer> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'onboardingQuestions');
     });

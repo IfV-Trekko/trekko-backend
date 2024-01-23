@@ -27,21 +27,33 @@ const ProfileSchema = CollectionSchema(
       name: r'lastLogin',
       type: IsarType.dateTime,
     ),
-    r'preferences': PropertySchema(
+    r'onboardingQuestions': PropertySchema(
       id: 2,
+      name: r'onboardingQuestions',
+      type: IsarType.objectList,
+      target: r'OnboardingQuestion',
+    ),
+    r'preferences': PropertySchema(
+      id: 3,
       name: r'preferences',
       type: IsarType.object,
       target: r'Preferences',
     ),
     r'projectUrl': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'projectUrl',
       type: IsarType.string,
     ),
     r'token': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'token',
       type: IsarType.string,
+    ),
+    r'trackingState': PropertySchema(
+      id: 6,
+      name: r'trackingState',
+      type: IsarType.byte,
+      enumMap: _ProfiletrackingStateEnumValueMap,
     )
   },
   estimateSize: _profileEstimateSize,
@@ -54,7 +66,7 @@ const ProfileSchema = CollectionSchema(
       id: -9113715726912685105,
       name: r'projectUrl',
       unique: true,
-      replace: true,
+      replace: false,
       properties: [
         IndexPropertySchema(
           name: r'projectUrl',
@@ -67,7 +79,7 @@ const ProfileSchema = CollectionSchema(
       id: -26095440403582047,
       name: r'email',
       unique: true,
-      replace: true,
+      replace: false,
       properties: [
         IndexPropertySchema(
           name: r'email',
@@ -79,8 +91,9 @@ const ProfileSchema = CollectionSchema(
   },
   links: {},
   embeddedSchemas: {
-    r'Preferences': PreferencesSchema,
-    r'OnboardingQuestion': OnboardingQuestionSchema
+    r'OnboardingQuestion': OnboardingQuestionSchema,
+    r'QuestionAnswer': QuestionAnswerSchema,
+    r'Preferences': PreferencesSchema
   },
   getId: _profileGetId,
   getLinks: _profileGetLinks,
@@ -95,6 +108,15 @@ int _profileEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.email.length * 3;
+  bytesCount += 3 + object.onboardingQuestions.length * 3;
+  {
+    final offsets = allOffsets[OnboardingQuestion]!;
+    for (var i = 0; i < object.onboardingQuestions.length; i++) {
+      final value = object.onboardingQuestions[i];
+      bytesCount +=
+          OnboardingQuestionSchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
   bytesCount += 3 +
       PreferencesSchema.estimateSize(
           object.preferences, allOffsets[Preferences]!, allOffsets);
@@ -111,14 +133,21 @@ void _profileSerialize(
 ) {
   writer.writeString(offsets[0], object.email);
   writer.writeDateTime(offsets[1], object.lastLogin);
-  writer.writeObject<Preferences>(
+  writer.writeObjectList<OnboardingQuestion>(
     offsets[2],
+    allOffsets,
+    OnboardingQuestionSchema.serialize,
+    object.onboardingQuestions,
+  );
+  writer.writeObject<Preferences>(
+    offsets[3],
     allOffsets,
     PreferencesSchema.serialize,
     object.preferences,
   );
-  writer.writeString(offsets[3], object.projectUrl);
-  writer.writeString(offsets[4], object.token);
+  writer.writeString(offsets[4], object.projectUrl);
+  writer.writeString(offsets[5], object.token);
+  writer.writeByte(offsets[6], object.trackingState.index);
 }
 
 Profile _profileDeserialize(
@@ -128,12 +157,21 @@ Profile _profileDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Profile(
-    reader.readString(offsets[3]),
-    reader.readString(offsets[0]),
     reader.readString(offsets[4]),
+    reader.readString(offsets[0]),
+    reader.readString(offsets[5]),
     reader.readDateTime(offsets[1]),
-    reader.readObjectOrNull<Preferences>(
+    _ProfiletrackingStateValueEnumMap[reader.readByteOrNull(offsets[6])] ??
+        TrackingState.running,
+    reader.readObjectList<OnboardingQuestion>(
           offsets[2],
+          OnboardingQuestionSchema.deserialize,
+          allOffsets,
+          OnboardingQuestion(),
+        ) ??
+        [],
+    reader.readObjectOrNull<Preferences>(
+          offsets[3],
           PreferencesSchema.deserialize,
           allOffsets,
         ) ??
@@ -155,20 +193,41 @@ P _profileDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
+      return (reader.readObjectList<OnboardingQuestion>(
+            offset,
+            OnboardingQuestionSchema.deserialize,
+            allOffsets,
+            OnboardingQuestion(),
+          ) ??
+          []) as P;
+    case 3:
       return (reader.readObjectOrNull<Preferences>(
             offset,
             PreferencesSchema.deserialize,
             allOffsets,
           ) ??
           Preferences()) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (_ProfiletrackingStateValueEnumMap[
+              reader.readByteOrNull(offset)] ??
+          TrackingState.running) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _ProfiletrackingStateEnumValueMap = {
+  'running': 0,
+  'paused': 1,
+};
+const _ProfiletrackingStateValueEnumMap = {
+  0: TrackingState.running,
+  1: TrackingState.paused,
+};
 
 Id _profileGetId(Profile object) {
   return object.id;
@@ -690,6 +749,95 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      onboardingQuestionsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      onboardingQuestionsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      onboardingQuestionsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      onboardingQuestionsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      onboardingQuestionsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      onboardingQuestionsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> projectUrlEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -949,10 +1097,71 @@ extension ProfileQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> trackingStateEqualTo(
+      TrackingState value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'trackingState',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      trackingStateGreaterThan(
+    TrackingState value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'trackingState',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> trackingStateLessThan(
+    TrackingState value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'trackingState',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> trackingStateBetween(
+    TrackingState lower,
+    TrackingState upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'trackingState',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension ProfileQueryObject
     on QueryBuilder<Profile, Profile, QFilterCondition> {
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      onboardingQuestionsElement(FilterQuery<OnboardingQuestion> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'onboardingQuestions');
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> preferences(
       FilterQuery<Preferences> q) {
     return QueryBuilder.apply(this, (query) {
@@ -1010,6 +1219,18 @@ extension ProfileQuerySortBy on QueryBuilder<Profile, Profile, QSortBy> {
   QueryBuilder<Profile, Profile, QAfterSortBy> sortByTokenDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'token', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> sortByTrackingState() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'trackingState', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> sortByTrackingStateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'trackingState', Sort.desc);
     });
   }
 }
@@ -1075,6 +1296,18 @@ extension ProfileQuerySortThenBy
       return query.addSortBy(r'token', Sort.desc);
     });
   }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> thenByTrackingState() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'trackingState', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> thenByTrackingStateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'trackingState', Sort.desc);
+    });
+  }
 }
 
 extension ProfileQueryWhereDistinct
@@ -1105,6 +1338,12 @@ extension ProfileQueryWhereDistinct
       return query.addDistinctBy(r'token', caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<Profile, Profile, QDistinct> distinctByTrackingState() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'trackingState');
+    });
+  }
 }
 
 extension ProfileQueryProperty
@@ -1127,6 +1366,13 @@ extension ProfileQueryProperty
     });
   }
 
+  QueryBuilder<Profile, List<OnboardingQuestion>, QQueryOperations>
+      onboardingQuestionsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'onboardingQuestions');
+    });
+  }
+
   QueryBuilder<Profile, Preferences, QQueryOperations> preferencesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'preferences');
@@ -1142,6 +1388,13 @@ extension ProfileQueryProperty
   QueryBuilder<Profile, String, QQueryOperations> tokenProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'token');
+    });
+  }
+
+  QueryBuilder<Profile, TrackingState, QQueryOperations>
+      trackingStateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'trackingState');
     });
   }
 }
