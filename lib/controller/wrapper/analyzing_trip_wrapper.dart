@@ -81,10 +81,6 @@ class AnalyzingTripWrapper implements TripWrapper {
 
     Trip trip = Trip(
         donationState: DonationState.undefined,
-        startTime: _legs[0].trackedPoints[0].timestamp,
-        endTime: _legs[_legs.length - 1]
-            .trackedPoints[_legs[_legs.length - 1].trackedPoints.length - 1]
-            .timestamp,
         comment: null,
         purpose: null,
         legs: []);

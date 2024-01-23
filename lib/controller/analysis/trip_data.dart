@@ -21,7 +21,7 @@ enum TripData {
         }
         return distance;
       case TripData.duration_in_seconds:
-        return trip.startTime.difference(trip.endTime).inSeconds.toDouble();
+        return trip.getStartTime().difference(trip.getEndTime()).inSeconds.toDouble();
       case TripData.speed_in_kmh:
         return trip.legs
                 .map((l) =>

@@ -19,8 +19,8 @@ class ServerTrip {
 
   ServerTrip.fromTrip(Trip trip)
       : uid = trip.id.toString(),
-        startTimestamp = trip.startTime.millisecondsSinceEpoch,
-        endTimestamp = trip.endTime.millisecondsSinceEpoch,
+        startTimestamp = trip.getStartTime().millisecondsSinceEpoch,
+        endTimestamp = trip.getEndTime().millisecondsSinceEpoch,
         distance = PositionUtils.distanceBetweenPoints(trip.legs
             .expand((e) => e.trackedPoints)
             .map((e) => e.toPosition())
