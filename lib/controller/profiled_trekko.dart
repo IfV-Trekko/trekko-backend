@@ -81,7 +81,7 @@ class ProfiledTrekko implements Trekko {
   Stream<Profile> getProfile() {
     return _isar.profiles
         .where()
-        .idEqualTo(_profile.id)
+        .emailEqualTo(_profile.email)
         .build()
         .watch(fireImmediately: true)
         .map((event) => event.first);
