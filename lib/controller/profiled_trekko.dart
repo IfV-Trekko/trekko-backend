@@ -83,7 +83,7 @@ class ProfiledTrekko implements Trekko {
         .where()
         .idEqualTo(_profile.id)
         .build()
-        .watch()
+        .watch(fireImmediately: true)
         .map((event) => event.first);
   }
 
