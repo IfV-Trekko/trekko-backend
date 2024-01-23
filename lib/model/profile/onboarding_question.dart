@@ -23,16 +23,16 @@ class OnboardingQuestion {
         regex = null,
         options = null;
 
-  OnboardingQuestion.withData(this.key, this.title, this.type, this.required,
-      this.regex, this.options);
+  OnboardingQuestion.withData(
+      this.key, this.title, this.type, this.required, this.regex, this.options);
 
   OnboardingQuestion.fromServer(ServerFormEntry entry)
-      :
-        this.key = entry.key,
+      : this.key = entry.key,
         this.title = entry.title,
         this.type = QuestionType.fromString(entry.type),
         this.required = entry.required,
         this.regex = entry.regex,
-        this.options = entry.options?.map((e) =>
-            QuestionAnswer.withData(e.key, e.title)).toList();
+        this.options = entry.options
+            ?.map((e) => QuestionAnswer.withData(e.key, e.title))
+            .toList();
 }

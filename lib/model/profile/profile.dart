@@ -16,7 +16,7 @@ class Profile {
   String token;
   DateTime lastLogin;
   @enumerated
-  TrackingState trackingState = TrackingState.paused;
+  TrackingState trackingState;
   List<OnboardingQuestion> onboardingQuestions;
   Preferences preferences;
 
