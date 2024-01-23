@@ -79,8 +79,12 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Stream<Profile> getProfile() {
-    return Stream.periodic(Duration(milliseconds: 100), (i) => _profile)
-        .distinct();
+    return _isar.profiles
+        .where()
+        .idEqualTo(_profile.id)
+        .build()
+        .watch()
+        .map((event) => event.first);
   }
 
   @override
