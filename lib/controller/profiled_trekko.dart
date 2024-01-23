@@ -81,7 +81,7 @@ class ProfiledTrekko implements Trekko {
   Stream<Profile> getProfile() {
     return _isar.profiles
         .where()
-        .emailEqualTo(_profile.email)
+        .idEqualTo(_profile.id)
         .build()
         .watch(fireImmediately: true)
         .map((event) => event.first);
@@ -96,10 +96,9 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> savePreferences(Preferences preferences) async {
     this._profile.preferences = preferences;
-    return _isar.writeTxn(() async => await _isar.profiles
-        .put(this._profile)
-        .then((value) async =>
-            await _server.updateProfile(this._profile.toServerProfile())));
+    return await _server.updateProfile(this._profile.toServerProfile()).then(
+        (value) => _isar
+            .writeTxn(() async => await _isar.profiles.put(this._profile)));
   }
 
   @override

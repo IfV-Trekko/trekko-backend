@@ -7,7 +7,7 @@ part 'profile.g.dart';
 
 @collection
 class Profile {
-  final Id id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   @Index(unique: true, replace: true)
   final String projectUrl;
   @Index(unique: true, replace: true)
