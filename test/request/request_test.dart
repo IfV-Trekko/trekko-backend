@@ -5,11 +5,14 @@ import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:test/test.dart';
 
+const String baseUrl = "http://localhost:8080";
+const String email = "realAccountLoginTest@web.de";
+
 void main() {
-  AuthRequest authRequest = AuthRequest("realAccount@web.de", "1aA!hklj32r4hkjl324r");
+  AuthRequest authRequest = AuthRequest(email, "1aA!hklj32r4hkjl324r");
   late TrekkoServer server;
   setUp(() {
-    server = UrlTrekkoServer("http://localhost:8080");
+    server = UrlTrekkoServer(baseUrl);
   });
 
   test("Signing in with a non existing account", () async {

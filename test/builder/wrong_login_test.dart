@@ -12,6 +12,5 @@ void main() {
       expect(e, isA<BuildException>());
       expect((e as BuildException).reason, LoginResult.failedNoSuchUser);
     }
-
   });
 }

@@ -193,7 +193,7 @@ class UrlTrekkoServer implements TrekkoServer {
   @override
   Future<EmptyResponse> updateProfile(ServerProfile profile) {
     return _sendRequest(
-      _client.put,
+      _client.post,
       Endpoint.profile,
       profile,
       201,
