@@ -8,17 +8,17 @@ part 'preferences.g.dart';
 @embedded
 class Preferences {
 
-  List<QuestionAnswer> onboardingQuestions;
+  List<QuestionAnswer> questionAnswers;
   @enumerated
   BatteryUsageSetting batteryUsageSetting;
 
-  Preferences() : onboardingQuestions = [], batteryUsageSetting = BatteryUsageSetting.medium;
+  Preferences() : questionAnswers = [], batteryUsageSetting = BatteryUsageSetting.medium;
 
-  Preferences.withData(this.onboardingQuestions, this.batteryUsageSetting);
+  Preferences.withData(this.questionAnswers, this.batteryUsageSetting);
 
   ServerProfile toServerProfile() {
     Map<String, String> data = {};
-    this.onboardingQuestions.forEach((element) {
+    this.questionAnswers.forEach((element) {
       data[element.key] = element.answer;
     });
     return ServerProfile(data);

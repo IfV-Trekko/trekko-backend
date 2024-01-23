@@ -19,9 +19,9 @@ const PreferencesSchema = Schema(
       type: IsarType.byte,
       enumMap: _PreferencesbatteryUsageSettingEnumValueMap,
     ),
-    r'onboardingQuestions': PropertySchema(
+    r'questionAnswers': PropertySchema(
       id: 1,
-      name: r'onboardingQuestions',
+      name: r'questionAnswers',
       type: IsarType.objectList,
       target: r'QuestionAnswer',
     )
@@ -38,11 +38,11 @@ int _preferencesEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.onboardingQuestions.length * 3;
+  bytesCount += 3 + object.questionAnswers.length * 3;
   {
     final offsets = allOffsets[QuestionAnswer]!;
-    for (var i = 0; i < object.onboardingQuestions.length; i++) {
-      final value = object.onboardingQuestions[i];
+    for (var i = 0; i < object.questionAnswers.length; i++) {
+      final value = object.questionAnswers[i];
       bytesCount +=
           QuestionAnswerSchema.estimateSize(value, offsets, allOffsets);
     }
@@ -61,7 +61,7 @@ void _preferencesSerialize(
     offsets[1],
     allOffsets,
     QuestionAnswerSchema.serialize,
-    object.onboardingQuestions,
+    object.questionAnswers,
   );
 }
 
@@ -75,7 +75,7 @@ Preferences _preferencesDeserialize(
   object.batteryUsageSetting = _PreferencesbatteryUsageSettingValueEnumMap[
           reader.readByteOrNull(offsets[0])] ??
       BatteryUsageSetting.low;
-  object.onboardingQuestions = reader.readObjectList<QuestionAnswer>(
+  object.questionAnswers = reader.readObjectList<QuestionAnswer>(
         offsets[1],
         QuestionAnswerSchema.deserialize,
         allOffsets,
@@ -179,10 +179,10 @@ extension PreferencesQueryFilter
   }
 
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      onboardingQuestionsLengthEqualTo(int length) {
+      questionAnswersLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'onboardingQuestions',
+        r'questionAnswers',
         length,
         true,
         length,
@@ -192,10 +192,10 @@ extension PreferencesQueryFilter
   }
 
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      onboardingQuestionsIsEmpty() {
+      questionAnswersIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'onboardingQuestions',
+        r'questionAnswers',
         0,
         true,
         0,
@@ -205,10 +205,10 @@ extension PreferencesQueryFilter
   }
 
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      onboardingQuestionsIsNotEmpty() {
+      questionAnswersIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'onboardingQuestions',
+        r'questionAnswers',
         0,
         false,
         999999,
@@ -218,13 +218,13 @@ extension PreferencesQueryFilter
   }
 
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      onboardingQuestionsLengthLessThan(
+      questionAnswersLengthLessThan(
     int length, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'onboardingQuestions',
+        r'questionAnswers',
         0,
         true,
         length,
@@ -234,13 +234,13 @@ extension PreferencesQueryFilter
   }
 
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      onboardingQuestionsLengthGreaterThan(
+      questionAnswersLengthGreaterThan(
     int length, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'onboardingQuestions',
+        r'questionAnswers',
         length,
         include,
         999999,
@@ -250,7 +250,7 @@ extension PreferencesQueryFilter
   }
 
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      onboardingQuestionsLengthBetween(
+      questionAnswersLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -258,7 +258,7 @@ extension PreferencesQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'onboardingQuestions',
+        r'questionAnswers',
         lower,
         includeLower,
         upper,
@@ -271,9 +271,9 @@ extension PreferencesQueryFilter
 extension PreferencesQueryObject
     on QueryBuilder<Preferences, Preferences, QFilterCondition> {
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
-      onboardingQuestionsElement(FilterQuery<QuestionAnswer> q) {
+      questionAnswersElement(FilterQuery<QuestionAnswer> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'onboardingQuestions');
+      return query.object(q, r'questionAnswers');
     });
   }
 }
