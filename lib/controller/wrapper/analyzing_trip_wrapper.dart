@@ -1,11 +1,9 @@
-import 'package:app_backend/controller/wrapper/cluster_position.dart';
 import 'package:app_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/trip.dart';
-import 'package:fluster/fluster.dart';
 import 'package:geolocator_platform_interface/src/models/position.dart';
 
 class AnalyzingTripWrapper implements TripWrapper {
@@ -53,7 +51,6 @@ class AnalyzingTripWrapper implements TripWrapper {
       double probability = 0;
       // List<ClusterPosition> clusters = fluster.clusters(bounds, 0);
 
-
       return probability;
     });
   }
@@ -83,11 +80,7 @@ class AnalyzingTripWrapper implements TripWrapper {
         donationState: DonationState.undefined,
         comment: null,
         purpose: null,
-        legs: []);
-
-    _legs.forEach((element) {
-      trip.legs.add(element);
-    });
+        legs: _legs);
     return Future.value(trip);
   }
 }

@@ -8,6 +8,13 @@ import 'package:app_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
 
 class CachedAnalysisBuilder implements AnalysisBuilder {
+  final List<CalculationReduction> reduction;
+  final List<TripData> tripData;
+
+  CachedAnalysisBuilder(
+      {this.reduction = CalculationReduction.values,
+      this.tripData = TripData.values});
+
   @override
   Stream<TripsAnalysis> build(Query<Trip> trips) {
     return trips.watch().map((trips) {
