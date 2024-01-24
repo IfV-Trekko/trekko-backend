@@ -17,7 +17,7 @@ class CachedAnalysisBuilder implements AnalysisBuilder {
 
   @override
   Stream<TripsAnalysis> build(Query<Trip> trips) {
-    return trips.watch().map((trips) {
+    return trips.watch(fireImmediately: true).map((trips) {
       Map<AnalysisOption, double> data = {};
       for (var tripData in TripData.values) {
         for (var calc in CalculationReduction.values) {
