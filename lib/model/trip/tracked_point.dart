@@ -16,7 +16,7 @@ class TrackedPoint {
         speed_in_kmh = position.speed,
         timestamp = position.timestamp;
 
-  TrackedPoint.fromData(
+  TrackedPoint.withData(
       this.latitude, this.longitude, this.speed_in_kmh, this.timestamp);
 
   TrackedPoint()
