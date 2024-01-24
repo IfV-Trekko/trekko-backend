@@ -10,9 +10,19 @@ class Leg {
   final TransportType transportType;
   final List<TrackedPoint> trackedPoints;
 
-  Leg.withData(this.transportType, this.trackedPoints);
-
   Leg()
       : transportType = TransportType.car,
         trackedPoints = [];
+
+  Leg.withData(this.transportType, this.trackedPoints) {
+    if (this.trackedPoints.length < 2) {
+      throw Exception("A leg must have at least two tracked points");
+    }
+
+    for (int i = 1; i < this.trackedPoints.length; i++) {
+      if (this.trackedPoints[i].timestamp.isBefore(this.trackedPoints[i - 1].timestamp)) {
+        throw Exception("The tracked points must be in chronological order");
+      }
+    }
+  }
 }

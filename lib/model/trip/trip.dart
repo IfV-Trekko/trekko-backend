@@ -21,7 +21,11 @@ class Trip {
     required this.comment,
     required this.purpose,
     required this.legs,
-  });
+  }) {
+    if (this.legs.isEmpty) {
+      throw Exception("A trip must have at least one leg");
+    }
+  }
 
   DateTime getStartTime() {
     return this.legs.first.trackedPoints.first.timestamp;
