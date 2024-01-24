@@ -68,6 +68,10 @@ TrackedPoint _trackedPointDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = TrackedPoint();
+  object.latitude = reader.readDouble(offsets[0]);
+  object.longitude = reader.readDouble(offsets[1]);
+  object.speed_in_kmh = reader.readDouble(offsets[2]);
+  object.timestamp = reader.readDateTime(offsets[3]);
   return object;
 }
 

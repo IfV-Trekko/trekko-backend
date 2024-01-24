@@ -5,10 +5,10 @@ part 'tracked_point.g.dart';
 
 @embedded
 class TrackedPoint {
-  final double latitude;
-  final double longitude;
-  final double speed_in_kmh;
-  final DateTime timestamp;
+  double latitude; // TODO: final
+  double longitude;
+  double speed_in_kmh;
+  DateTime timestamp;
 
   TrackedPoint.fromPosition(Position position)
       : latitude = position.latitude,

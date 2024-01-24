@@ -71,6 +71,16 @@ Leg _legDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Leg();
+  object.trackedPoints = reader.readObjectList<TrackedPoint>(
+        offsets[0],
+        TrackedPointSchema.deserialize,
+        allOffsets,
+        TrackedPoint(),
+      ) ??
+      [];
+  object.transportType =
+      _LegtransportTypeValueEnumMap[reader.readByteOrNull(offsets[1])] ??
+          TransportType.by_foot;
   return object;
 }
 

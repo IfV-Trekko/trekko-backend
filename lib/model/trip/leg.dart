@@ -7,8 +7,8 @@ part 'leg.g.dart';
 @embedded
 class Leg {
   @enumerated
-  final TransportType transportType;
-  final List<TrackedPoint> trackedPoints;
+  TransportType transportType; // TODO: final
+  List<TrackedPoint> trackedPoints;
 
   Leg()
       : transportType = TransportType.car,
