@@ -48,6 +48,12 @@ class Trip {
     return distance;
   }
 
+  double getDistanceInKm() {
+    double distanceInKm = this.getDistanceInMeters() / 1000;
+    String distanceInKmStr = distanceInKm.toStringAsFixed(1);
+    return double.parse(distanceInKmStr);
+  }
+
   double getSpeedInKmh() {
     double distance = this.getDistanceInMeters();
     Duration duration = this.getDuration();
