@@ -55,7 +55,7 @@ class Trip {
   }
 
   Duration getDuration() {
-    return this.getStartTime().difference(this.getEndTime());
+    return this.getEndTime().difference(this.getStartTime());
   }
   
   List<TransportType> getTransportTypes() {
