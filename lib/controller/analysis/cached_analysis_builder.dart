@@ -1,42 +1,19 @@
 import 'package:app_backend/controller/analysis/analysis_builder.dart';
-import 'package:app_backend/controller/analysis/analysis_option.dart';
-import 'package:app_backend/controller/analysis/cached_trips_analysis.dart';
-import 'package:app_backend/controller/analysis/calculation_reduction.dart';
-import 'package:app_backend/controller/analysis/trip_data.dart';
-import 'package:app_backend/controller/analysis/trips_analysis.dart';
+import 'package:app_backend/controller/analysis/calculation_reductor.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
 
 class CachedAnalysisBuilder implements AnalysisBuilder {
-  final List<CalculationReduction> reduction;
-  final List<TripData> tripData;
-
-  CachedAnalysisBuilder(
-      {this.reduction = CalculationReduction.values,
-      this.tripData = TripData.values});
 
   @override
-  Stream<TripsAnalysis> build(Query<Trip> trips) {
+  Stream<T?> build<T>(
+      Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
     return trips.watch(fireImmediately: true).map((trips) {
-      Map<AnalysisOption, double> data = {};
-      for (var tripData in TripData.values) {
-        for (var calc in CalculationReduction.values) {
-          var option = AnalysisOption(tripData, calc);
-          double calculated = 0;
-          for (int i = 0; i < trips.length; i++) {
-            var trip = trips[i];
-            if (i == 0) {
-              calculated = option.tripData.apply(trip);
-              continue;
-            }
-
-            calculated =
-                option.reduction.apply(calculated, option.tripData.apply(trip));
-          }
-          data[option] = calculated;
-        }
-      }
-      return CachedTripsAnalysis(data);
+      return trips.fold<T?>(
+          trips.isNotEmpty ? tripData(trips.first) : null,
+          (previousValue, element) => previousValue != null
+              ? reduction.reduce(previousValue, tripData(element))
+              : tripData(element));
     });
   }
 }

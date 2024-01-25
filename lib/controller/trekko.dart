@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_backend/controller/analysis/trips_analysis.dart';
+import 'package:app_backend/controller/analysis/calculation_reductor.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
 import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
@@ -26,7 +26,8 @@ abstract class Trekko {
 
   QueryBuilder<Trip, Trip, QWhere> getTripQuery();
 
-  Stream<TripsAnalysis> analyze(Query<Trip> query);
+  Stream<T?> analyze<T>(
+      Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction);
 
   Future<void> donate(Query<Trip> query);
 
