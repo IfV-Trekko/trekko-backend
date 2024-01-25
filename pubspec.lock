@@ -217,6 +217,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  fling_units:
+    dependency: "direct main"
+    description:
+      name: fling_units
+      sha256: "2bf10acf2eb519e666df036881ef64c073e826225b00ce2663aa9d7547449312"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.6"
   fluster:
     dependency: "direct main"
     description:

@@ -1,5 +1,7 @@
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
+import 'package:fling_units/fling_units.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 
 part 'leg.g.dart';
@@ -24,5 +26,16 @@ class Leg {
         throw Exception("The tracked points must be in chronological order");
       }
     }
+  }
+
+  Distance getDistance() {
+    double distanceInMeters = 0;
+    for (int i = 1; i < trackedPoints.length; i++) {
+      TrackedPoint p0 = trackedPoints[i - 1];
+      TrackedPoint p1 = trackedPoints[i];
+      distanceInMeters += Geolocator.distanceBetween(
+          p0.latitude, p0.longitude, p1.latitude, p1.longitude);
+    }
+    return meters(distanceInMeters);
   }
 }

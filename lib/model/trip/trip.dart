@@ -2,7 +2,7 @@ import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 
 part 'trip.g.dart';
@@ -35,37 +35,19 @@ class Trip {
     return this.legs.last.trackedPoints.last.timestamp;
   }
 
-  double getDistanceInMeters() {
-    double distance = 0;
-    for (var leg in legs) {
-      for (int i = 1; i < leg.trackedPoints.length; i++) {
-        TrackedPoint p0 = leg.trackedPoints[i - 1];
-        TrackedPoint p1 = leg.trackedPoints[i];
-        distance += Geolocator.distanceBetween(
-            p0.latitude, p0.longitude, p1.latitude, p1.longitude);
-      }
-    }
-    return distance;
+  Distance getDistance() {
+    return Distance.sum(legs.map((e) => e.getDistance()));
   }
 
-  double getDistanceInKm() {
-    double distanceInKm = this.getDistanceInMeters() / 1000;
-    String distanceInKmStr = distanceInKm.toStringAsFixed(1);
-    return double.parse(distanceInKmStr);
-  }
-
-  double getSpeedInKmh() {
-    double distance = this.getDistanceInMeters();
-    Duration duration = this.getDuration();
-    return distance / duration.inSeconds * 3.6;
+  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() {
+    return this.getDistance().per(this.getDuration().inSeconds.seconds);
   }
 
   Duration getDuration() {
     return this.getEndTime().difference(this.getStartTime());
   }
-  
+
   List<TransportType> getTransportTypes() {
     return this.legs.map((e) => e.transportType).toList();
   }
 }
- 
