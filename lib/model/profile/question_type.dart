@@ -2,7 +2,7 @@ enum QuestionType {
   boolean("boolean"),
   select("select"),
   number("number"),
-  text("test");
+  text("text");
 
   final String name;
 
