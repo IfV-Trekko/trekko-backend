@@ -25,14 +25,20 @@ class Trip {
     if (this.legs.isEmpty) {
       throw Exception("A trip must have at least one leg");
     }
+
+    for (int i = 1; i < this.legs.length; i++) {
+      if (this.legs[i].getStartTime().isBefore(this.legs[i - 1].getEndTime())) {
+        throw Exception("The legs must be in chronological order");
+      }
+    }
   }
 
   DateTime getStartTime() {
-    return this.legs.first.trackedPoints.first.timestamp;
+    return this.legs.first.getStartTime();
   }
 
   DateTime getEndTime() {
-    return this.legs.last.trackedPoints.last.timestamp;
+    return this.legs.last.getEndTime();
   }
 
   Distance getDistance() {

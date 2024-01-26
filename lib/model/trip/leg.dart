@@ -28,6 +28,14 @@ class Leg {
     }
   }
 
+  DateTime getStartTime() {
+    return this.trackedPoints.first.timestamp;
+  }
+
+  DateTime getEndTime() {
+    return this.trackedPoints.last.timestamp;
+  }
+
   Distance getDistance() {
     double distanceInMeters = 0;
     for (int i = 1; i < trackedPoints.length; i++) {
