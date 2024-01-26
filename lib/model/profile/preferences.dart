@@ -7,18 +7,22 @@ part 'preferences.g.dart';
 
 @embedded
 class Preferences {
-
   List<QuestionAnswer> questionAnswers; // TODO: Private
   @enumerated
   BatteryUsageSetting batteryUsageSetting;
 
-  Preferences() : questionAnswers = [], batteryUsageSetting = BatteryUsageSetting.medium;
+  Preferences()
+      : questionAnswers = List.empty(growable: true),
+        batteryUsageSetting = BatteryUsageSetting.medium;
 
   Preferences.withData(this.questionAnswers, this.batteryUsageSetting);
 
   String? getQuestionAnswer(String key) {
     if (this.questionAnswers.any((element) => element.key == key)) {
-      return this.questionAnswers.firstWhere((element) => element.key == key).answer;
+      return this
+          .questionAnswers
+          .firstWhere((element) => element.key == key)
+          .answer;
     }
     return null;
   }
