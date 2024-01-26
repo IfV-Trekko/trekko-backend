@@ -6,7 +6,7 @@ import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:geolocator/geolocator.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
-  final List<Position> _positions = [];
+  final List<Position> _positions = List.empty(growable: true);
 
   Future<double> calculateProbability(TransportTypeData data) {
     WeightedTransportTypeEvaluator evaluator =
@@ -31,20 +31,20 @@ class AnalyzingLegWrapper implements LegWrapper {
 
   @override
   Future<Leg> get() async {
-    double maxProbability = 0;
-    TransportTypeData maxData = TransportTypeData.by_foot;
-    for (TransportTypeData data in TransportTypeData.values) {
-      double probability = await calculateProbability(data);
-      if (probability > maxProbability) {
-        maxProbability = probability;
-        maxData = data;
+    return Future.microtask(() async {
+      double maxProbability = 0;
+      TransportTypeData maxData = TransportTypeData.by_foot;
+      for (TransportTypeData data in TransportTypeData.values) {
+        double probability = await calculateProbability(data);
+        if (probability > maxProbability) {
+          maxProbability = probability;
+          maxData = data;
+        }
       }
-    }
 
-    Leg leg = Leg.withData(maxData.getTransportType(), []);
-    _positions
-        .map(TrackedPoint.fromPosition)
-        .forEach((tp) => leg.trackedPoints.add(tp));
-    return Future.value(leg);
+      Leg leg = Leg.withData(maxData.getTransportType(),
+          _positions.map(TrackedPoint.fromPosition).toList());
+      return leg;
+    });
   }
 }

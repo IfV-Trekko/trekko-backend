@@ -7,7 +7,7 @@ import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator_platform_interface/src/models/position.dart';
 
 class AnalyzingTripWrapper implements TripWrapper {
-  final List<Leg> _legs = [];
+  final List<Leg> _legs = List.empty(growable: true);
   LegWrapper _legWrapper = AnalyzingLegWrapper();
 
   @override
@@ -73,14 +73,16 @@ class AnalyzingTripWrapper implements TripWrapper {
 
   @override
   Future<Trip> get() async {
-    if (_legWrapper.collectedDataPoints() != 0)
-      _legs.add(await _legWrapper.get());
+    return Future.microtask(() async {
+      if (_legWrapper.collectedDataPoints() != 0)
+        _legs.add(await _legWrapper.get());
 
-    Trip trip = Trip(
-        donationState: DonationState.undefined,
-        comment: null,
-        purpose: null,
-        legs: _legs);
-    return Future.value(trip);
+      Trip trip = Trip(
+      donationState: DonationState.undefined,
+      comment: null,
+      purpose: null,
+      legs: _legs);
+      return trip;
+    });
   }
 }

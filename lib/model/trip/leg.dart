@@ -14,7 +14,7 @@ class Leg {
 
   Leg()
       : transportType = TransportType.car,
-        trackedPoints = [];
+        trackedPoints = List.empty(growable: true);
 
   Leg.withData(this.transportType, this.trackedPoints) {
     if (this.trackedPoints.length < 2) {
