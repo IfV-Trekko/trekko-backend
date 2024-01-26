@@ -1,4 +1,5 @@
 import 'package:app_backend/controller/trekko.dart';
+import 'package:app_backend/model/profile/battery_usage_setting.dart';
 import 'package:app_backend/model/profile/profile.dart';
 import 'package:test/test.dart';
 
@@ -33,4 +34,17 @@ void main() {
     expect(profile.preferences.getQuestionAnswer("gender"), equals("female"));
     expect(profile.preferences.getQuestionAnswer("age"), equals(21));
   });
+
+  test("Set and get battery usage setting", () async {
+    Profile profile = await trekko.getProfile().first;
+    profile.preferences.batteryUsageSetting = BatteryUsageSetting.low;
+
+    expect(profile.preferences.batteryUsageSetting, equals(BatteryUsageSetting.low));
+
+    await trekko.savePreferences(profile.preferences);
+    profile = await trekko.getProfile().first;
+    expect(profile.preferences.batteryUsageSetting, equals(BatteryUsageSetting.low));
+  });
+
+  tearDownAll(() async => await trekko.terminate());
 }

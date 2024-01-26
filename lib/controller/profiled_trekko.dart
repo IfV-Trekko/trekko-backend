@@ -95,6 +95,9 @@ class ProfiledTrekko implements Trekko {
                     (await getProfile().first).preferences.batteryUsageSetting))
             .listen((event) {
           _positionController.add(event);
+          if (_positionController.isClosed) {
+            subscription?.cancel();
+          }
         });
       } else {
         subscription?.cancel();
@@ -119,6 +122,11 @@ class ProfiledTrekko implements Trekko {
     await _initProfile();
     await _listenForLocationPermission();
     await _startTracking();
+  }
+
+  Future<void> terminate() async {
+    await _positionController.close();
+    await _isar.close();
   }
 
   @override
@@ -190,16 +198,12 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(
       Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
     return trips.watch(fireImmediately: true).map((trips) {
-      return trips.fold<T?>(
-          trips.isNotEmpty ? tripData(trips.first) : null,
-          (previousValue, element) => previousValue != null
-              ? reduction.reduce(previousValue, tripData(element))
-              : tripData(element));
+      return trips.map(tripData).reduce((t0, t1) => reduction.reduce(t0, t1));
     });
   }
 
   @override
-  Future<void> saveTrip(Trip trip) async {
+  Future<int> saveTrip(Trip trip) async {
     return _isar.writeTxn(() async => await _isar.trips.put(trip));
   }
 

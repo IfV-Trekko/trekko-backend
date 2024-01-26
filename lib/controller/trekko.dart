@@ -12,13 +12,15 @@ import 'package:isar/isar.dart';
 abstract class Trekko {
   Future<void> init();
 
+  Future<void> terminate();
+
   Stream<Profile> getProfile();
 
   Future<void> savePreferences(Preferences preferences);
 
   Future<String> loadText(OnboardingTextType type);
 
-  Future<void> saveTrip(Trip trip);
+  Future<int> saveTrip(Trip trip);
 
   Future<bool> deleteTrip(int tripId);
 
