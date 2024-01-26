@@ -28,6 +28,7 @@ class Preferences {
   }
 
   void setQuestionAnswer(String key, String answer) {
+    this.questionAnswers = this.questionAnswers.toList(growable: true);
     this.questionAnswers.removeWhere((element) => element.key == key);
     this.questionAnswers.add(QuestionAnswer.withData(key, answer));
   }
