@@ -9,9 +9,16 @@ class AuthentificationUtils {
     return UrlTrekkoServer(projectUrl).sendCode(SendCodeRequest(email));
   }
 
-  static Future<bool> deleteProfile(int profileId) async {
+  static Future<bool> deleteProfile(String projectUrl, String email) async {
     Isar db = await DatabaseUtils.establishConnection();
     // TODO: Also delete from server?
-    return db.profiles.delete(profileId);
+    return await db.writeTxn(() async {
+      return await db.profiles
+          .filter()
+          .projectUrlEqualTo(projectUrl)
+          .and()
+          .emailEqualTo(email)
+          .deleteFirst();
+    });
   }
 }
