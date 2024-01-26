@@ -64,6 +64,8 @@ class UrlTrekkoServer implements TrekkoServer {
       }
       throw RequestException(
           response.statusCode, ErrorResponse.fromJson(decoded));
+    } else if (response.body.isEmpty) {
+      return EmptyResponse() as T;
     }
 
     return parser.call(jsonDecode(response.body));

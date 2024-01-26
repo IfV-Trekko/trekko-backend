@@ -19,8 +19,14 @@ const PreferencesSchema = Schema(
       type: IsarType.byte,
       enumMap: _PreferencesbatteryUsageSettingEnumValueMap,
     ),
-    r'questionAnswers': PropertySchema(
+    r'onboardingQuestions': PropertySchema(
       id: 1,
+      name: r'onboardingQuestions',
+      type: IsarType.objectList,
+      target: r'OnboardingQuestion',
+    ),
+    r'questionAnswers': PropertySchema(
+      id: 2,
       name: r'questionAnswers',
       type: IsarType.objectList,
       target: r'QuestionAnswer',
@@ -38,6 +44,15 @@ int _preferencesEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.onboardingQuestions.length * 3;
+  {
+    final offsets = allOffsets[OnboardingQuestion]!;
+    for (var i = 0; i < object.onboardingQuestions.length; i++) {
+      final value = object.onboardingQuestions[i];
+      bytesCount +=
+          OnboardingQuestionSchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
   bytesCount += 3 + object.questionAnswers.length * 3;
   {
     final offsets = allOffsets[QuestionAnswer]!;
@@ -57,8 +72,14 @@ void _preferencesSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeByte(offsets[0], object.batteryUsageSetting.index);
-  writer.writeObjectList<QuestionAnswer>(
+  writer.writeObjectList<OnboardingQuestion>(
     offsets[1],
+    allOffsets,
+    OnboardingQuestionSchema.serialize,
+    object.onboardingQuestions,
+  );
+  writer.writeObjectList<QuestionAnswer>(
+    offsets[2],
     allOffsets,
     QuestionAnswerSchema.serialize,
     object.questionAnswers,
@@ -75,8 +96,15 @@ Preferences _preferencesDeserialize(
   object.batteryUsageSetting = _PreferencesbatteryUsageSettingValueEnumMap[
           reader.readByteOrNull(offsets[0])] ??
       BatteryUsageSetting.low;
-  object.questionAnswers = reader.readObjectList<QuestionAnswer>(
+  object.onboardingQuestions = reader.readObjectList<OnboardingQuestion>(
         offsets[1],
+        OnboardingQuestionSchema.deserialize,
+        allOffsets,
+        OnboardingQuestion(),
+      ) ??
+      [];
+  object.questionAnswers = reader.readObjectList<QuestionAnswer>(
+        offsets[2],
         QuestionAnswerSchema.deserialize,
         allOffsets,
         QuestionAnswer(),
@@ -97,6 +125,14 @@ P _preferencesDeserializeProp<P>(
               reader.readByteOrNull(offset)] ??
           BatteryUsageSetting.low) as P;
     case 1:
+      return (reader.readObjectList<OnboardingQuestion>(
+            offset,
+            OnboardingQuestionSchema.deserialize,
+            allOffsets,
+            OnboardingQuestion(),
+          ) ??
+          []) as P;
+    case 2:
       return (reader.readObjectList<QuestionAnswer>(
             offset,
             QuestionAnswerSchema.deserialize,
@@ -175,6 +211,95 @@ extension PreferencesQueryFilter
         upper: upper,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      onboardingQuestionsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      onboardingQuestionsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      onboardingQuestionsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      onboardingQuestionsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      onboardingQuestionsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      onboardingQuestionsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'onboardingQuestions',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -270,6 +395,13 @@ extension PreferencesQueryFilter
 
 extension PreferencesQueryObject
     on QueryBuilder<Preferences, Preferences, QFilterCondition> {
+  QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
+      onboardingQuestionsElement(FilterQuery<OnboardingQuestion> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'onboardingQuestions');
+    });
+  }
+
   QueryBuilder<Preferences, Preferences, QAfterFilterCondition>
       questionAnswersElement(FilterQuery<QuestionAnswer> q) {
     return QueryBuilder.apply(this, (query) {

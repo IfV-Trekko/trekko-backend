@@ -58,6 +58,8 @@ QuestionAnswer _questionAnswerDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = QuestionAnswer();
+  object.answer = reader.readString(offsets[0]);
+  object.key = reader.readString(offsets[1]);
   return object;
 }
 

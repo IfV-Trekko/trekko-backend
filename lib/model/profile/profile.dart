@@ -9,17 +9,15 @@ part 'profile.g.dart';
 @collection
 class Profile {
   Id id = Isar.autoIncrement;
-  @Index(unique: true)
   final String projectUrl;
-  @Index(unique: true)
+  @Index(unique: true, composite: [CompositeIndex("projectUrl")])
   final String email;
   String token;
   DateTime lastLogin;
   @enumerated
   TrackingState trackingState;
-  List<OnboardingQuestion> onboardingQuestions;
   Preferences preferences;
 
   Profile(this.projectUrl, this.email, this.token, this.lastLogin,
-      this.trackingState, this.onboardingQuestions, this.preferences);
+      this.trackingState, this.preferences);
 }

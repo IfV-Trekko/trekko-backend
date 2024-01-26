@@ -62,8 +62,8 @@ class ProfiledTrekko implements Trekko {
           _token,
           DateTime.now(),
           TrackingState.paused,
-          questions,
-          Preferences.withData([], BatteryUsageSetting.medium)));
+          Preferences.withData(List.empty(growable: true),
+              BatteryUsageSetting.medium, questions)));
     } else {
       Profile found = _isar.profiles
           .filter()
@@ -73,7 +73,7 @@ class ProfiledTrekko implements Trekko {
           .findFirstSync()!;
       found.lastLogin = DateTime.now();
       found.token = _token;
-      found.onboardingQuestions = questions;
+      found.preferences.onboardingQuestions = questions;
       _profileId = await _saveProfile(found);
     }
   }
@@ -142,7 +142,7 @@ class ProfiledTrekko implements Trekko {
     Profile profile = await getProfile().first;
     profile.preferences = preferences;
     return await _server
-        .updateProfile(preferences.toServerProfile())
+        .updateProfile(profile.preferences.toServerProfile())
         .then((value) => _saveProfile(profile));
   }
 
@@ -192,7 +192,7 @@ class ProfiledTrekko implements Trekko {
     return trips.watch(fireImmediately: true).map((trips) {
       return trips.fold<T?>(
           trips.isNotEmpty ? tripData(trips.first) : null,
-              (previousValue, element) => previousValue != null
+          (previousValue, element) => previousValue != null
               ? reduction.reduce(previousValue, tripData(element))
               : tripData(element));
     });

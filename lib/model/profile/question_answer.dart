@@ -4,12 +4,12 @@ part 'question_answer.g.dart';
 
 @embedded
 class QuestionAnswer {
-  final String key;
-  final String answer;
+  String key;
+  String answer;
 
   QuestionAnswer()
       : key = "",
-        answer = '';
+        answer = "";
 
   QuestionAnswer.withData(this.key, this.answer);
 }

@@ -27,30 +27,24 @@ const ProfileSchema = CollectionSchema(
       name: r'lastLogin',
       type: IsarType.dateTime,
     ),
-    r'onboardingQuestions': PropertySchema(
-      id: 2,
-      name: r'onboardingQuestions',
-      type: IsarType.objectList,
-      target: r'OnboardingQuestion',
-    ),
     r'preferences': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'preferences',
       type: IsarType.object,
       target: r'Preferences',
     ),
     r'projectUrl': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'projectUrl',
       type: IsarType.string,
     ),
     r'token': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'token',
       type: IsarType.string,
     ),
     r'trackingState': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'trackingState',
       type: IsarType.byte,
       enumMap: _ProfiletrackingStateEnumValueMap,
@@ -62,27 +56,19 @@ const ProfileSchema = CollectionSchema(
   deserializeProp: _profileDeserializeProp,
   idName: r'id',
   indexes: {
-    r'projectUrl': IndexSchema(
-      id: -9113715726912685105,
-      name: r'projectUrl',
-      unique: true,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'projectUrl',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'email': IndexSchema(
-      id: -26095440403582047,
-      name: r'email',
+    r'email_projectUrl': IndexSchema(
+      id: 796860516669971778,
+      name: r'email_projectUrl',
       unique: true,
       replace: false,
       properties: [
         IndexPropertySchema(
           name: r'email',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+        IndexPropertySchema(
+          name: r'projectUrl',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -91,9 +77,9 @@ const ProfileSchema = CollectionSchema(
   },
   links: {},
   embeddedSchemas: {
-    r'OnboardingQuestion': OnboardingQuestionSchema,
+    r'Preferences': PreferencesSchema,
     r'QuestionAnswer': QuestionAnswerSchema,
-    r'Preferences': PreferencesSchema
+    r'OnboardingQuestion': OnboardingQuestionSchema
   },
   getId: _profileGetId,
   getLinks: _profileGetLinks,
@@ -108,15 +94,6 @@ int _profileEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.email.length * 3;
-  bytesCount += 3 + object.onboardingQuestions.length * 3;
-  {
-    final offsets = allOffsets[OnboardingQuestion]!;
-    for (var i = 0; i < object.onboardingQuestions.length; i++) {
-      final value = object.onboardingQuestions[i];
-      bytesCount +=
-          OnboardingQuestionSchema.estimateSize(value, offsets, allOffsets);
-    }
-  }
   bytesCount += 3 +
       PreferencesSchema.estimateSize(
           object.preferences, allOffsets[Preferences]!, allOffsets);
@@ -133,21 +110,15 @@ void _profileSerialize(
 ) {
   writer.writeString(offsets[0], object.email);
   writer.writeDateTime(offsets[1], object.lastLogin);
-  writer.writeObjectList<OnboardingQuestion>(
-    offsets[2],
-    allOffsets,
-    OnboardingQuestionSchema.serialize,
-    object.onboardingQuestions,
-  );
   writer.writeObject<Preferences>(
-    offsets[3],
+    offsets[2],
     allOffsets,
     PreferencesSchema.serialize,
     object.preferences,
   );
-  writer.writeString(offsets[4], object.projectUrl);
-  writer.writeString(offsets[5], object.token);
-  writer.writeByte(offsets[6], object.trackingState.index);
+  writer.writeString(offsets[3], object.projectUrl);
+  writer.writeString(offsets[4], object.token);
+  writer.writeByte(offsets[5], object.trackingState.index);
 }
 
 Profile _profileDeserialize(
@@ -157,21 +128,14 @@ Profile _profileDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Profile(
-    reader.readString(offsets[4]),
+    reader.readString(offsets[3]),
     reader.readString(offsets[0]),
-    reader.readString(offsets[5]),
+    reader.readString(offsets[4]),
     reader.readDateTime(offsets[1]),
-    _ProfiletrackingStateValueEnumMap[reader.readByteOrNull(offsets[6])] ??
+    _ProfiletrackingStateValueEnumMap[reader.readByteOrNull(offsets[5])] ??
         TrackingState.running,
-    reader.readObjectList<OnboardingQuestion>(
-          offsets[2],
-          OnboardingQuestionSchema.deserialize,
-          allOffsets,
-          OnboardingQuestion(),
-        ) ??
-        [],
     reader.readObjectOrNull<Preferences>(
-          offsets[3],
+          offsets[2],
           PreferencesSchema.deserialize,
           allOffsets,
         ) ??
@@ -193,25 +157,17 @@ P _profileDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readObjectList<OnboardingQuestion>(
-            offset,
-            OnboardingQuestionSchema.deserialize,
-            allOffsets,
-            OnboardingQuestion(),
-          ) ??
-          []) as P;
-    case 3:
       return (reader.readObjectOrNull<Preferences>(
             offset,
             PreferencesSchema.deserialize,
             allOffsets,
           ) ??
           Preferences()) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
-    case 6:
       return (_ProfiletrackingStateValueEnumMap[
               reader.readByteOrNull(offset)] ??
           TrackingState.running) as P;
@@ -242,109 +198,90 @@ void _profileAttach(IsarCollection<dynamic> col, Id id, Profile object) {
 }
 
 extension ProfileByIndex on IsarCollection<Profile> {
-  Future<Profile?> getByProjectUrl(String projectUrl) {
-    return getByIndex(r'projectUrl', [projectUrl]);
+  Future<Profile?> getByEmailProjectUrl(String email, String projectUrl) {
+    return getByIndex(r'email_projectUrl', [email, projectUrl]);
   }
 
-  Profile? getByProjectUrlSync(String projectUrl) {
-    return getByIndexSync(r'projectUrl', [projectUrl]);
+  Profile? getByEmailProjectUrlSync(String email, String projectUrl) {
+    return getByIndexSync(r'email_projectUrl', [email, projectUrl]);
   }
 
-  Future<bool> deleteByProjectUrl(String projectUrl) {
-    return deleteByIndex(r'projectUrl', [projectUrl]);
+  Future<bool> deleteByEmailProjectUrl(String email, String projectUrl) {
+    return deleteByIndex(r'email_projectUrl', [email, projectUrl]);
   }
 
-  bool deleteByProjectUrlSync(String projectUrl) {
-    return deleteByIndexSync(r'projectUrl', [projectUrl]);
+  bool deleteByEmailProjectUrlSync(String email, String projectUrl) {
+    return deleteByIndexSync(r'email_projectUrl', [email, projectUrl]);
   }
 
-  Future<List<Profile?>> getAllByProjectUrl(List<String> projectUrlValues) {
-    final values = projectUrlValues.map((e) => [e]).toList();
-    return getAllByIndex(r'projectUrl', values);
+  Future<List<Profile?>> getAllByEmailProjectUrl(
+      List<String> emailValues, List<String> projectUrlValues) {
+    final len = emailValues.length;
+    assert(projectUrlValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([emailValues[i], projectUrlValues[i]]);
+    }
+
+    return getAllByIndex(r'email_projectUrl', values);
   }
 
-  List<Profile?> getAllByProjectUrlSync(List<String> projectUrlValues) {
-    final values = projectUrlValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'projectUrl', values);
+  List<Profile?> getAllByEmailProjectUrlSync(
+      List<String> emailValues, List<String> projectUrlValues) {
+    final len = emailValues.length;
+    assert(projectUrlValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([emailValues[i], projectUrlValues[i]]);
+    }
+
+    return getAllByIndexSync(r'email_projectUrl', values);
   }
 
-  Future<int> deleteAllByProjectUrl(List<String> projectUrlValues) {
-    final values = projectUrlValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'projectUrl', values);
+  Future<int> deleteAllByEmailProjectUrl(
+      List<String> emailValues, List<String> projectUrlValues) {
+    final len = emailValues.length;
+    assert(projectUrlValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([emailValues[i], projectUrlValues[i]]);
+    }
+
+    return deleteAllByIndex(r'email_projectUrl', values);
   }
 
-  int deleteAllByProjectUrlSync(List<String> projectUrlValues) {
-    final values = projectUrlValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'projectUrl', values);
+  int deleteAllByEmailProjectUrlSync(
+      List<String> emailValues, List<String> projectUrlValues) {
+    final len = emailValues.length;
+    assert(projectUrlValues.length == len,
+        'All index values must have the same length');
+    final values = <List<dynamic>>[];
+    for (var i = 0; i < len; i++) {
+      values.add([emailValues[i], projectUrlValues[i]]);
+    }
+
+    return deleteAllByIndexSync(r'email_projectUrl', values);
   }
 
-  Future<Id> putByProjectUrl(Profile object) {
-    return putByIndex(r'projectUrl', object);
+  Future<Id> putByEmailProjectUrl(Profile object) {
+    return putByIndex(r'email_projectUrl', object);
   }
 
-  Id putByProjectUrlSync(Profile object, {bool saveLinks = true}) {
-    return putByIndexSync(r'projectUrl', object, saveLinks: saveLinks);
+  Id putByEmailProjectUrlSync(Profile object, {bool saveLinks = true}) {
+    return putByIndexSync(r'email_projectUrl', object, saveLinks: saveLinks);
   }
 
-  Future<List<Id>> putAllByProjectUrl(List<Profile> objects) {
-    return putAllByIndex(r'projectUrl', objects);
+  Future<List<Id>> putAllByEmailProjectUrl(List<Profile> objects) {
+    return putAllByIndex(r'email_projectUrl', objects);
   }
 
-  List<Id> putAllByProjectUrlSync(List<Profile> objects,
+  List<Id> putAllByEmailProjectUrlSync(List<Profile> objects,
       {bool saveLinks = true}) {
-    return putAllByIndexSync(r'projectUrl', objects, saveLinks: saveLinks);
-  }
-
-  Future<Profile?> getByEmail(String email) {
-    return getByIndex(r'email', [email]);
-  }
-
-  Profile? getByEmailSync(String email) {
-    return getByIndexSync(r'email', [email]);
-  }
-
-  Future<bool> deleteByEmail(String email) {
-    return deleteByIndex(r'email', [email]);
-  }
-
-  bool deleteByEmailSync(String email) {
-    return deleteByIndexSync(r'email', [email]);
-  }
-
-  Future<List<Profile?>> getAllByEmail(List<String> emailValues) {
-    final values = emailValues.map((e) => [e]).toList();
-    return getAllByIndex(r'email', values);
-  }
-
-  List<Profile?> getAllByEmailSync(List<String> emailValues) {
-    final values = emailValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'email', values);
-  }
-
-  Future<int> deleteAllByEmail(List<String> emailValues) {
-    final values = emailValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'email', values);
-  }
-
-  int deleteAllByEmailSync(List<String> emailValues) {
-    final values = emailValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'email', values);
-  }
-
-  Future<Id> putByEmail(Profile object) {
-    return putByIndex(r'email', object);
-  }
-
-  Id putByEmailSync(Profile object, {bool saveLinks = true}) {
-    return putByIndexSync(r'email', object, saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByEmail(List<Profile> objects) {
-    return putAllByIndex(r'email', objects);
-  }
-
-  List<Id> putAllByEmailSync(List<Profile> objects, {bool saveLinks = true}) {
-    return putAllByIndexSync(r'email', objects, saveLinks: saveLinks);
+    return putAllByIndexSync(r'email_projectUrl', objects,
+        saveLinks: saveLinks);
   }
 }
 
@@ -422,89 +359,90 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> projectUrlEqualTo(
-      String projectUrl) {
+  QueryBuilder<Profile, Profile, QAfterWhereClause> emailEqualToAnyProjectUrl(
+      String email) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'projectUrl',
-        value: [projectUrl],
+        indexName: r'email_projectUrl',
+        value: [email],
       ));
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> projectUrlNotEqualTo(
-      String projectUrl) {
+  QueryBuilder<Profile, Profile, QAfterWhereClause>
+      emailNotEqualToAnyProjectUrl(String email) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'projectUrl',
+              indexName: r'email_projectUrl',
               lower: [],
-              upper: [projectUrl],
+              upper: [email],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'projectUrl',
-              lower: [projectUrl],
+              indexName: r'email_projectUrl',
+              lower: [email],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'projectUrl',
-              lower: [projectUrl],
+              indexName: r'email_projectUrl',
+              lower: [email],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'projectUrl',
+              indexName: r'email_projectUrl',
               lower: [],
-              upper: [projectUrl],
+              upper: [email],
               includeUpper: false,
             ));
       }
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> emailEqualTo(String email) {
+  QueryBuilder<Profile, Profile, QAfterWhereClause> emailProjectUrlEqualTo(
+      String email, String projectUrl) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'email',
-        value: [email],
+        indexName: r'email_projectUrl',
+        value: [email, projectUrl],
       ));
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> emailNotEqualTo(
-      String email) {
+  QueryBuilder<Profile, Profile, QAfterWhereClause>
+      emailEqualToProjectUrlNotEqualTo(String email, String projectUrl) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'email',
-              lower: [],
-              upper: [email],
+              indexName: r'email_projectUrl',
+              lower: [email],
+              upper: [email, projectUrl],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'email',
-              lower: [email],
+              indexName: r'email_projectUrl',
+              lower: [email, projectUrl],
               includeLower: false,
-              upper: [],
+              upper: [email],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'email',
-              lower: [email],
+              indexName: r'email_projectUrl',
+              lower: [email, projectUrl],
               includeLower: false,
-              upper: [],
+              upper: [email],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'email',
-              lower: [],
-              upper: [email],
+              indexName: r'email_projectUrl',
+              lower: [email],
+              upper: [email, projectUrl],
               includeUpper: false,
             ));
       }
@@ -746,95 +684,6 @@ extension ProfileQueryFilter
         upper: upper,
         includeUpper: includeUpper,
       ));
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition>
-      onboardingQuestionsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'onboardingQuestions',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition>
-      onboardingQuestionsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'onboardingQuestions',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition>
-      onboardingQuestionsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'onboardingQuestions',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition>
-      onboardingQuestionsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'onboardingQuestions',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition>
-      onboardingQuestionsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'onboardingQuestions',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition>
-      onboardingQuestionsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'onboardingQuestions',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
     });
   }
 
@@ -1155,13 +1004,6 @@ extension ProfileQueryFilter
 
 extension ProfileQueryObject
     on QueryBuilder<Profile, Profile, QFilterCondition> {
-  QueryBuilder<Profile, Profile, QAfterFilterCondition>
-      onboardingQuestionsElement(FilterQuery<OnboardingQuestion> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'onboardingQuestions');
-    });
-  }
-
   QueryBuilder<Profile, Profile, QAfterFilterCondition> preferences(
       FilterQuery<Preferences> q) {
     return QueryBuilder.apply(this, (query) {
@@ -1363,13 +1205,6 @@ extension ProfileQueryProperty
   QueryBuilder<Profile, DateTime, QQueryOperations> lastLoginProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastLogin');
-    });
-  }
-
-  QueryBuilder<Profile, List<OnboardingQuestion>, QQueryOperations>
-      onboardingQuestionsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'onboardingQuestions');
     });
   }
 

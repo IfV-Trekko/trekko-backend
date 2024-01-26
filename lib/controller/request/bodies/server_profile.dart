@@ -1,5 +1,5 @@
 class ServerProfile {
-  final Map<String, String> data;
+  final Map<String, dynamic> data;
 
   ServerProfile(this.data);
 
