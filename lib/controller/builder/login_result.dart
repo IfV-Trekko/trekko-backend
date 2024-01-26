@@ -1,7 +1,7 @@
 enum LoginResult {
-  failedWrongPassword(1),
+  failedWrongPassword(12),
   failedNoSuchUser(14),
-  failedSessionExpired(3),
+  failedSessionExpired(20),
   failedOther(-1);
 
   final int _code;
