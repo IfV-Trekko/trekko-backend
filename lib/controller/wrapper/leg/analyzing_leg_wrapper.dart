@@ -1,4 +1,3 @@
-import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/position/transport_type_data.dart';
 import 'package:app_backend/controller/wrapper/leg/position/weighted_transport_type_evaluator.dart';
@@ -17,8 +16,7 @@ class AnalyzingLegWrapper implements LegWrapper {
 
   @override
   Future<double> calculateEndProbability() {
-    return PositionUtils.calculateEndProbability(
-        Duration(minutes: 5), 8, _positions);
+    return Future.value(0);
   }
 
   @override
