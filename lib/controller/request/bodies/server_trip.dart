@@ -6,12 +6,19 @@ part 'server_trip.g.dart';
 
 @JsonSerializable()
 class ServerTrip {
+  @JsonKey(name: "uid")
   final String uid;
+  @JsonKey(name: "startTimestamp")
   final int startTimestamp;
+  @JsonKey(name: "endTimestamp")
   final int endTimestamp;
+  @JsonKey(name: "distance")
   final double distance;
+  @JsonKey(name: "transportTypes")
   final List<String> transportTypes;
+  @JsonKey(name: "purpose")
   final String? purpose;
+  @JsonKey(name: "comment")
   final String? comment;
 
   ServerTrip(this.uid, this.startTimestamp, this.endTimestamp, this.distance,

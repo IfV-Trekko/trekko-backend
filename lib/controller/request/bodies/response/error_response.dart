@@ -4,6 +4,7 @@ part 'error_response.g.dart';
 
 @JsonSerializable()
 class ErrorResponse {
+  @JsonKey(name: "reasonCode")
   final int reasonCode;
   @JsonKey(name: "reason")
   final String message;

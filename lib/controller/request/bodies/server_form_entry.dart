@@ -5,11 +5,17 @@ part 'server_form_entry.g.dart';
 
 @JsonSerializable()
 class ServerFormEntry {
+  @JsonKey(name: "key")
   final String key;
+  @JsonKey(name: "title")
   final String title;
+  @JsonKey(name: "type")
   final String type;
+  @JsonKey(name: "required")
   final bool required;
+  @JsonKey(name: "regex")
   final String? regex;
+  @JsonKey(name: "options")
   final List<FormEntryOption>? options;
 
   ServerFormEntry(

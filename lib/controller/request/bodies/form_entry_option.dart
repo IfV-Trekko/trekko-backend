@@ -4,7 +4,9 @@ part 'form_entry_option.g.dart';
 
 @JsonSerializable()
 class FormEntryOption {
+  @JsonKey(name: "key")
   final String key;
+  @JsonKey(name: "title")
   final String title;
 
   FormEntryOption(this.key, this.title);

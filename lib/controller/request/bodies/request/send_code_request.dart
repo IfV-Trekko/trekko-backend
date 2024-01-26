@@ -4,6 +4,7 @@ part 'send_code_request.g.dart';
 
 @JsonSerializable()
 class SendCodeRequest {
+  @JsonKey(name: "email")
   final String email;
 
   SendCodeRequest(this.email);

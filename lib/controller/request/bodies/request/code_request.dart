@@ -4,6 +4,7 @@ part 'code_request.g.dart';
 
 @JsonSerializable()
 class CodeRequest {
+  @JsonKey(name: "code")
   final String code;
 
   CodeRequest(this.code);
