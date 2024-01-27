@@ -119,7 +119,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> init() async {
-    _isar = await DatabaseUtils.establishConnection();
+    _isar = await DatabaseUtils.establishConnection([TripSchema, ProfileSchema]);
     await _initProfile();
     await _listenForLocationPermission();
     await _startTracking();
