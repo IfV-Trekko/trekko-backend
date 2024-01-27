@@ -22,7 +22,7 @@ abstract class Trekko {
 
   Future<int> saveTrip(Trip trip);
 
-  Future<bool> deleteTrip(int tripId);
+  Future<bool> deleteTrip(Trip trip);
 
   Future<Trip> mergeTrips(Query<Trip> trips);
 

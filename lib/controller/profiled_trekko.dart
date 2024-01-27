@@ -15,6 +15,7 @@ import 'package:app_backend/model/profile/onboarding_question.dart';
 import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
 import 'package:app_backend/model/tracking_state.dart';
+import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator/geolocator.dart';
@@ -162,11 +163,11 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future<bool> deleteTrip(int tripId) async {
+  Future<bool> deleteTrip(Trip trip) async {
     return _isar.writeTxn(() async {
-      return _isar.trips.delete(tripId).then((found) async {
-        if (found) {
-          await _server.deleteTrip(tripId.toString());
+      return _isar.trips.delete(trip.id).then((found) async {
+        if (found && trip.donationState == DonationState.donated) {
+          await _server.deleteTrip(trip.id.toString());
         }
         return found;
       });
@@ -187,7 +188,7 @@ class ProfiledTrekko implements Trekko {
         await tripWrapper.add(point.toPosition());
       }
       Trip merged = await tripWrapper.get();
-      trips.forEach((trip) async => await deleteTrip(trip.id));
+      trips.forEach((trip) async => await deleteTrip(trip));
       await saveTrip(merged);
       await donate(_isar.trips.where().idEqualTo(merged.id).build());
       return merged;
