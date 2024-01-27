@@ -36,6 +36,14 @@ class Leg {
     return this.trackedPoints.last.timestamp;
   }
 
+  Duration getDuration() {
+    return this.getEndTime().difference(this.getStartTime());
+  }
+
+  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() {
+    return this.getDistance().per(this.getDuration().inSeconds.seconds);
+  }
+
   Distance getDistance() {
     double distanceInMeters = 0;
     for (int i = 1; i < trackedPoints.length; i++) {
