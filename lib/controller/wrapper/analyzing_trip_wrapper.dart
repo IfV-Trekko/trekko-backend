@@ -74,15 +74,14 @@ class AnalyzingTripWrapper implements TripWrapper {
   @override
   Future<Trip> get() async {
     return Future.microtask(() async {
-      if (_legWrapper.collectedDataPoints() != 0)
+      if (_legWrapper.collectedDataPoints() > 2)
         _legs.add(await _legWrapper.get());
 
-      Trip trip = Trip(
-      donationState: DonationState.undefined,
-      comment: null,
-      purpose: null,
-      legs: _legs);
-      return trip;
+      return Trip(
+          donationState: DonationState.undefined,
+          comment: null,
+          purpose: null,
+          legs: _legs);
     });
   }
 }

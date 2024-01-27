@@ -159,6 +159,10 @@ class ProfiledTrekko implements Trekko {
   Future<void> donate(Query<Trip> query) async {
     await query.findAll().then((trips) async {
       await _server.donateTrips(TripsRequest.fromTrips(trips));
+      trips.forEach((trip) async {
+        trip.donationState = DonationState.donated;
+        await saveTrip(trip);
+      });
     });
   }
 
