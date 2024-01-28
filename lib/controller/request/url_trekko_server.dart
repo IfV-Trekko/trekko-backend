@@ -207,7 +207,7 @@ class UrlTrekkoServer implements TrekkoServer {
   Future<EmptyResponse> deleteAccount() {
     return _sendRequest(
       _client.delete,
-      Endpoint.profile,
+      Endpoint.account,
       EmptyRequest(),
       204,
       EmptyResponse.fromJson,
