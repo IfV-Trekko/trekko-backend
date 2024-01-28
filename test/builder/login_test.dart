@@ -24,7 +24,7 @@ void main() {
       fail("Expected exception");
     } catch (e) {
       expect(e, isA<BuildException>());
-      expect((e as BuildException).reason, LoginResult.failedOther);
+      expect((e as BuildException).reason, LoginResult.failedNoConnection);
     }
   });
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/profiled_trekko.dart';
@@ -11,6 +12,11 @@ abstract class TrekkoBuilder {
     if (!(exception is RequestException) ||
         exception.reason == null ||
         errorCodes[exception.reason!.reasonCode] == null) {
+
+      if (exception is SocketException) {
+        throw BuildException(exception, errorCodes[-2]);
+      }
+
       throw BuildException(exception, getErrorCodes()[-1]);
     }
 

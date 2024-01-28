@@ -20,11 +20,22 @@ void main() {
   test("Building a Trekko with invalid code", () async {
     try {
       await RegistrationBuilder("http://localhost:8080",
-          "notExistingAccount@web.de", "abc", "abc", "")
+              "notExistingAccount@web.de", "abc", "abc", "")
           .build();
     } catch (e) {
       expect(e, isA<BuildException>());
       expect((e as BuildException).reason, RegistrationResult.failedBadCode);
+    }
+  });
+
+  test("Building a Trekko with invalid server address", () async {
+    try {
+      await RegistrationBuilder("http://localhost:8081",
+              "notExistingAccount@web.de", "abc", "abc", "12345")
+          .build();
+    } catch (e) {
+      expect(e, isA<BuildException>());
+      expect((e as BuildException).reason, RegistrationResult.failedNoConnection);
     }
   });
 }
