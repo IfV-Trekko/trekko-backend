@@ -24,7 +24,7 @@ List<TrackedPoint> walk_to_shop = [
 
 void main() {
   late LegWrapper legWrapper;
-  setUpAll(() async {
+  setUp(() async {
     legWrapper = AnalyzingLegWrapper();
   });
 
@@ -40,5 +40,18 @@ void main() {
     expect(wrapped.getDuration().inMinutes, equals(10));
     expect(wrapped.getSpeed().as(kilo.meters, hours).round(), equals(6));
     expect(wrapped.transportType, equals(TransportType.by_foot));
+  });
+
+  test("Staying at the same location: no leg", () async {
+    List<TrackedPoint> points = [
+      ...generateStay(0, 0, DateTime.now(), Duration(hours: 1)),
+      ...generateStay(0, 0, DateTime.now().add(Duration(hours: 1)), Duration(hours: 1)),
+      ...generateStay(0, 0, DateTime.now().add(Duration(hours: 2)), Duration(hours: 1)),
+    ];
+    for (TrackedPoint point in points) {
+      await legWrapper.add(point.toPosition());
+    }
+    double probability = await legWrapper.calculateEndProbability();
+    expect(probability, lessThan(0.1));
   });
 }
