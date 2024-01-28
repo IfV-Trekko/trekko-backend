@@ -128,6 +128,7 @@ class ProfiledTrekko implements Trekko {
   Future<void> terminate() async {
     await _positionController.close();
     await _isar.close();
+    await _server.close();
   }
 
   @override

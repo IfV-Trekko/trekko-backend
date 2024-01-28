@@ -22,7 +22,6 @@ import 'package:http/retry.dart';
 import 'package:sprintf/sprintf.dart';
 
 class UrlTrekkoServer implements TrekkoServer {
-  // TODO: Close client
   final http.Client _client;
   final String baseUrl;
   final String? token;
@@ -91,6 +90,16 @@ class UrlTrekkoServer implements TrekkoServer {
     return requestCall(_parseUrl(endpoint, pathParams),
             headers: _buildHeader(endpoint), body: json.encode(encode.toJson()))
         .then((value) => _parseBody(value, expectedStatusCode, parser));
+  }
+
+  @override
+  Future<void> init() {
+    return Future.value();
+  }
+
+  @override
+  Future<void> close() async {
+    _client.close();
   }
 
   @override
