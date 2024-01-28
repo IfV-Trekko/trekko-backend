@@ -12,10 +12,12 @@ class Leg {
   TransportType transportType; // TODO: final
   List<TrackedPoint> trackedPoints;
 
+  /// Creates a new leg
   Leg()
       : transportType = TransportType.car,
         trackedPoints = List.empty(growable: true);
 
+  /// Creates a leg with the given data
   Leg.withData(this.transportType, this.trackedPoints) {
     if (this.trackedPoints.length < 2) {
       throw Exception("A leg must have at least two tracked points");
@@ -28,22 +30,27 @@ class Leg {
     }
   }
 
+  /// Returns the start time of the leg
   DateTime getStartTime() {
     return this.trackedPoints.first.timestamp;
   }
 
+  /// Returns the end time of the leg
   DateTime getEndTime() {
     return this.trackedPoints.last.timestamp;
   }
 
+  /// Returns the duration of the leg
   Duration getDuration() {
     return this.getEndTime().difference(this.getStartTime());
   }
 
+  /// Returns the average speed of the leg
   DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() {
     return this.getDistance().per(this.getDuration().inSeconds.seconds);
   }
 
+  /// Returns the distance of the leg
   Distance getDistance() {
     double distanceInMeters = 0;
     for (int i = 1; i < trackedPoints.length; i++) {

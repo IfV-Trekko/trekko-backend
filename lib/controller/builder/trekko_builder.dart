@@ -33,5 +33,6 @@ abstract class TrekkoBuilder {
 
   Map<int, Object> getErrorCodes();
 
+  /// Builds the Trekko instance.
   Future<Trekko> build();
 }

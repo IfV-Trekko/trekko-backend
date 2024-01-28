@@ -10,21 +10,25 @@ class TrackedPoint {
   double speed_in_kmh;
   DateTime timestamp;
 
-  TrackedPoint.fromPosition(Position position)
-      : latitude = position.latitude,
-        longitude = position.longitude,
-        speed_in_kmh = position.speed,
-        timestamp = position.timestamp;
-
+  /// Creates a tracked point with the given data
   TrackedPoint.withData(
       this.latitude, this.longitude, this.speed_in_kmh, this.timestamp);
 
+  /// Creates a tracked point with no data
   TrackedPoint()
       : latitude = 0,
         longitude = 0,
         speed_in_kmh = 0,
         timestamp = DateTime.now();
 
+  /// Creates a new tracked point from the given position
+  TrackedPoint.fromPosition(Position position)
+      : latitude = position.latitude,
+        longitude = position.longitude,
+        speed_in_kmh = position.speed,
+        timestamp = position.timestamp;
+
+  /// Returns the position of the tracked point
   Position toPosition() {
     return Position(
       latitude: latitude,

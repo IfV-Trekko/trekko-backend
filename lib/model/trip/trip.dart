@@ -16,6 +16,7 @@ class Trip {
   String? purpose;
   List<Leg> legs;
 
+  /// Creates a new trip
   Trip({
     required this.donationState,
     required this.comment,
@@ -33,26 +34,32 @@ class Trip {
     }
   }
 
+  /// Returns the start time of the trip
   DateTime getStartTime() {
     return this.legs.first.getStartTime();
   }
 
+  /// Returns the end time of the trip
   DateTime getEndTime() {
     return this.legs.last.getEndTime();
   }
 
+  /// Returns the distance of the trip
   Distance getDistance() {
     return Distance.sum(legs.map((e) => e.getDistance()));
   }
 
+  /// Returns the average speed of the trip
   DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() {
     return this.getDistance().per(this.getDuration().inSeconds.seconds);
   }
 
+  /// Returns the duration of the trip
   Duration getDuration() {
     return this.getEndTime().difference(this.getStartTime());
   }
 
+  /// Returns the transport types of the trip
   List<TransportType> getTransportTypes() {
     return this.legs.map((e) => e.transportType).toList();
   }

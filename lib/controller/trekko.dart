@@ -10,32 +10,46 @@ import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 
 abstract class Trekko {
+  /// Initializes the Trekko instance.
   Future<void> init();
 
+  /// Terminates the Trekko instance.
   Future<void> terminate();
 
+  /// Returns a stream of the current profile.
   Stream<Profile> getProfile();
 
+  /// Saves the preferences. Also synchronizes the preferences with the server.
   Future<void> savePreferences(Preferences preferences);
 
+  /// Loads a onboarding tex from the server
   Future<String> loadText(OnboardingTextType type);
 
+  /// Saves a trip. Also synchronizes the trip with the server.
   Future<int> saveTrip(Trip trip);
 
+  /// Deletes a trip. Also synchronizes the deletion with the server.
   Future<bool> deleteTrip(Trip trip);
 
+  /// Merge multiple trips into one. Also synchronizes the merge with the server.
   Future<Trip> mergeTrips(Query<Trip> trips);
 
+  /// Returns a query builder for trips.
   QueryBuilder<Trip, Trip, QWhere> getTripQuery();
 
+  /// Analyzes a query of trips.
   Stream<T?> analyze<T>(
       Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction);
 
+  /// Donates a query of trips to the server.
   Future<void> donate(Query<Trip> query);
 
+  /// Returns a stream of the current position.
   Future<Stream<Position>> getPosition();
 
+  /// Returns a stream of the current tracking state.
   Stream<TrackingState> getTrackingState();
 
+  /// Sets the tracking state.
   Future<bool> setTrackingState(TrackingState state);
 }
