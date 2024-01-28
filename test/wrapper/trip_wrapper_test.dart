@@ -14,7 +14,7 @@ void main() {
     tripWrapper = AnalyzingTripWrapper();
   });
 
-  test("Analyze walk to shop", () async {
+  test("Analyze walk to shop and back", () async {
     List<TrackedPoint> walkToShopAndBack = [
       // stay for 1h
       ...stay(Duration(hours: 1)),
