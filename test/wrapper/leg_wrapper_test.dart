@@ -6,16 +6,7 @@ import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
-import 'wrapper_test_utils.dart';
-
-List<TrackedPoint> walk_to_shop = [
-  // stay for 1h
-  ...stay(Duration(hours: 1)),
-  // walk 500m
-  ...move(0.5, 0.5, Duration(minutes: 10), 500.meters),
-  // stay for 5min
-  ...stay(Duration(hours: 1)),
-];
+import '../trip_gen_utils.dart';
 
 void main() {
   late LegWrapper legWrapper;
@@ -24,7 +15,16 @@ void main() {
   });
 
   test("Analyze walk to shop", () async {
-    for (TrackedPoint point in walk_to_shop) {
+    List<TrackedPoint> walkToShop = [
+      // stay for 1h
+      ...stay(Duration(hours: 1)),
+      // walk 500m
+      ...move(0.5, 0.5, Duration(minutes: 10), 500.meters),
+      // stay for 5min
+      ...stay(Duration(hours: 1)),
+    ];
+
+    for (TrackedPoint point in walkToShop) {
       await legWrapper.add(point.toPosition());
     }
     double probability = await legWrapper.calculateEndProbability();

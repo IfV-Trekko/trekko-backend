@@ -1,9 +1,15 @@
+import 'dart:math';
+
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:geolocator/geolocator.dart';
 
-double metersPerDegree = Geolocator.distanceBetween(0, 0, 0, 1);
-double degreesPerMeter = 1 / metersPerDegree;
+// TODO: move to normal utilities?
+
+double metersPerLongDegree = Geolocator.distanceBetween(0, 0, 0, 1);
+double longDegreesPerMeter = 1 / metersPerLongDegree;
+double metersPerLatDegree = Geolocator.distanceBetween(0, 0, 1, 0);
+double latDegreesPerMeter = 1 / metersPerLatDegree;
 DateTime time = DateTime.now();
 double latitude = 0;
 double longitude = 0;
@@ -18,10 +24,15 @@ List<TrackedPoint> stay(Duration duration) {
   return stay;
 }
 
-List<TrackedPoint> move(double longPerc, double latPerc, Duration duration,
-    Distance distance) {
-  if (longPerc.abs() + latPerc.abs() > 1) {
-    throw Exception("longPerc + latPerc must be <= 1");
+List<TrackedPoint> move_r(Duration duration, Distance distance) {
+  double random = Random().nextDouble();
+  return move(random, 1 - random, duration, distance);
+}
+
+List<TrackedPoint> move(
+    double longPerc, double latPerc, Duration duration, Distance distance) {
+  if (longPerc.abs() + latPerc.abs() != 1) {
+    throw Exception("|longPerc + latPerc| must be 1");
   }
 
   List<TrackedPoint> leg = [];
