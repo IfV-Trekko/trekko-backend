@@ -19,11 +19,11 @@ void main() {
       // stay for 1h
       ...stay(Duration(hours: 1)),
       // walk 500m
-      ...move(0.3, 0.7, Duration(minutes: 10), 500.meters),
+      ...move(true, Duration(minutes: 10), 500.meters),
       // stay for 5min
       ...stay(Duration(minutes: 5)),
       // walk 500m back
-      ...move(-0.3, -0.7, Duration(minutes: 10), 500.meters),
+      ...move(false, Duration(minutes: 10), 500.meters),
       // stay for 1h
       ...stay(Duration(hours: 1)),
     ];
