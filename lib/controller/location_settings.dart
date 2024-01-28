@@ -20,7 +20,7 @@ LocationSettings getSettings(BatteryUsageSetting setting) {
   } else if (Platform.isIOS || Platform.isMacOS) {
     locationSettings = AppleSettings(
       accuracy: setting.accuracy,
-      activityType: ActivityType.airborne,
+      activityType: ActivityType.other,
       distanceFilter: 10,
       pauseLocationUpdatesAutomatically: true,
       showBackgroundLocationIndicator: true,
