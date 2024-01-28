@@ -28,8 +28,8 @@ class ProfiledTrekko implements Trekko {
   late int _profileId;
   late Isar _isar;
   late StreamController<Position> _positionController;
-  late StreamSubscription? _positionSubscription;
   late TrekkoServer _server;
+  StreamSubscription? _positionSubscription;
 
   ProfiledTrekko(
       {required String projectUrl,
@@ -52,12 +52,12 @@ class ProfiledTrekko implements Trekko {
         .map((e) => OnboardingQuestion.fromServer(e))
         .toList();
 
-    if (_isar.profiles
+    var profileQuery = _isar.profiles
         .filter()
         .projectUrlEqualTo(_projectUrl)
         .and()
-        .emailEqualTo(_email)
-        .isEmptySync()) {
+        .emailEqualTo(_email);
+    if (profileQuery.isEmptySync()) {
       _profileId = await _saveProfile(Profile(
           _projectUrl,
           _email,
@@ -67,12 +67,7 @@ class ProfiledTrekko implements Trekko {
           Preferences.withData(List.empty(growable: true),
               BatteryUsageSetting.medium, questions)));
     } else {
-      Profile found = _isar.profiles
-          .filter()
-          .projectUrlEqualTo(_projectUrl)
-          .and()
-          .emailEqualTo(_email)
-          .findFirstSync()!;
+      Profile found = profileQuery.findFirstSync()!;
       found.lastLogin = DateTime.now();
       found.token = _token;
       found.preferences.onboardingQuestions = questions;
@@ -90,8 +85,8 @@ class ProfiledTrekko implements Trekko {
 
   Future<void> startTracking() async {
     _positionSubscription = Geolocator.getPositionStream(
-        locationSettings: getSettings(
-            (await getProfile().first).preferences.batteryUsageSetting))
+            locationSettings: getSettings(
+                (await getProfile().first).preferences.batteryUsageSetting))
         .listen((event) {
       _positionController.add(event);
       if (_positionController.isClosed) {
@@ -100,7 +95,7 @@ class ProfiledTrekko implements Trekko {
     });
   }
 
-  Future<void> _startTrackingListener() async {;
+  Future<void> _startTrackingListener() async {
     this.getTrackingState().listen((event) async {
       if (event == TrackingState.running) {
         await startTracking();
@@ -123,7 +118,8 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> init() async {
-    _isar = await DatabaseUtils.establishConnection([TripSchema, ProfileSchema]);
+    _isar =
+        await DatabaseUtils.establishConnection([TripSchema, ProfileSchema]);
     await _initProfile();
     await _listenForLocationPermission();
 
@@ -228,7 +224,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Stream<TrackingState> getTrackingState() {
-    return this.getProfile().map((event) => event.trackingState);
+    return this.getProfile().map((profile) => profile.trackingState).distinct();
   }
 
   @override
@@ -239,15 +235,15 @@ class ProfiledTrekko implements Trekko {
 
     if (state == TrackingState.running) {
       LocationPermission permission = await Geolocator.requestPermission();
-      await Geolocator.openLocationSettings();
       if (permission != LocationPermission.always) {
+        await Geolocator.openLocationSettings();
         return false;
       }
     }
 
     Profile profile = await getProfile().first;
     profile.trackingState = state;
-    await _isar.writeTxn(() async => await _isar.profiles.put(profile));
+    _saveProfile(profile);
     return true;
   }
 
