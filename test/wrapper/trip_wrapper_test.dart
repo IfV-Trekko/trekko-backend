@@ -10,29 +10,15 @@ import 'wrapper_test_utils.dart';
 
 List<TrackedPoint> walk_to_shop = [
   // stay for 1h
-  ...generateStay(0, 0, DateTime.now(), Duration(hours: 1)),
+  ...stay(Duration(hours: 1)),
   // walk 500m
-  ...generateLeg(0, 0, Duration(minutes: 10), 500.meters.per(10.minutes),
-      DateTime.now().add(Duration(hours: 1))),
+  ...move(0, 1, Duration(minutes: 10), 500.meters),
   // stay for 5min
-  ...generateStay(
-      0,
-      500 * degreesPerMeter,
-      DateTime.now().add(Duration(hours: 1, minutes: 10)),
-      Duration(minutes: 5)),
+  ...stay(Duration(minutes: 5)),
   // walk 500m back
-  ...generateLeg(
-      0,
-      0,
-      Duration(minutes: 10),
-      500.meters.per(10.minutes),
-      DateTime.now().add(Duration(hours: 1, minutes: 15))),
+  ...move(0, -1, Duration(minutes: 10), 500.meters),
   // stay for 1h
-  ...generateStay(
-      0,
-      0,
-      DateTime.now().add(Duration(hours: 1, minutes: 25)),
-      Duration(hours: 1)),
+  ...stay(Duration(hours: 1)),
 ];
 
 void main() {
@@ -52,20 +38,22 @@ void main() {
     expect(wrapped.legs.length, equals(2));
     expect(wrapped.legs[0].getDistance().as(kilo.meters).round(), equals(1));
     expect(wrapped.legs[0].getDuration().inMinutes, equals(10));
-    expect(wrapped.legs[0].getSpeed().as(kilo.meters, hours).round(), equals(6));
+    expect(
+        wrapped.legs[0].getSpeed().as(kilo.meters, hours).round(), equals(6));
     expect(wrapped.legs[0].transportType, equals(TransportType.by_foot));
 
     expect(wrapped.legs[1].getDistance().as(kilo.meters).round(), equals(1));
     expect(wrapped.legs[1].getDuration().inMinutes, equals(10));
-    expect(wrapped.legs[1].getSpeed().as(kilo.meters, hours).round(), equals(6));
+    expect(
+        wrapped.legs[1].getSpeed().as(kilo.meters, hours).round(), equals(6));
     expect(wrapped.legs[1].transportType, equals(TransportType.by_foot));
   });
 
   test("Staying at the same location: no trip", () async {
     List<TrackedPoint> points = [
-      ...generateStay(0, 0, DateTime.now(), Duration(hours: 1)),
-      ...generateStay(0, 0, DateTime.now().add(Duration(hours: 1)), Duration(hours: 1)),
-      ...generateStay(0, 0, DateTime.now().add(Duration(hours: 2)), Duration(hours: 1)),
+      ...stay(Duration(hours: 1)),
+      ...stay(Duration(hours: 1)),
+      ...stay(Duration(hours: 1)),
     ];
     for (TrackedPoint point in points) {
       await tripWrapper.add(point.toPosition());

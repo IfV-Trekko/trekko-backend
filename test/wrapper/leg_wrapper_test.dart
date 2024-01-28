@@ -10,16 +10,11 @@ import 'wrapper_test_utils.dart';
 
 List<TrackedPoint> walk_to_shop = [
   // stay for 1h
-  ...generateStay(0, 0, DateTime.now(), Duration(hours: 1)),
+  ...stay(Duration(hours: 1)),
   // walk 500m
-  ...generateLeg(0, 0, Duration(minutes: 10), 500.meters.per(10.minutes),
-      DateTime.now().add(Duration(hours: 1))),
+  ...move(0.5, 0.5, Duration(minutes: 10), 500.meters),
   // stay for 5min
-  ...generateStay(
-      0,
-      500 * degreesPerMeter,
-      DateTime.now().add(Duration(hours: 1, minutes: 10)),
-      Duration(hours: 1)),
+  ...stay(Duration(hours: 1)),
 ];
 
 void main() {
@@ -44,9 +39,9 @@ void main() {
 
   test("Staying at the same location: no leg", () async {
     List<TrackedPoint> points = [
-      ...generateStay(0, 0, DateTime.now(), Duration(hours: 1)),
-      ...generateStay(0, 0, DateTime.now().add(Duration(hours: 1)), Duration(hours: 1)),
-      ...generateStay(0, 0, DateTime.now().add(Duration(hours: 2)), Duration(hours: 1)),
+      ...stay(Duration(hours: 1)),
+      ...stay(Duration(hours: 1)),
+      ...stay(Duration(hours: 1)),
     ];
     for (TrackedPoint point in points) {
       await legWrapper.add(point.toPosition());
