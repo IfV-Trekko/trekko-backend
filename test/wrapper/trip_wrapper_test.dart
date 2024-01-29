@@ -1,3 +1,4 @@
+import 'package:app_backend/controller/utils/trip_builder.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
@@ -6,8 +7,6 @@ import 'package:app_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
-import '../trip_gen_utils.dart';
-
 void main() {
   late TripWrapper tripWrapper;
   setUp(() async {
@@ -15,18 +14,19 @@ void main() {
   });
 
   test("Analyze walk to shop and back", () async {
-    List<TrackedPoint> walkToShopAndBack = [
-      // stay for 1h
-      ...stay(Duration(hours: 1)),
-      // walk 500m
-      ...move(true, Duration(minutes: 10), 500.meters),
-      // stay for 5min
-      ...stay(Duration(minutes: 5)),
-      // walk 500m back
-      ...move(false, Duration(minutes: 10), 500.meters),
-      // stay for 1h
-      ...stay(Duration(hours: 1)),
-    ];
+    List<TrackedPoint> walkToShopAndBack =
+        TripBuilder.withData(0, 0, skipStayPoints: false)
+            // stay for 1h
+            .stay(Duration(hours: 1))
+            // walk 500m
+            .move(true, Duration(minutes: 10), 500.meters)
+            // stay for 5min
+            .stay(Duration(minutes: 5))
+            // walk 500m back
+            .move(false, Duration(minutes: 10), 500.meters)
+            // stay for 1h
+            .stay(Duration(hours: 1))
+            .collect();
 
     for (TrackedPoint point in walkToShopAndBack) {
       await tripWrapper.add(point.toPosition());
@@ -50,11 +50,14 @@ void main() {
   });
 
   test("Staying at the same location: no trip", () async {
-    List<TrackedPoint> points = [
-      ...stay(Duration(hours: 1)),
-      ...stay(Duration(hours: 1)),
-      ...stay(Duration(hours: 1)),
-    ];
+    List<TrackedPoint> points = TripBuilder.withData(0, 0, skipStayPoints: false)
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        .collect();
     for (TrackedPoint point in points) {
       await tripWrapper.add(point.toPosition());
     }

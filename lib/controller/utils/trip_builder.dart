@@ -12,19 +12,25 @@ class TripBuilder {
 
   final List<Leg> _legs = List.empty(growable: true);
   List<TrackedPoint> _leg = List.empty(growable: true);
+  bool skipStayPoints;
+  // DateTime start = DateTime.now();
   DateTime time = DateTime.now();
   double latitude = 49.006889;
   double longitude = 8.403653;
 
-  TripBuilder();
+  TripBuilder() : skipStayPoints = true;
 
-  TripBuilder.withData(this.latitude, this.longitude);
+  TripBuilder.withData(this.latitude, this.longitude, {this.skipStayPoints = true});
 
   TripBuilder stay(Duration duration) {
     DateTime end = time.add(duration);
-    while (time.isBefore(end)) {
-      _leg.add(TrackedPoint.withData(latitude, longitude, 0, time));
-      time = time.add(Duration(seconds: 5));
+    if (!skipStayPoints) {
+      while (time.isBefore(end)) {
+        _leg.add(TrackedPoint.withData(latitude, longitude, 0, time));
+        time = time.add(Duration(seconds: 5));
+      }
+    } else {
+      time = end;
     }
     return this;
   }
@@ -59,8 +65,14 @@ class TripBuilder {
     return this;
   }
 
+  List<TrackedPoint> collect() {
+    this.leg();
+    return this._legs.expand((element) => element.trackedPoints).toList();
+  }
+
   Trip build() {
     this.leg();
-    return Trip.withData(_legs);
+    Trip built = Trip.withData(_legs);
+    return built;
   }
 }

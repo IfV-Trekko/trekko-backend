@@ -1,3 +1,4 @@
+import 'package:app_backend/controller/utils/trip_builder.dart';
 import 'package:app_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/model/trip/leg.dart';
@@ -6,8 +7,6 @@ import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
-import '../trip_gen_utils.dart';
-
 void main() {
   late LegWrapper legWrapper;
   setUp(() async {
@@ -15,14 +14,15 @@ void main() {
   });
 
   test("Analyze walk to shop", () async {
-    List<TrackedPoint> walkToShop = [
-      // stay for 1h
-      ...stay(Duration(hours: 1)),
-      // walk 500m
-      ...move(true, Duration(minutes: 10), 500.meters),
-      // stay for 5min
-      ...stay(Duration(hours: 1)),
-    ];
+    List<TrackedPoint> walkToShop =
+        TripBuilder.withData(0, 0, skipStayPoints: false)
+            // stay for 1h
+            .stay(Duration(hours: 1))
+            // walk 500m
+            .move(true, Duration(minutes: 10), 500.meters)
+            // stay for 5min
+            .stay(Duration(hours: 1))
+            .collect();
 
     for (TrackedPoint point in walkToShop) {
       await legWrapper.add(point.toPosition());
@@ -38,11 +38,15 @@ void main() {
   });
 
   test("Staying at the same location: no leg", () async {
-    List<TrackedPoint> points = [
-      ...stay(Duration(hours: 1)),
-      ...stay(Duration(hours: 1)),
-      ...stay(Duration(hours: 1)),
-    ];
+    List<TrackedPoint> points =
+        TripBuilder.withData(0, 0, skipStayPoints: false)
+            // stay for 1h
+            .stay(Duration(hours: 1))
+            // stay for 1h
+            .stay(Duration(hours: 1))
+            // stay for 1h
+            .stay(Duration(hours: 1))
+            .collect();
     for (TrackedPoint point in points) {
       await legWrapper.add(point.toPosition());
     }
