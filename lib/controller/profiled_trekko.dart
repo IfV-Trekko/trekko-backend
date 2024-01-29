@@ -163,6 +163,9 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> donate(Query<Trip> query) async {
     await query.findAll().then((trips) async {
+      if (trips.any((element) => element.donationState == DonationState.donated))
+        throw Exception("Some trips are already donated");
+
       await _server.donateTrips(TripsRequest.fromTrips(trips));
       trips.forEach((trip) async {
         trip.donationState = DonationState.donated;
