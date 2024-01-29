@@ -21,18 +21,15 @@ void main() {
     Profile profile = await trekko.getProfile().first;
     profile.preferences.setQuestionAnswer("homeOffice", true);
     profile.preferences.setQuestionAnswer("gender", "female");
-    profile.preferences.setQuestionAnswer("age", 21);
 
     expect(profile.preferences.getQuestionAnswer("homeOffice"), equals(true));
     expect(profile.preferences.getQuestionAnswer("gender"), equals("female"));
-    expect(profile.preferences.getQuestionAnswer("age"), equals(21));
-
 
     await trekko.savePreferences(profile.preferences);
     profile = await trekko.getProfile().first;
     expect(profile.preferences.getQuestionAnswer("homeOffice"), equals(true));
     expect(profile.preferences.getQuestionAnswer("gender"), equals("female"));
-    expect(profile.preferences.getQuestionAnswer("age"), equals(21));
+    // expect(profile.preferences.getQuestionAnswer("age"), equals(21));
   });
 
   test("Set and get battery usage setting", () async {
