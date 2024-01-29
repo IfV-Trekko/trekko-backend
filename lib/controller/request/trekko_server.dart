@@ -34,6 +34,8 @@ abstract class TrekkoServer {
 
   Future<ServerProfile> getProfile();
 
+  Future<EmptyResponse> createProfile(ServerProfile profile);
+
   Future<EmptyResponse> updateProfile(ServerProfile profile);
 
   Future<EmptyResponse> deleteAccount();
