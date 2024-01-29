@@ -1,9 +1,9 @@
 class EmptyResponse {
   EmptyResponse();
 
-  factory EmptyResponse.fromJson(Map<String, dynamic> json) {
+  factory EmptyResponse.fromJson(dynamic json) {
     return EmptyResponse();
   }
 
-  Map<String, dynamic> toJson() => {};
+  dynamic toJson() => {};
 }

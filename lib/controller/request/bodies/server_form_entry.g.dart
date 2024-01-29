@@ -14,7 +14,7 @@ ServerFormEntry _$ServerFormEntryFromJson(Map<String, dynamic> json) =>
       json['required'] as bool,
       json['regex'] as String?,
       (json['options'] as List<dynamic>?)
-          ?.map((e) => FormEntryOption.fromJson(e as Map<String, dynamic>))
+          ?.map(FormEntryOption.fromJson)
           .toList(),
     );
 

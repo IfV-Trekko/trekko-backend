@@ -10,8 +10,8 @@ class FormResponse {
 
   FormResponse(this.fields);
 
-  Map<String, dynamic> toJson() => _$FormResponseToJson(this);
+  dynamic toJson() => _$FormResponseToJson(this);
 
-  factory FormResponse.fromJson(Map<String, dynamic> json) =>
+  factory FormResponse.fromJson(dynamic json) =>
       _$FormResponseFromJson(json);
 }

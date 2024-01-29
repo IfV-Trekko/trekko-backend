@@ -21,8 +21,8 @@ class ServerFormEntry {
   ServerFormEntry(
       this.key, this.title, this.type, this.required, this.regex, this.options);
 
-  Map<String, dynamic> toJson() => _$ServerFormEntryToJson(this);
+  dynamic toJson() => _$ServerFormEntryToJson(this);
 
-  factory ServerFormEntry.fromJson(Map<String, dynamic> json) =>
+  factory ServerFormEntry.fromJson(dynamic json) =>
       _$ServerFormEntryFromJson(json);
 }

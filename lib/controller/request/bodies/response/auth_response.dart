@@ -10,8 +10,8 @@ class AuthResponse {
 
   AuthResponse(this.token);
 
-  Map<String, dynamic> toJson() => _$AuthResponseToJson(this);
+  dynamic toJson() => _$AuthResponseToJson(this);
 
-  factory AuthResponse.fromJson(Map<String, dynamic> json) =>
+  factory AuthResponse.fromJson(dynamic json) =>
       _$AuthResponseFromJson(json);
 }

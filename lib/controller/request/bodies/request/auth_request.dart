@@ -12,8 +12,8 @@ class AuthRequest {
 
   AuthRequest(this.email, this.password);
 
-  Map<String, dynamic> toJson() => _$AuthRequestToJson(this);
+  dynamic toJson() => _$AuthRequestToJson(this);
 
-  factory AuthRequest.fromJson(Map<String, dynamic> json) =>
+  factory AuthRequest.fromJson(dynamic json) =>
       _$AuthRequestFromJson(json);
 }

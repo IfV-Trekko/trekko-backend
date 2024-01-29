@@ -11,8 +11,8 @@ class FormEntryOption {
 
   FormEntryOption(this.key, this.title);
 
-  Map<String, dynamic> toJson() => _$FormEntryOptionToJson(this);
+  dynamic toJson() => _$FormEntryOptionToJson(this);
 
-  factory FormEntryOption.fromJson(Map<String, dynamic> json) =>
+  factory FormEntryOption.fromJson(dynamic json) =>
       _$FormEntryOptionFromJson(json);
 }

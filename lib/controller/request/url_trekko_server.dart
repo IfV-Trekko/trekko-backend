@@ -53,7 +53,7 @@ class UrlTrekkoServer implements TrekkoServer {
   }
 
   T _parseBody<T>(Response response, int expectedStatusCode,
-      T Function(Map<String, dynamic>) parser) {
+      T Function(Object?) parser) {
     if (response.statusCode != expectedStatusCode) {
       var decoded;
       try {
@@ -71,7 +71,7 @@ class UrlTrekkoServer implements TrekkoServer {
   }
 
   Future<T> _sendGet<T>(Endpoint endpoint, int expectedStatusCode,
-      T Function(Map<String, dynamic>) parser,
+      T Function(Object?) parser,
       {List<String> pathParams = const []}) {
     return _client
         .get(_parseUrl(endpoint, pathParams), headers: _buildHeader(endpoint))
@@ -85,7 +85,7 @@ class UrlTrekkoServer implements TrekkoServer {
       Endpoint endpoint,
       dynamic encode,
       int expectedStatusCode,
-      T Function(Map<String, dynamic>) parser,
+      T Function(Object?) parser,
       {List<String> pathParams = const []}) {
     return requestCall(_parseUrl(endpoint, pathParams),
             headers: _buildHeader(endpoint), body: json.encode(encode.toJson()))

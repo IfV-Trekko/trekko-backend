@@ -10,8 +10,7 @@ class TripsRequest {
     this.trips = trips.map((trip) => ServerTrip.fromTrip(trip)).toList();
   }
 
-  Map<String, dynamic> toJson() =>
-      {'trips': trips.map((trip) => trip.toJson()).toList()};
+  Map<String, dynamic> toJson() => {'trips': trips.map((trip) => trip.toJson()).toList()};
 
   factory TripsRequest.fromJson(Map<String, dynamic> json) {
     return TripsRequest((json['trips'] as List<dynamic>)

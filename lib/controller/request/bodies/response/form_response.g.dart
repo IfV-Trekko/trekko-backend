@@ -7,9 +7,7 @@ part of 'form_response.dart';
 // **************************************************************************
 
 FormResponse _$FormResponseFromJson(Map<String, dynamic> json) => FormResponse(
-      (json['fields'] as List<dynamic>)
-          .map((e) => ServerFormEntry.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      (json['fields'] as List<dynamic>).map(ServerFormEntry.fromJson).toList(),
     );
 
 Map<String, dynamic> _$FormResponseToJson(FormResponse instance) =>

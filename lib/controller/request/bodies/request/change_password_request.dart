@@ -13,8 +13,8 @@ class ChangePasswordRequest {
 
   ChangePasswordRequest(this.email, this.newPassword, this.code);
 
-  Map<String, dynamic> toJson() => _$ChangePasswordRequestToJson(this);
+  dynamic toJson() => _$ChangePasswordRequestToJson(this);
 
-  factory ChangePasswordRequest.fromJson(Map<String, dynamic> json) =>
+  factory ChangePasswordRequest.fromJson(dynamic json) =>
       _$ChangePasswordRequestFromJson(json);
 }

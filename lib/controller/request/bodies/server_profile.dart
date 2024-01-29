@@ -3,8 +3,8 @@ class ServerProfile {
 
   ServerProfile(this.data);
 
-  Map<String, dynamic> toJson() => data;
+  dynamic toJson() => data;
 
-  factory ServerProfile.fromJson(Map<String, dynamic> json) =>
+  factory ServerProfile.fromJson(dynamic json) =>
       ServerProfile(json.cast<String, String>());
 }

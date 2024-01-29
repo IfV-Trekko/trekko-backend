@@ -9,8 +9,8 @@ class SendCodeRequest {
 
   SendCodeRequest(this.email);
 
-  Map<String, dynamic> toJson() => _$SendCodeRequestToJson(this);
+  dynamic toJson() => _$SendCodeRequestToJson(this);
 
-  factory SendCodeRequest.fromJson(Map<String, dynamic> json) =>
+  factory SendCodeRequest.fromJson(dynamic json) =>
       _$SendCodeRequestFromJson(json);
 }

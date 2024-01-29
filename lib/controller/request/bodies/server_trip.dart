@@ -37,8 +37,8 @@ class ServerTrip {
         purpose = trip.purpose,
         comment = trip.comment;
 
-  Map<String, dynamic> toJson() => _$ServerTripToJson(this);
+  dynamic toJson() => _$ServerTripToJson(this);
 
-  factory ServerTrip.fromJson(Map<String, dynamic> json) =>
+  factory ServerTrip.fromJson(dynamic json) =>
       _$ServerTripFromJson(json);
 }

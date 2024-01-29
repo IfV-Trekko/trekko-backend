@@ -11,8 +11,8 @@ class ErrorResponse {
 
   ErrorResponse(this.reasonCode, this.message);
 
-  Map<String, dynamic> toJson() => _$ErrorResponseToJson(this);
+  dynamic toJson() => _$ErrorResponseToJson(this);
 
-  factory ErrorResponse.fromJson(Map<String, dynamic> json) =>
+  factory ErrorResponse.fromJson(dynamic json) =>
       _$ErrorResponseFromJson(json);
 }

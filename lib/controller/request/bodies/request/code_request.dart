@@ -9,8 +9,8 @@ class CodeRequest {
 
   CodeRequest(this.code);
 
-  Map<String, dynamic> toJson() => _$CodeRequestToJson(this);
+  dynamic toJson() => _$CodeRequestToJson(this);
 
-  factory CodeRequest.fromJson(Map<String, dynamic> json) =>
+  factory CodeRequest.fromJson(dynamic json) =>
       _$CodeRequestFromJson(json);
 }
