@@ -1,6 +1,5 @@
 import 'package:app_backend/controller/analysis/reductions.dart';
 import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
@@ -44,42 +43,34 @@ void main() {
       trekko = await TrekkoBuildUtils().loginOrRegister(email, password));
 
   test("Analyze trip with one leg", () async {
-    Trip trip = Trip(
-        donationState: DonationState.undefined,
-        comment: null,
-        purpose: null,
-        legs: [
-          Leg.withData(TransportType.car, [
-            ...stay(Duration(hours: 1)),
-            ...move_r(Duration(hours: 1), 100.meters),
-            ...stay(Duration(minutes: 30)),
-            ...move_r(Duration(minutes: 30), 900.meters),
-          ]),
-        ]);
+    Trip trip = Trip.withData([
+      Leg.withData(TransportType.car, [
+        ...stay(Duration(hours: 1)),
+        ...move_r(Duration(hours: 1), 100.meters),
+        ...stay(Duration(minutes: 30)),
+        ...move_r(Duration(minutes: 30), 900.meters),
+      ]),
+    ]);
 
     int tripId = await trekko.saveTrip(trip);
     await checkTrip(trekko, tripId, 1.kilo.meters, Duration(hours: 3));
   });
 
   test("Analyze trip with 2 legs", () async {
-    Trip trip = Trip(
-        donationState: DonationState.undefined,
-        comment: null,
-        purpose: null,
-        legs: [
-          Leg.withData(TransportType.car, [
-            ...stay(Duration(hours: 1)),
-            ...move_r(Duration(hours: 1), 100.meters),
-            ...stay(Duration(minutes: 30)),
-            ...move_r(Duration(minutes: 30), 900.meters),
-          ]),
-          Leg.withData(TransportType.car, [
-            ...stay(Duration(hours: 1)),
-            ...move_r(Duration(hours: 1), 100.meters),
-            ...stay(Duration(minutes: 30)),
-            ...move_r(Duration(minutes: 30), 900.meters),
-          ]),
-        ]);
+    Trip trip = Trip.withData([
+      Leg.withData(TransportType.car, [
+        ...stay(Duration(hours: 1)),
+        ...move_r(Duration(hours: 1), 100.meters),
+        ...stay(Duration(minutes: 30)),
+        ...move_r(Duration(minutes: 30), 900.meters),
+      ]),
+      Leg.withData(TransportType.car, [
+        ...stay(Duration(hours: 1)),
+        ...move_r(Duration(hours: 1), 100.meters),
+        ...stay(Duration(minutes: 30)),
+        ...move_r(Duration(minutes: 30), 900.meters),
+      ]),
+    ]);
 
     int tripId = await trekko.saveTrip(trip);
     await checkTrip(trekko, tripId, 2.kilo.meters, Duration(hours: 6));

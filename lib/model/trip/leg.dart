@@ -31,18 +31,18 @@ class Leg {
   }
 
   /// Returns the start time of the leg
-  DateTime getStartTime() {
+  DateTime calculateStartTime() {
     return this.trackedPoints.first.timestamp;
   }
 
   /// Returns the end time of the leg
-  DateTime getEndTime() {
+  DateTime calculateEndTime() {
     return this.trackedPoints.last.timestamp;
   }
 
   /// Returns the duration of the leg
   Duration getDuration() {
-    return this.getEndTime().difference(this.getStartTime());
+    return this.calculateEndTime().difference(this.calculateStartTime());
   }
 
   /// Returns the average speed of the leg

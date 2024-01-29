@@ -9,58 +9,121 @@ part 'trip.g.dart';
 
 @collection
 class Trip {
-  Id id = Isar.autoIncrement;
+  Id _id = Isar.autoIncrement;
   @enumerated
-  DonationState donationState;
-  String? comment;
-  String? purpose;
-  List<Leg> legs;
+  DonationState _donationState = DonationState.undefined;
+  List<Leg> _legs = List.empty(growable: true);
+  DateTime? _startTime;
+  DateTime? _endTime;
+  double? _distanceInMeters;
+  String? _comment;
+  String? _purpose;
+
+  Trip();
 
   /// Creates a new trip
-  Trip({
-    required this.donationState,
-    required this.comment,
-    required this.purpose,
-    required this.legs,
-  }) {
-    if (this.legs.isEmpty) {
-      throw Exception("A trip must have at least one leg");
-    }
-
-    for (int i = 1; i < this.legs.length; i++) {
-      if (this.legs[i].getStartTime().isBefore(this.legs[i - 1].getEndTime())) {
-        throw Exception("The legs must be in chronological order");
-      }
-    }
+  Trip.withData(List<Leg> legs) {
+    this.legs = legs;
   }
+
+  set id(Id id) => this._id = id;
+
+  Id get id => this._id;
+
+  set donationState(DonationState donationState) =>
+      this._donationState = donationState;
+
+  @enumerated
+  DonationState get donationState => this._donationState;
 
   /// Returns the start time of the trip
-  DateTime getStartTime() {
-    return this.legs.first.getStartTime();
-  }
+  DateTime? get startTime => this._startTime;
 
   /// Returns the end time of the trip
-  DateTime getEndTime() {
-    return this.legs.last.getEndTime();
+  DateTime? get endTime => this._endTime;
+
+  DateTime calculateStartTime() {
+    return this._startTime ?? this.legs.first.calculateStartTime();
+  }
+
+  DateTime calculateEndTime() {
+    return this._endTime ?? this.legs.last.calculateEndTime();
+  }
+
+  /// Sets the start time of the trip
+  set startTime(DateTime? startTime) {
+    if (this.endTime != null && this.calculateEndTime().isBefore(startTime!)) {
+      throw Exception("The start time must be before the end time");
+    }
+
+    this._startTime = startTime;
+  }
+
+  /// Sets the end time of the trip
+  set endTime(DateTime? endTime) {
+    if (this._startTime != null && this.calculateStartTime().isAfter(endTime!)) {
+      throw Exception("The end time must be after the start time");
+    }
+
+    this._endTime = endTime;
+  }
+
+  double? get distanceInMeters => this._distanceInMeters;
+
+  set distanceInMeters(double? distanceInMeters) {
+    if (distanceInMeters != null && distanceInMeters < 0) {
+      throw Exception("The distance must be positive");
+    }
+
+    this._distanceInMeters = distanceInMeters;
   }
 
   /// Returns the distance of the trip
-  Distance getDistance() {
-    return Distance.sum(legs.map((e) => e.getDistance()));
-  }
+  Distance getDistance() => this._distanceInMeters != null
+      ? this._distanceInMeters!.meters
+      : Distance.sum(legs.map((e) => e.getDistance()));
+
+  /// Set the purpose of the trip
+  set purpose(String? purpose) => this._purpose = purpose;
+
+  /// Get the purpose of the trip
+  String? get purpose => this._purpose;
+
+  /// Set the comment of the trip
+  set comment(String? comment) => this._comment = comment;
+
+  /// Get the comment of the trip
+  String? get comment => this._comment;
 
   /// Returns the average speed of the trip
-  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() {
-    return this.getDistance().per(this.getDuration().inSeconds.seconds);
-  }
+  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() =>
+      this.getDistance().per(this.getDuration().inSeconds.seconds);
 
   /// Returns the duration of the trip
-  Duration getDuration() {
-    return this.getEndTime().difference(this.getStartTime());
+  Duration getDuration() =>
+      this.calculateEndTime().difference(this.calculateStartTime());
+
+  /// Returns the legs of the trip
+  List<Leg> get legs => this._legs;
+
+  /// Set the legs of the trip
+  set legs(List<Leg> legs) {
+    if (legs.isEmpty) {
+      throw Exception("A trip must have at least one leg");
+    }
+
+    for (int i = 1; i < legs.length; i++) {
+      if (legs[i]
+          .calculateStartTime()
+          .isBefore(legs[i - 1].calculateEndTime())) {
+        throw Exception("The legs must be in chronological order");
+      }
+    }
+
+    this._legs = legs;
   }
 
   /// Returns the transport types of the trip
-  List<TransportType> getTransportTypes() {
-    return this.legs.map((e) => e.transportType).toList();
-  }
+  List<TransportType> getTransportTypes() =>
+      this.legs.map((e) => e.transportType).toList();
 }

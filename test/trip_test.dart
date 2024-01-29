@@ -1,5 +1,4 @@
 import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
@@ -12,11 +11,7 @@ import 'trekko_build_utils.dart';
 const String password = "1aA!hklj32r4hkjl324r";
 const String email = "trip_test@profile_test.com";
 
-Trip trip1 = Trip(
-    donationState: DonationState.notDonated,
-    comment: null,
-    purpose: null,
-    legs: [
+Trip trip1 = Trip.withData([
       Leg.withData(TransportType.bicycle, [
         TrackedPoint.withData(0, 0, 15, DateTime.now()),
         TrackedPoint.withData(0, 1, 15, DateTime.now().add(Duration(hours: 1))),
@@ -24,11 +19,7 @@ Trip trip1 = Trip(
         TrackedPoint.withData(0, 3, 15, DateTime.now().add(Duration(hours: 3))),
       ]),
     ]);
-Trip trip2 = Trip(
-    donationState: DonationState.notDonated,
-    comment: null,
-    purpose: null,
-    legs: [
+Trip trip2 = Trip.withData([
       Leg.withData(TransportType.bicycle, [
         TrackedPoint.withData(0, 0, 15, DateTime.now()),
         TrackedPoint.withData(0, 1, 15, DateTime.now().add(Duration(hours: 2))),
@@ -53,15 +44,15 @@ void main() {
   });
 
   test("Trip data correct", () async {
-    expect(trip1Read.getStartTime(), equals(trip1.getStartTime()));
-    expect(trip1Read.getEndTime(), equals(trip1.getEndTime()));
+    expect(trip1Read.calculateStartTime(), equals(trip1.calculateStartTime()));
+    expect(trip1Read.calculateEndTime(), equals(trip1.calculateEndTime()));
     expect(trip1Read.getDistance(), equals(trip1.getDistance()));
     expect(trip1Read.getDuration(), equals(trip1.getDuration()));
     expect(trip1Read.getSpeed(), equals(trip1.getSpeed()));
     expect(trip1Read.getTransportTypes(), equals(trip1.getTransportTypes()));
 
-    expect(trip2Read.getStartTime(), equals(trip2.getStartTime()));
-    expect(trip2Read.getEndTime(), equals(trip2.getEndTime()));
+    expect(trip2Read.calculateStartTime(), equals(trip2.calculateStartTime()));
+    expect(trip2Read.calculateEndTime(), equals(trip2.calculateEndTime()));
     expect(trip2Read.getDistance(), equals(trip2.getDistance()));
     expect(trip2Read.getDuration(), equals(trip2.getDuration()));
     expect(trip2Read.getSpeed(), equals(trip2.getSpeed()));

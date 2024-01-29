@@ -1,7 +1,6 @@
 import 'package:app_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
-import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:geolocator_platform_interface/src/models/position.dart';
@@ -77,11 +76,7 @@ class AnalyzingTripWrapper implements TripWrapper {
       if (_legWrapper.collectedDataPoints() > 2)
         _legs.add(await _legWrapper.get());
 
-      return Trip(
-          donationState: DonationState.undefined,
-          comment: null,
-          purpose: null,
-          legs: _legs);
+      return Trip.withData(_legs);
     });
   }
 }
