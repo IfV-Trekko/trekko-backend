@@ -12,8 +12,8 @@ class TripBuilder {
 
   final List<Leg> _legs = List.empty(growable: true);
   DateTime time = DateTime.now();
-  double latitude = 0;
-  double longitude = 0;
+  double latitude = 49.006889;
+  double longitude = 8.403653;
 
   TripBuilder();
 
