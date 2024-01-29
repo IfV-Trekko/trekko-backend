@@ -29,7 +29,7 @@ final class PositionUtils {
   static Future<double> calculateEndProbability(
       Duration pointTimeDiff, double x3Factor, List<Position> positions) {
     return Future.microtask(() {
-      if (maxDistance(positions) < 100) return 0;
+      if (positions.length < 2 || maxDistance(positions) < 100) return 0;
 
       // Get the positions of the last x minutes
       List<Position> lastPositions = [];
