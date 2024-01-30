@@ -15,13 +15,13 @@ Future<void> checkTrip(
     Trekko trekko, int tripId, Distance distance, Duration duration) async {
   var query = trekko.getTripQuery().idEqualTo(tripId).build();
   Distance? calculatedDistance = await trekko
-      .analyze(query, (t) => t.getDistance(), DistanceReduction.SUM)
+      .analyze(query, (t) => t.getDistance(), DefaultReduction.SUM)
       .first;
   Duration? calculatedDuration = await trekko
-      .analyze(query, (t) => t.getDuration(), DurationReduction.SUM)
+      .analyze(query, (t) => t.getDuration(), DefaultReduction.SUM)
       .first;
   var calculatedSpeed = await trekko
-      .analyze(query, (t) => t.getSpeed(), SpeedReduction.AVERAGE)
+      .analyze(query, (t) => t.getSpeed(), DefaultReduction.AVERAGE)
       .first;
 
   expect(calculatedDistance!.as(kilo.meters).round(),
