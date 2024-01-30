@@ -28,8 +28,8 @@ abstract class Trekko {
   /// Saves a trip. Also synchronizes the trip with the server.
   Future<int> saveTrip(Trip trip);
 
-  /// Deletes a trip. Also synchronizes the deletion with the server.
-  Future<bool> deleteTrip(Trip trip);
+  /// Deletes trips. Also synchronizes the deletion with the server.
+  Future<int> deleteTrip(Query<Trip> trips);
 
   /// Merge multiple trips into one. Also synchronizes the merge with the server.
   Future<Trip> mergeTrips(Query<Trip> trips);

@@ -175,13 +175,15 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future<bool> deleteTrip(Trip trip) async {
+  Future<int> deleteTrip(Query<Trip> trips) async {
     return _isar.writeTxn(() async {
-      return _isar.trips.delete(trip.id).then((found) async {
-        if (found && trip.donationState == DonationState.donated) {
-          await _server.deleteTrip(trip.id.toString());
+      return trips.findAll().then((foundTrips) async {
+        for (Trip trip in foundTrips ) {
+          if (trip.donationState == DonationState.donated) {
+            await _server.deleteTrip(trip.id.toString());
+          }
         }
-        return found;
+        return await trips.deleteAll();
       });
     });
   }
@@ -200,8 +202,9 @@ class ProfiledTrekko implements Trekko {
         await tripWrapper.add(point.toPosition());
       }
       Trip merged = await tripWrapper.get();
-      trips.forEach((trip) async => await deleteTrip(trip));
+      this.deleteTrip(this.getTripQuery().idEqualTo(merged.id).build());
       await saveTrip(merged);
+      // Check if shall donate
       await donate(_isar.trips.where().idEqualTo(merged.id).build());
       return merged;
     });
@@ -217,6 +220,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<int> saveTrip(Trip trip) async {
+    // Check if set donated already
     return _isar.writeTxn(() async => await _isar.trips.put(trip));
   }
 
