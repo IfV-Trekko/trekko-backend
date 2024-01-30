@@ -163,6 +163,8 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> donate(Query<Trip> query) async {
     await query.findAll().then((trips) async {
+      if (trips.isEmpty) throw Exception("No trips to donate");
+
       if (trips
           .any((element) => element.donationState == DonationState.donated))
         throw Exception("Some trips are already donated");
@@ -178,6 +180,8 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> revoke(Query<Trip> query) async {
     await query.findAll().then((trips) async {
+      if (trips.isEmpty) throw Exception("No trips to revoke");
+
       if (trips
           .any((element) => element.donationState != DonationState.donated))
         throw Exception("Some trips aren't donated");
@@ -208,6 +212,8 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<Trip> mergeTrips(Query<Trip> trips) async {
     return await trips.findAll().then((toMerge) async {
+      if (toMerge.isEmpty) throw Exception("No trips to merge");
+
       TripWrapper tripWrapper = AnalyzingTripWrapper();
       List<TrackedPoint> points = toMerge
           .map((trip) => trip.legs)

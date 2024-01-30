@@ -22,4 +22,6 @@ void main() {
     int tripId = await trekko.saveTrip(trip);
     await trekko.donate(trekko.getTripQuery().idEqualTo(tripId).build());
   });
+
+
 }
