@@ -69,7 +69,7 @@ void main() {
     expect(await trekko.getTripQuery().idEqualTo(tripId).build().count(), 0);
   });
 
-  test("Donate multiple random trips and delete them again", () async {
+  test("Donate multiple random trips and delete them again in one query", () async {
     List<int> tripIds = [];
     var query = trekko.getTripQuery().filter().idEqualTo(-1);
     for (int i = 0; i < 10; i++) {
@@ -86,5 +86,26 @@ void main() {
 
     await trekko.deleteTrip(query.build());
     expect(await query.count(), 0);
+  });
+
+  test("Donate multiple random trips and delete them again in multiple queries", () async {
+    List<int> tripIds = [];
+    var query = trekko.getTripQuery().filter().idEqualTo(-1);
+    for (int i = 0; i < 10; i++) {
+      Trip trip = TripBuilder().move_r(Duration(hours: 2), 200.meters).build();
+      tripIds.add(await trekko.saveTrip(trip));
+      query = query.or().idEqualTo(tripIds.last);
+    }
+    await trekko.donate(query.build());
+
+    for (int tripId in tripIds) {
+      Trip trip = (await trekko.getTripQuery().idEqualTo(tripId).findFirst())!;
+      expect(trip.donationState, DonationState.donated);
+    }
+
+    for (int tripId in tripIds) {
+      await trekko.deleteTrip(trekko.getTripQuery().idEqualTo(tripId).build());
+      expect(await trekko.getTripQuery().idEqualTo(tripId).build().count(), 0);
+    }
   });
 }
