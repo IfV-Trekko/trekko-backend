@@ -136,4 +136,12 @@ class Trip {
   /// Returns the transport types of the trip
   List<TransportType> getTransportTypes() =>
       this.legs.map((e) => e.transportType).toList();
+
+  void reset() {
+    this._startTime = null;
+    this._endTime = null;
+    this._distanceInMeters = null;
+    this._comment = null;
+    this._purpose = null;
+  }
 }
