@@ -4,7 +4,6 @@ part 'onboarding_text_response.g.dart';
 
 @JsonSerializable()
 class OnboardingTextResponse {
-
   @JsonKey(name: "text")
   final String text;
 
@@ -12,6 +11,6 @@ class OnboardingTextResponse {
 
   dynamic toJson() => _$OnboardingTextResponseToJson(this);
 
-  factory OnboardingTextResponse.fromJson(dynamic json) => _$OnboardingTextResponseFromJson(json);
-
+  factory OnboardingTextResponse.fromJson(dynamic json) =>
+      _$OnboardingTextResponseFromJson(json);
 }
