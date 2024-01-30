@@ -61,7 +61,8 @@ class Trip {
 
   /// Sets the end time of the trip
   set endTime(DateTime? endTime) {
-    if (this._startTime != null && this.calculateStartTime().isAfter(endTime!)) {
+    if (this._startTime != null &&
+        this.calculateStartTime().isAfter(endTime!)) {
       throw Exception("The end time must be after the start time");
     }
 
@@ -70,18 +71,22 @@ class Trip {
 
   double? get distanceInMeters => this._distanceInMeters;
 
-  set distanceInMeters(double? distanceInMeters) {
-    if (distanceInMeters != null && distanceInMeters < 0) {
-      throw Exception("The distance must be positive");
-    }
-
-    this._distanceInMeters = distanceInMeters;
-  }
+  set distanceInMeters(double? distanceInMeters) =>
+      this._distanceInMeters = distanceInMeters;
 
   /// Returns the distance of the trip
   Distance getDistance() => this._distanceInMeters != null
       ? this._distanceInMeters!.meters
       : Distance.sum(legs.map((e) => e.getDistance()));
+
+  /// Set the distance of the trip
+  setDistance(Distance distance) {
+    if (distance.as(meters) <= 0) {
+      throw Exception("Invalid distance");
+    }
+
+    this._distanceInMeters = distance.as(meters);
+  }
 
   /// Set the purpose of the trip
   set purpose(String? purpose) => this._purpose = purpose;
