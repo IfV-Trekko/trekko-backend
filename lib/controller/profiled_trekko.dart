@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_backend/controller/analysis/reductions.dart';
 import 'package:app_backend/controller/location_settings.dart';
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
+import 'package:app_backend/controller/request/bodies/server_trip.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
@@ -190,9 +191,9 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<Trip> mergeTrips(Query<Trip> trips) async {
-    return await trips.findAll().then((trips) async {
+    return await trips.findAll().then((toMerge) async {
       TripWrapper tripWrapper = AnalyzingTripWrapper();
-      List<TrackedPoint> points = trips
+      List<TrackedPoint> points = toMerge
           .map((trip) => trip.legs)
           .expand((leg) => leg)
           .expand((p) => p.trackedPoints)
@@ -202,10 +203,11 @@ class ProfiledTrekko implements Trekko {
         await tripWrapper.add(point.toPosition());
       }
       Trip merged = await tripWrapper.get();
-      this.deleteTrip(this.getTripQuery().idEqualTo(merged.id).build());
-      await saveTrip(merged);
-      // Check if shall donate
-      await donate(_isar.trips.where().idEqualTo(merged.id).build());
+      int mergedTripId = await saveTrip(merged);
+      await deleteTrip(trips);
+      if (toMerge.any((t) => t.donationState == DonationState.donated)) {
+        await donate(getTripQuery().idEqualTo(mergedTripId).build());
+      }
       return merged;
     });
   }
@@ -220,7 +222,9 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<int> saveTrip(Trip trip) async {
-    // Check if set donated already
+    if (trip.donationState == DonationState.donated) {
+      await _server.updateTrip(ServerTrip.fromTrip(trip));
+    }
     return _isar.writeTxn(() async => await _isar.trips.put(trip));
   }
 
