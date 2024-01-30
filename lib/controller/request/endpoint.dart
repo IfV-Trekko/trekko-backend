@@ -4,6 +4,8 @@ enum Endpoint {
   forgot_password("auth/forgot-password", false),
   emailConfirm("/account/email/confirmation", false),
   password_reset("/account/password/reset", false),
+  onboardingTextAbout("/onboarding/text/about", false),
+  onboardingTextGoal("/onboarding/text/goal", false),
   account("/account", true),
   donate("/trips/batch", true),
   trip("/trips/%s", true),

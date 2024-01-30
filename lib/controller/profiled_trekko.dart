@@ -147,8 +147,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<String> loadText(OnboardingTextType type) {
-    return Future.value(
-        "Matthias bitte implementiere diese Funktion."); // TODO: implement loadText
+    return _server.getOnboardingText(type.endpoint).then((value) => value.text);
   }
 
   @override
@@ -163,7 +162,8 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> donate(Query<Trip> query) async {
     await query.findAll().then((trips) async {
-      if (trips.any((element) => element.donationState == DonationState.donated))
+      if (trips
+          .any((element) => element.donationState == DonationState.donated))
         throw Exception("Some trips are already donated");
 
       await _server.donateTrips(TripsRequest.fromTrips(trips));

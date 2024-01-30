@@ -10,6 +10,7 @@ import 'package:app_backend/controller/request/bodies/response/auth_response.dar
 import 'package:app_backend/controller/request/bodies/response/empty_response.dart';
 import 'package:app_backend/controller/request/bodies/response/error_response.dart';
 import 'package:app_backend/controller/request/bodies/response/form_response.dart';
+import 'package:app_backend/controller/request/bodies/response/onboarding_text_response.dart';
 import 'package:app_backend/controller/request/bodies/response/trips_response.dart';
 import 'package:app_backend/controller/request/bodies/server_profile.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
@@ -52,8 +53,8 @@ class UrlTrekkoServer implements TrekkoServer {
     return header;
   }
 
-  T _parseBody<T>(Response response, int expectedStatusCode,
-      T Function(Object?) parser) {
+  T _parseBody<T>(
+      Response response, int expectedStatusCode, T Function(Object?) parser) {
     if (response.statusCode != expectedStatusCode) {
       var decoded;
       try {
@@ -70,8 +71,8 @@ class UrlTrekkoServer implements TrekkoServer {
     return parser.call(jsonDecode(response.body));
   }
 
-  Future<T> _sendGet<T>(Endpoint endpoint, int expectedStatusCode,
-      T Function(Object?) parser,
+  Future<T> _sendGet<T>(
+      Endpoint endpoint, int expectedStatusCode, T Function(Object?) parser,
       {List<String> pathParams = const []}) {
     return _client
         .get(_parseUrl(endpoint, pathParams), headers: _buildHeader(endpoint))
@@ -143,6 +144,15 @@ class UrlTrekkoServer implements TrekkoServer {
       request,
       200,
       EmptyResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<OnboardingTextResponse> getOnboardingText(Endpoint endpoint) {
+    return _sendGet(
+      endpoint,
+      200,
+      OnboardingTextResponse.fromJson,
     );
   }
 
