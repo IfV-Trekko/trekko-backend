@@ -88,8 +88,9 @@ class UrlTrekkoServer implements TrekkoServer {
       int expectedStatusCode,
       T Function(Object?) parser,
       {List<String> pathParams = const []}) {
+    String coded = json.encode(encode.toJson());
     return requestCall(_parseUrl(endpoint, pathParams),
-            headers: _buildHeader(endpoint), body: json.encode(encode.toJson()))
+            headers: _buildHeader(endpoint), body: coded)
         .then((value) => _parseBody(value, expectedStatusCode, parser));
   }
 

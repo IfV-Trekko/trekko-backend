@@ -161,8 +161,8 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future<void> donate(Query<Trip> query) async {
-    await query.findAll().then((trips) async {
+  Future<int> donate(Query<Trip> query) async {
+    return query.findAll().then((trips) async {
       if (trips.isEmpty) throw Exception("No trips to donate");
 
       if (trips
@@ -170,27 +170,29 @@ class ProfiledTrekko implements Trekko {
         throw Exception("Some trips are already donated");
 
       await _server.donateTrips(TripsRequest.fromTrips(trips));
-      trips.forEach((trip) async {
+      for (Trip trip in trips) {
         trip.donationState = DonationState.donated;
         await saveTrip(trip);
-      });
+      }
+      return trips.length;
     });
   }
 
   @override
-  Future<void> revoke(Query<Trip> query) async {
-    await query.findAll().then((trips) async {
+  Future<int> revoke(Query<Trip> query) async {
+    return query.findAll().then((trips) async {
       if (trips.isEmpty) throw Exception("No trips to revoke");
 
       if (trips
           .any((element) => element.donationState != DonationState.donated))
         throw Exception("Some trips aren't donated");
 
-      trips.forEach((trip) async {
+      for (Trip trip in trips) {
         await _server.deleteTrip(trip.id.toString());
         trip.donationState = DonationState.notDonated;
         await saveTrip(trip);
-      });
+      }
+      return trips.length;
     });
   }
 

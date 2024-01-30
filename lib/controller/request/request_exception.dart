@@ -5,4 +5,9 @@ class RequestException implements Exception {
   final ErrorResponse? reason;
 
   RequestException(this.code, this.reason);
+
+  @override
+  String toString() {
+    return "RequestException: $code, $reason";
+  }
 }

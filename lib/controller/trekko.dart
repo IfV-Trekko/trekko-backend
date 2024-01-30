@@ -42,10 +42,10 @@ abstract class Trekko {
       Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction);
 
   /// Donates a query of trips to the server.
-  Future<void> donate(Query<Trip> query);
+  Future<int> donate(Query<Trip> query);
 
   /// Revokes a query of trips from the server.
-  Future<void> revoke(Query<Trip> query);
+  Future<int> revoke(Query<Trip> query);
 
   /// Returns a stream of the current position.
   Future<Stream<Position>> getPosition();
