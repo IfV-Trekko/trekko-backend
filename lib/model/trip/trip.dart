@@ -80,12 +80,17 @@ class Trip {
       : Distance.sum(legs.map((e) => e.getDistance()));
 
   /// Set the distance of the trip
-  setDistance(Distance distance) {
+  setDistance(Distance? distance) {
+    if (distance == null) {
+      this.distanceInMeters = null;
+      return;
+    }
+
     if (distance.as(meters) <= 0) {
       throw Exception("Invalid distance");
     }
 
-    this._distanceInMeters = distance.as(meters);
+    this.distanceInMeters = distance.as(meters);
   }
 
   /// Set the purpose of the trip
