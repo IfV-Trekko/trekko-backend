@@ -176,12 +176,28 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
+  Future<void> revoke(Query<Trip> query) async {
+    await query.findAll().then((trips) async {
+      if (trips
+          .any((element) => element.donationState != DonationState.donated))
+        throw Exception("Some trips aren't donated");
+
+      trips.forEach((trip) async {
+        await _server.deleteTrip(trip.id.toString());
+        trip.donationState = DonationState.notDonated;
+        await saveTrip(trip);
+      });
+    });
+  }
+
+  @override
   Future<int> deleteTrip(Query<Trip> trips) async {
     return _isar.writeTxn(() async {
       return trips.findAll().then((foundTrips) async {
-        for (Trip trip in foundTrips ) {
+        for (Trip trip in foundTrips) {
           if (trip.donationState == DonationState.donated) {
-            await _server.deleteTrip(trip.id.toString());
+            // You may want to make this better performing
+            await revoke(getTripQuery().idEqualTo(trip.id).build());
           }
         }
         return await trips.deleteAll();
