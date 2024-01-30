@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_backend/controller/analysis/calculation_reductor.dart';
+import 'package:app_backend/controller/analysis/reductions.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
 import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';

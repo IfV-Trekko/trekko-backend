@@ -1,5 +1,8 @@
-import 'package:app_backend/controller/analysis/calculation_reductor.dart';
 import 'package:fling_units/fling_units.dart';
+
+abstract class Reduction<T> {
+  T reduce(T a, T b);
+}
 
 enum DefaultReduction implements Reduction<dynamic> {
   AVERAGE,

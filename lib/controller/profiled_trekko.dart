@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_backend/controller/analysis/calculation_reductor.dart';
+import 'package:app_backend/controller/analysis/reductions.dart';
 import 'package:app_backend/controller/location_settings.dart';
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
