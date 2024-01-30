@@ -1,6 +1,8 @@
 import 'package:app_backend/controller/analysis/reductions.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/trip_builder.dart';
+import 'package:app_backend/model/trip/leg.dart';
+import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
@@ -67,6 +69,12 @@ void main() {
 
     int tripId = await trekko.saveTrip(trip);
     await checkTrip(trekko, tripId, 2.kilo.meters, Duration(hours: 5));
+  });
+
+  test("Analyze transport type data with not trip in it", () async {
+    var query = trekko.getTripQuery().filter().legsElement((q) => q.transportTypeEqualTo(TransportType.other));
+    var transportTypeData = await trekko.analyze(query.build(), (t) => t.getDistance(), DistanceReduction.SUM).first;
+    expect(transportTypeData, equals(null));
   });
 
   tearDownAll(() async => await trekko.terminate());

@@ -238,6 +238,7 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(
       Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
     return trips.watch(fireImmediately: true).map((trips) {
+      if (trips.isEmpty) return null;
       return trips.map(tripData).reduce((t0, t1) => reduction.reduce(t0, t1));
     });
   }
