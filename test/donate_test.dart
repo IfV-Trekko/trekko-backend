@@ -1,4 +1,3 @@
-import 'package:app_backend/controller/builder/authentification_utils.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/trip_builder.dart';
 import 'package:app_backend/model/trip/donation_state.dart';
@@ -10,7 +9,7 @@ import 'package:test/test.dart';
 import 'trekko_build_utils.dart';
 
 const String password = "1aA!hklj32r4hkjl324r";
-const String email = "donate_test1@profile_test.com";
+const String email = "donate_test2@profile_test.com";
 
 void main() {
   late Trekko trekko;
@@ -112,6 +111,8 @@ void main() {
     }
   });
 
-  tearDownAll(() async =>
-      AuthentificationUtils.deleteProfile("http://localhost:8080", email));
+  tearDownAll(() async {
+    // Delete all trips
+    await trekko.deleteTrip(trekko.getTripQuery().filter().idGreaterThan(-1).build());
+  });
 }
