@@ -11,7 +11,7 @@ class LastLoginBuilder extends TrekkoBuilder {
   Isar? _database;
 
   Future<Isar> _getDatabase() async {
-    return _database ?? (_database = await DatabaseUtils.establishConnection([ProfileSchema]));
+    return _database ?? (_database = await DatabaseUtils.establishConnection([ProfileSchema], "lastLogin"));
   }
 
   Future<bool> hasData() async {
@@ -32,6 +32,7 @@ class LastLoginBuilder extends TrekkoBuilder {
 
       Profile? latestProfile =
           await value.profiles.where().sortByLastLoginDesc().findFirst();
+      await _database!.close();
       return makeTrekko(latestProfile!.projectUrl, latestProfile.email, latestProfile.token);
     });
   }

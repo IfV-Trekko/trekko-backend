@@ -1,8 +1,10 @@
+import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/trip.dart';
+import 'package:fling_units/fling_units.dart';
 import 'package:geolocator_platform_interface/src/models/position.dart';
 
 class AnalyzingTripWrapper implements TripWrapper {
@@ -11,46 +13,17 @@ class AnalyzingTripWrapper implements TripWrapper {
 
   @override
   Future<double> calculateEndProbability() {
-    return Future.microtask(() {
-      // final fluster = Fluster<ClusterPosition>(
-      //     minZoom: 0,
-      //     maxZoom: 17,
-      //     radius: 150,
-      //     extent: 512,
-      //     nodeSize: 64,
-      //     points: _legs
-      //         .expand((element) => element.trackedPoints
-      //         .map((e) => ClusterPosition(
-      //         latitude: e.latitude, longitude: e.longitude))
-      //         .toList())
-      //         .toList(),
-      //     createCluster:
-      //         (BaseCluster cluster, double longitude, double latitude) {
-      //       return ClusterPosition(
-      //           latitude: latitude, longitude: longitude, clusterId: cluster.id);
-      //     });
-      //
-      // List<double> bounds = [];
-      // _legs.forEach((leg) {
-      //   leg.trackedPoints.forEach((point) {
-      //     if (bounds.length == 0) {
-      //       bounds.add(point.longitude);
-      //       bounds.add(point.latitude);
-      //       bounds.add(point.longitude);
-      //       bounds.add(point.latitude);
-      //     } else {
-      //       if (point.longitude < bounds[0]) bounds[0] = point.longitude;
-      //       if (point.latitude < bounds[1]) bounds[1] = point.latitude;
-      //       if (point.longitude > bounds[2]) bounds[2] = point.longitude;
-      //       if (point.latitude > bounds[3]) bounds[3] = point.latitude;
-      //     }
-      //   });
-      // });
-
-      double probability = 0;
-      // List<ClusterPosition> clusters = fluster.clusters(bounds, 0);
-
-      return probability;
+    return Future.microtask(() async {
+      if (_legs.isEmpty) return 0;
+      List<Position> positionsInOrder = _legs
+          .expand((element) => element.trackedPoints)
+          .map((e) => e.toPosition())
+          .toList();
+      DateTime from = DateTime.now().subtract(Duration(minutes: 30));
+      Duration min = Duration(minutes: 15);
+      Duration max = Duration(minutes: 30);
+      return PositionUtils.calculateHoldProbability(
+          from, min, max, 200.meters, positionsInOrder);
     });
   }
 
@@ -73,9 +46,6 @@ class AnalyzingTripWrapper implements TripWrapper {
   @override
   Future<Trip> get() async {
     return Future.microtask(() async {
-      if (_legWrapper.collectedDataPoints() > 2)
-        _legs.add(await _legWrapper.get());
-
       return Trip.withData(_legs);
     });
   }

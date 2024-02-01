@@ -44,7 +44,7 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<int> _saveProfile(Profile profile) {
-    return _isar.writeTxn(() async => await _isar.profiles.put(profile));
+    return _isar.writeTxn(() async => _isar.profiles.put(profile));
   }
 
   Future<void> _initProfile() async {
@@ -120,7 +120,7 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> init() async {
     _isar =
-        await DatabaseUtils.establishConnection([TripSchema, ProfileSchema]);
+        await DatabaseUtils.establishConnection([TripSchema, ProfileSchema], "trekko");
     await _initProfile();
     await _listenForLocationPermission();
 

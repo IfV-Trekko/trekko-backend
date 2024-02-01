@@ -11,7 +11,7 @@ class AuthentificationUtils {
   }
 
   static Future<bool> deleteProfile(String projectUrl, String email) async {
-    Isar db = await DatabaseUtils.establishConnection([ProfileSchema]);
+    Isar db = await DatabaseUtils.establishConnection([ProfileSchema], "delete");
     Profile? profile = await db.profiles
         .filter()
         .projectUrlEqualTo(projectUrl)
@@ -23,9 +23,11 @@ class AuthentificationUtils {
     }
 
     TrekkoServer server = UrlTrekkoServer.withToken(projectUrl, profile.token);
-    return await server.deleteAccount().then((value) async {
-      return await db
-          .writeTxn(() async => await db.profiles.delete(profile.id));
+    return server.deleteAccount().then((value) async {
+      return db.writeTxn(() async => db.profiles.delete(profile.id));
+    }).then((value) async {
+      await db.close();
+      return value;
     });
   }
 }

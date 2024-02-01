@@ -23,14 +23,20 @@ class MockPathProvider extends Mock
 
 class MyHttpOverrides extends HttpOverrides {}
 
+
+
 class TrekkoBuildUtils {
-  Future<Trekko> loginOrRegister(String email, String password) async {
-    // DartPluginRegistrant.ensureInitialized();
+
+  Future<void> init() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     HttpOverrides.global = MyHttpOverrides();
     await Isar.initializeIsarCore(download: true);
     PathProviderPlatform.instance = MockPathProvider();
     disablePathProviderPlatformOverride = true;
+  }
+
+  Future<Trekko> loginOrRegister(String email, String password) async {
+    await init();
     late String ip;
     if (Platform.isAndroid) {
       ip = "10.0.2.2";

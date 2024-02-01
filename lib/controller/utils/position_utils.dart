@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:fling_units/fling_units.dart';
 import 'package:geolocator/geolocator.dart';
 
 final class PositionUtils {
@@ -26,35 +27,36 @@ final class PositionUtils {
     return max;
   }
 
-  static Future<double> calculateEndProbability(
-      Duration pointTimeDiff, double x3Factor, List<Position> positions) {
+  static List<Position> getPositionIn(
+      DateTime start, DateTime end, List<Position> positions) {
+    return positions
+        .where((p) => p.timestamp.isAfter(start) && p.timestamp.isBefore(end))
+        .toList();
+  }
+
+  static double holdProbPerRadius(DateTime start, DateTime end,
+      Distance expectedDistance, List<Position> positions) {
+    List<Position> lastPositions = getPositionIn(start, end, positions);
+    double moved = PositionUtils.maxDistance(lastPositions);
+    return min(expectedDistance.as(meters) / moved, 1);
+  }
+
+  static Future<double> calculateHoldProbability(
+      DateTime start,
+      Duration minDuration,
+      Duration maxDuration,
+      Distance expectedDistance,
+      List<Position> positions) {
     return Future.microtask(() {
-      if (positions.length < 2 || maxDistance(positions) < 100) return 0;
+      if (positions.length == 0) return 0;
+      DateTime minEnd = start.add(maxDuration);
+      double minEndProb =
+          holdProbPerRadius(start, minEnd, expectedDistance, positions);
 
-      // Get the positions of the last x minutes
-      List<Position> lastPositions = [];
-      for (int i = positions.length - 1; i >= 0; i--) {
-        if (positions[i]
-            .timestamp
-            .isAfter(DateTime.now().subtract(pointTimeDiff))) {
-          lastPositions.add(positions[i]);
-        } else {
-          break;
-        }
-      }
-
-      // Calculate end probability by the radius of the last positions
-      Position anchor = lastPositions[0];
-      double averageProbability = 0;
-      for (Position position in lastPositions) {
-        double distance = distanceBetween(anchor, position);
-        double probability = (-1 / (1 * pow(1, x3Factor))) * pow(distance, 3) +
-            1; // hell yeah, math
-        probability = min(1, max(0, probability));
-        averageProbability += probability;
-      }
-      averageProbability /= lastPositions.length;
-      return averageProbability;
+      DateTime maxEnd = start.add(maxDuration);
+      double maxEndProb =
+          holdProbPerRadius(start, maxEnd, expectedDistance, positions);
+      return (maxEndProb + minEndProb) / 2;
     });
   }
 }

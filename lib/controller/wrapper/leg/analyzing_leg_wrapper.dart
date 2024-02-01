@@ -16,7 +16,10 @@ class AnalyzingLegWrapper implements LegWrapper {
 
   @override
   Future<double> calculateEndProbability() {
-    return Future.value(0);
+    return Future.microtask(() async {
+
+      return 0;
+    });
   }
 
   @override

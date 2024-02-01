@@ -15,4 +15,9 @@ class ErrorResponse {
 
   factory ErrorResponse.fromJson(dynamic json) =>
       _$ErrorResponseFromJson(json);
+
+  @override
+  String toString() {
+    return "ErrorResponse{reasonCode: $reasonCode, message: $message}";
+  }
 }
