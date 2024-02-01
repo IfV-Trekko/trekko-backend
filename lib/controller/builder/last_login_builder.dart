@@ -33,6 +33,7 @@ class LastLoginBuilder extends TrekkoBuilder {
       Profile? latestProfile =
           await value.profiles.where().sortByLastLoginDesc().findFirst();
       await _database!.close();
+      // TODO: Check if token is still valid
       return makeTrekko(latestProfile!.projectUrl, latestProfile.email, latestProfile.token);
     });
   }

@@ -1,4 +1,3 @@
-import 'package:app_backend/controller/builder/authentification_utils.dart';
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/last_login_builder.dart';
 import 'package:app_backend/controller/builder/registration_builder.dart';
@@ -38,7 +37,7 @@ void main() {
     await trekko.terminate();
   });
 
-  tearDown(() async {
-    await AuthentificationUtils.deleteProfile(ip, email);
-  });
+  // tearDown(() async {
+  //   await AuthentificationUtils.deleteProfile(ip, email);
+  // });
 }

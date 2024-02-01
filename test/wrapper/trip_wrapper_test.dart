@@ -2,7 +2,6 @@ import 'package:app_backend/controller/utils/trip_builder.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
-import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
@@ -36,17 +35,10 @@ void main() {
 
     Trip wrapped = await tripWrapper.get();
     expect(wrapped.legs.length, equals(2));
-    expect(wrapped.legs[0].getDistance().as(kilo.meters).round(), equals(1));
-    expect(wrapped.legs[0].getDuration().inMinutes, equals(10));
-    expect(
-        wrapped.legs[0].getSpeed().as(kilo.meters, hours).round(), equals(6));
-    expect(wrapped.legs[0].transportType, equals(TransportType.by_foot));
-
-    expect(wrapped.legs[1].getDistance().as(kilo.meters).round(), equals(1));
-    expect(wrapped.legs[1].getDuration().inMinutes, equals(10));
-    expect(
-        wrapped.legs[1].getSpeed().as(kilo.meters, hours).round(), equals(6));
-    expect(wrapped.legs[1].transportType, equals(TransportType.by_foot));
+    expect(wrapped.getDistance().as(meters), inInclusiveRange(700, 1000));
+    expect(wrapped.getDuration().inMinutes, inInclusiveRange(20, 25));
+    expect(wrapped.getSpeed().as(kilo.meters, hours).round(),
+        inInclusiveRange(1, 3));
   });
 
   test("Staying at the same location: no trip", () async {

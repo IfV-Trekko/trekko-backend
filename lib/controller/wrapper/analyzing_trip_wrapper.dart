@@ -10,16 +10,17 @@ import 'package:geolocator_platform_interface/src/models/position.dart';
 class AnalyzingTripWrapper implements TripWrapper {
   final List<Leg> _legs = List.empty(growable: true);
   LegWrapper _legWrapper = AnalyzingLegWrapper();
+  DateTime? newestTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
 
   @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
-      if (_legs.isEmpty) return 0;
+      if (_legs.isEmpty || newestTimestamp == null) return 0;
       List<Position> positionsInOrder = _legs
           .expand((element) => element.trackedPoints)
           .map((e) => e.toPosition())
           .toList();
-      DateTime from = DateTime.now().subtract(Duration(minutes: 30));
+      DateTime from = newestTimestamp!.subtract(Duration(minutes: 30));
       Duration min = Duration(minutes: 15);
       Duration max = Duration(minutes: 30);
       return PositionUtils.calculateHoldProbability(
@@ -29,6 +30,7 @@ class AnalyzingTripWrapper implements TripWrapper {
 
   @override
   Future<void> add(Position position) async {
+    newestTimestamp = position.timestamp;
     double probability = await _legWrapper.calculateEndProbability();
     if (_legWrapper.collectedDataPoints() > 0 && probability > 0.9) {
       _legs.add(await _legWrapper.get());

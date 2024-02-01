@@ -59,6 +59,6 @@ class Leg {
       distanceInMeters += Geolocator.distanceBetween(
           p0.latitude, p0.longitude, p1.latitude, p1.longitude);
     }
-    return meters(distanceInMeters);
+    return distanceInMeters.meters;
   }
 }

@@ -1,3 +1,4 @@
+import 'package:app_backend/controller/builder/authentification_utils.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/trip_builder.dart';
 import 'package:app_backend/model/trip/donation_state.dart';
@@ -9,7 +10,7 @@ import 'package:test/test.dart';
 import 'trekko_build_utils.dart';
 
 const String password = "1aA!hklj32r4hkjl324r";
-const String email = "donate_test@profile_test.com";
+const String email = "donate_test1@profile_test.com";
 
 void main() {
   late Trekko trekko;
@@ -69,7 +70,8 @@ void main() {
     expect(await trekko.getTripQuery().idEqualTo(tripId).build().count(), 0);
   });
 
-  test("Donate multiple random trips and delete them again in one query", () async {
+  test("Donate multiple random trips and delete them again in one query",
+      () async {
     List<int> tripIds = [];
     var query = trekko.getTripQuery().filter().idEqualTo(-1);
     for (int i = 0; i < 10; i++) {
@@ -88,7 +90,8 @@ void main() {
     expect(await query.count(), 0);
   });
 
-  test("Donate multiple random trips and delete them again in multiple queries", () async {
+  test("Donate multiple random trips and delete them again in multiple queries",
+      () async {
     List<int> tripIds = [];
     var query = trekko.getTripQuery().filter().idEqualTo(-1);
     for (int i = 0; i < 10; i++) {
@@ -108,4 +111,7 @@ void main() {
       expect(await trekko.getTripQuery().idEqualTo(tripId).build().count(), 0);
     }
   });
+
+  tearDownAll(() async =>
+      AuthentificationUtils.deleteProfile("http://localhost:8080", email));
 }
