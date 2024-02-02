@@ -17,7 +17,9 @@ class AnalyzingLegWrapper implements LegWrapper {
   Future<double> calculateProbability(TransportTypeData data) {
     WeightedTransportTypeEvaluator evaluator =
         WeightedTransportTypeEvaluator(data);
-    return evaluator.evaluate(_positions);
+    Leg leg = Leg();
+    leg.trackedPoints = _positions.map(TrackedPoint.fromPosition).toList();
+    return evaluator.evaluate(leg);
   }
 
   Position? cluster(List<Position> positions) {
