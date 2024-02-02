@@ -31,7 +31,6 @@ void main() {
   test("Last login works", () async {
     // Last login
     LastLoginBuilder lastLoginBuilder = LastLoginBuilder();
-    expect(await lastLoginBuilder.hasData(), true);
     Trekko? trekko = await lastLoginBuilder.build();
     expect(trekko, isNotNull);
     await trekko.terminate();

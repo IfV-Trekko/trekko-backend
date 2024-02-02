@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/login_result.dart';
 import 'package:app_backend/controller/builder/trekko_builder.dart';
 import 'package:app_backend/controller/trekko.dart';
@@ -11,11 +12,9 @@ class LastLoginBuilder extends TrekkoBuilder {
   Isar? _database;
 
   Future<Isar> _getDatabase() async {
-    return _database ?? (_database = await DatabaseUtils.establishConnection([ProfileSchema], "lastLogin"));
-  }
-
-  Future<bool> hasData() async {
-    return await (await _getDatabase()).profiles.count() > 0;
+    return _database ??
+        (_database = await DatabaseUtils.establishConnection(
+            [ProfileSchema], "lastLogin"));
   }
 
   @override
@@ -26,15 +25,14 @@ class LastLoginBuilder extends TrekkoBuilder {
   @override
   Future<Trekko> build() {
     return _getDatabase().then((value) async {
-      if (await hasData() == false) {
-        throw Exception("No last profile found.");
-      }
-
       Profile? latestProfile =
           await value.profiles.where().sortByLastLoginDesc().findFirst();
       await _database!.close();
+      if (latestProfile == null)
+        throw new BuildException(null, LoginResult.failedNoSuchUser);
       // TODO: Check if token is still valid
-      return makeTrekko(latestProfile!.projectUrl, latestProfile.email, latestProfile.token);
+      return makeTrekko(
+          latestProfile.projectUrl, latestProfile.email, latestProfile.token);
     });
   }
 }
