@@ -84,8 +84,8 @@ final class PositionUtils {
     return result;
   }
 
-  static List<Position> getPositionIn(DateTime start, DateTime end,
-      List<Position> positions) {
+  static List<Position> getPositionIn(
+      DateTime start, DateTime end, List<Position> positions) {
     return positions
         .where((p) => p.timestamp.isAfter(start) && p.timestamp.isBefore(end))
         .toList();
@@ -101,27 +101,24 @@ final class PositionUtils {
     return min(expectedDistance.as(meters) / moved, 1);
   }
 
-  static Future<double> calculateSingleHoldProbability(DateTime start,
+  static double calculateSingleHoldProbability(DateTime start,
       Duration duration, Distance expectedDistance, List<Position> positions) {
-    return Future.microtask(() {
-      if (positions.length == 0) return 0;
-      DateTime minEnd = start.add(duration);
-      return holdProbPerRadius(start, minEnd, expectedDistance, positions);
-    });
+    if (positions.length == 0) return 0;
+    DateTime minEnd = start.add(duration);
+    return holdProbPerRadius(start, minEnd, expectedDistance, positions);
   }
 
-  static Future<double> calculateHoldProbability(DateTime latest,
+  static double calculateHoldProbability(
+      DateTime latest,
       Duration minDuration,
       Duration maxDuration,
       Distance expectedDistance,
       List<Position> positions) {
-    return Future.microtask(() async {
-      if (positions.length == 0) return 0;
-      double minEndProb = await calculateSingleHoldProbability(
-          latest.subtract(minDuration), minDuration, expectedDistance, positions);
-      double maxEndProb = await calculateSingleHoldProbability(
-          latest.subtract(maxDuration), maxDuration, expectedDistance, positions);
-      return (maxEndProb + minEndProb) / 2;
-    });
+    if (positions.length == 0) return 0;
+    double minEndProb = calculateSingleHoldProbability(
+        latest.subtract(minDuration), minDuration, expectedDistance, positions);
+    double maxEndProb = calculateSingleHoldProbability(
+        latest.subtract(maxDuration), maxDuration, expectedDistance, positions);
+    return (maxEndProb + minEndProb) / 2;
   }
 }
