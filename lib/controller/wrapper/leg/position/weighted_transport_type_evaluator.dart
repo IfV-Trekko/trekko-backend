@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app_backend/controller/wrapper/leg/position/transport_type_data_provider.dart';
 import 'package:app_backend/controller/wrapper/leg/position/transport_type_evaluator.dart';
 import 'package:app_backend/model/trip/leg.dart';
@@ -17,7 +15,7 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
       double providedSpeed =
           (await dataProvider.getAverageSpeed()).as(meters, seconds);
       double legSpeed = leg.getSpeed().as(meters, seconds);
-      return min(legSpeed / providedSpeed, 1);
+      return legSpeed / providedSpeed;
     });
   }
 
