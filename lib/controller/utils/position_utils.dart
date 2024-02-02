@@ -110,7 +110,7 @@ final class PositionUtils {
     });
   }
 
-  static Future<double> calculateHoldProbability(DateTime start,
+  static Future<double> calculateHoldProbability(DateTime latest,
       Duration minDuration,
       Duration maxDuration,
       Distance expectedDistance,
@@ -118,9 +118,9 @@ final class PositionUtils {
     return Future.microtask(() async {
       if (positions.length == 0) return 0;
       double minEndProb = await calculateSingleHoldProbability(
-          start, minDuration, expectedDistance, positions);
+          latest.subtract(minDuration), minDuration, expectedDistance, positions);
       double maxEndProb = await calculateSingleHoldProbability(
-          start, maxDuration, expectedDistance, positions);
+          latest.subtract(maxDuration), maxDuration, expectedDistance, positions);
       return (maxEndProb + minEndProb) / 2;
     });
   }

@@ -20,11 +20,10 @@ class AnalyzingTripWrapper implements TripWrapper {
           .expand((element) => element.trackedPoints)
           .map((e) => e.toPosition())
           .toList();
-      DateTime from = newestTimestamp!.subtract(Duration(minutes: 30));
       Duration min = Duration(minutes: 15);
       Duration max = Duration(minutes: 30);
       return PositionUtils.calculateHoldProbability(
-          from, min, max, 200.meters, positionsInOrder);
+          newestTimestamp!, min, max, 200.meters, positionsInOrder);
     });
   }
 
