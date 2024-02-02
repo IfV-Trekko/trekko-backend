@@ -30,10 +30,9 @@ void main() {
     expect(probability, greaterThan(0.9));
 
     Leg wrapped = await legWrapper.get();
-    expect(wrapped.getDistance().as(meters), inInclusiveRange(350, 500));
-    expect(wrapped.getDuration().inMinutes, inInclusiveRange(6, 10));
-    expect(wrapped.getSpeed().as(kilo.meters, hours).round(),
-        inInclusiveRange(3, 6));
+    expect(wrapped.getDistance().as(meters), inInclusiveRange(495, 505));
+    expect(wrapped.getDuration().inMinutes, inInclusiveRange(9, 10));
+    expect(wrapped.getSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
     // expect(wrapped.transportType, equals(TransportType.by_foot)); // TODO: Transport type tester
   });
 

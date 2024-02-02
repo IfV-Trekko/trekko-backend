@@ -12,7 +12,7 @@ class AnalyzingLegWrapper implements LegWrapper {
   static Distance _stayDistance = meters(50);
 
   List<Position> _positions = List.empty(growable: true);
-  DateTime? _startedMoving;
+  Position? _startedMoving;
 
   Future<double> calculateProbability(TransportTypeData data) {
     WeightedTransportTypeEvaluator evaluator =
@@ -20,20 +20,26 @@ class AnalyzingLegWrapper implements LegWrapper {
     return evaluator.evaluate(_positions);
   }
 
+  Position? cluster(List<Position> positions) {
+    List<Position> firstIn =
+        PositionUtils.getFirstIn(_stayDistance, positions);
+    return firstIn.isEmpty || positions.length == firstIn.length
+        ? null
+        : PositionUtils.getCenter(firstIn);
+  }
+
   @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
-      if (_positions.isEmpty) return 0;
       if (_startedMoving == null) {
-        List<Position> firstIn =
-            PositionUtils.getFirstIn(_stayDistance, _positions);
-        if (firstIn.last == _positions.last) return 0;
-        _startedMoving = firstIn.last.timestamp;
+        Position? centerStart = cluster(_positions);
+        if (centerStart == null) return 0;
+        _startedMoving = centerStart;
       }
 
       if (_startedMoving == null) return 0;
       DateTime from = _positions.last.timestamp.subtract(_stayDuration);
-      if (from.isBefore(_startedMoving!)) return 0;
+      if (from.isBefore(_startedMoving!.timestamp)) return 0;
       double holdAgainProb = await PositionUtils.calculateSingleHoldProbability(
           from, _stayDuration, _stayDistance, _positions);
       return holdAgainProb;
@@ -55,17 +61,23 @@ class AnalyzingLegWrapper implements LegWrapper {
     return Future.microtask(() async {
       // Trimming positions
       List<Position> trimmedPositions = List.empty(growable: true);
-      DateTime start = _startedMoving ?? _positions.first.timestamp;
+      DateTime start = _positions.first.timestamp;
+      if (_startedMoving != null) {
+        start = _startedMoving!.timestamp;
+        trimmedPositions.add(_startedMoving!);
+      }
+
+      Position? endCenter = cluster(_positions.reversed.toList());
       DateTime end =
-          PositionUtils.getFirstIn(_stayDistance, _positions.reversed.toList())
-              .last
-              .timestamp;
+          endCenter == null ? _positions.last.timestamp : endCenter.timestamp;
+
       for (int i = 0; i < _positions.length - 1; i++) {
         if (_positions[i].timestamp.isAfter(start) &&
             _positions[i].timestamp.isBefore(end)) {
           trimmedPositions.add(_positions[i]);
         }
       }
+      if (endCenter != null) _positions.add(endCenter);
       _positions = trimmedPositions;
 
       // Calculating probability

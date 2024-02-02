@@ -9,6 +9,48 @@ final class PositionUtils {
         a.latitude, a.longitude, b.latitude, b.longitude);
   }
 
+  static Position getCenter(List<Position> positions) {
+    if (positions.length == 0) throw Exception("Positions may not be empty");
+    // This is where the fun begins
+    double sumLat =
+        positions.map((e) => e.latitude).reduce((p0, p1) => p0 + p1) /
+            positions.length;
+    double sumLong =
+        positions.map((e) => e.longitude).reduce((p0, p1) => p0 + p1) /
+            positions.length;
+
+    double? previousDistanceToCenter;
+    Position? tripStart;
+    for (int i = positions.length - 1; i >= 0; i--) {
+      Position position = positions[i];
+      double distanceToCenter = Geolocator.distanceBetween(
+          sumLat, sumLong, position.latitude, position.longitude);
+      if (previousDistanceToCenter == null) {
+        previousDistanceToCenter = distanceToCenter;
+        tripStart = position;
+      } else {
+        if (previousDistanceToCenter > distanceToCenter) {
+          previousDistanceToCenter = distanceToCenter;
+          tripStart = position;
+        } else {
+          break;
+        }
+      }
+    }
+
+    return Position(
+        longitude: tripStart!.longitude,
+        latitude: tripStart.latitude,
+        timestamp: tripStart.timestamp,
+        accuracy: 0,
+        altitude: 0,
+        altitudeAccuracy: 0,
+        heading: 0,
+        headingAccuracy: 0,
+        speed: 0,
+        speedAccuracy: 0);
+  }
+
   static double distanceBetweenPoints(List<Position> positions) {
     double distance = 0;
     for (int i = 1; i < positions.length; i++) {
@@ -28,6 +70,7 @@ final class PositionUtils {
   }
 
   static List<Position> getFirstIn(Distance radius, List<Position> positions) {
+    if (positions.isEmpty) return [];
     List<Position> result = List.empty(growable: true);
     Position anchor = positions[0];
     result.add(anchor);
@@ -41,8 +84,8 @@ final class PositionUtils {
     return result;
   }
 
-  static List<Position> getPositionIn(
-      DateTime start, DateTime end, List<Position> positions) {
+  static List<Position> getPositionIn(DateTime start, DateTime end,
+      List<Position> positions) {
     return positions
         .where((p) => p.timestamp.isAfter(start) && p.timestamp.isBefore(end))
         .toList();
@@ -67,8 +110,7 @@ final class PositionUtils {
     });
   }
 
-  static Future<double> calculateHoldProbability(
-      DateTime start,
+  static Future<double> calculateHoldProbability(DateTime start,
       Duration minDuration,
       Duration maxDuration,
       Distance expectedDistance,
