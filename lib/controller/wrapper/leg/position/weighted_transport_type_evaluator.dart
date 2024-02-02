@@ -20,7 +20,7 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
       double distanceBetweenSpeeds = (providedSpeed - legSpeed).abs();
       // f(x) = -x^2 * 1 * 10^-6 + 1
       double calculated = -pow(distanceBetweenSpeeds, 2) * pow(10, -6) + 1;
-      return max(calculated, 1);
+      return max(calculated, 0);
     });
   }
 
