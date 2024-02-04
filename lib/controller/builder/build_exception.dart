@@ -3,4 +3,9 @@ class BuildException<T> {
   final Exception? cause;
 
   BuildException(this.cause, this.reason);
+
+  @override
+  String toString() {
+    return "RequestException: $reason, $cause";
+  }
 }
