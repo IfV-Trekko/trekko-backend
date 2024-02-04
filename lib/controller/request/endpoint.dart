@@ -6,6 +6,7 @@ enum Endpoint {
   password_reset("/account/password/reset", false),
   onboardingTextAbout("/onboarding/texts/about", false),
   onboardingTextGoal("/onboarding/texts/goal", false),
+  session("/auth/session", true),
   account("/account", true),
   donate("/trips/batch", true),
   trip("/trips/%s", true),

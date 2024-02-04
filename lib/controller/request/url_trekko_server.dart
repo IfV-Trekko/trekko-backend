@@ -14,12 +14,12 @@ import 'package:app_backend/controller/request/bodies/response/onboarding_text_r
 import 'package:app_backend/controller/request/bodies/response/trips_response.dart';
 import 'package:app_backend/controller/request/bodies/server_profile.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
+import 'package:app_backend/controller/request/bodies/server_user.dart';
 import 'package:app_backend/controller/request/endpoint.dart';
 import 'package:app_backend/controller/request/request_exception.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
-import 'package:http/retry.dart';
 import 'package:sprintf/sprintf.dart';
 
 class UrlTrekkoServer implements TrekkoServer {
@@ -29,10 +29,10 @@ class UrlTrekkoServer implements TrekkoServer {
 
   UrlTrekkoServer(this.baseUrl)
       : this.token = null,
-        _client = RetryClient(http.Client());
+        _client = http.Client();
 
   UrlTrekkoServer.withToken(this.baseUrl, this.token)
-      : _client = RetryClient(http.Client());
+      : _client = http.Client();
 
   Uri _parseUrl<S, R>(Endpoint endpoint, List<String> pathParams) {
     return Uri.parse(baseUrl + sprintf(endpoint.path, pathParams));
@@ -165,6 +165,15 @@ class UrlTrekkoServer implements TrekkoServer {
       request,
       200,
       EmptyResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<ServerUser> getUser() {
+    return _sendGet(
+      Endpoint.session,
+      200,
+      ServerUser.fromJson,
     );
   }
 

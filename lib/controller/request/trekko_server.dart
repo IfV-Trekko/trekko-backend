@@ -10,6 +10,7 @@ import 'package:app_backend/controller/request/bodies/response/onboarding_text_r
 import 'package:app_backend/controller/request/bodies/response/trips_response.dart';
 import 'package:app_backend/controller/request/bodies/server_profile.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
+import 'package:app_backend/controller/request/bodies/server_user.dart';
 import 'package:app_backend/controller/request/endpoint.dart';
 
 abstract class TrekkoServer {
@@ -29,6 +30,8 @@ abstract class TrekkoServer {
   Future<EmptyResponse> changePassword(ChangePasswordRequest request);
 
   Future<OnboardingTextResponse> getOnboardingText(Endpoint endpoint);
+
+  Future<ServerUser> getUser();
 
   Future<TripsResponse> donateTrips(TripsRequest request);
 
