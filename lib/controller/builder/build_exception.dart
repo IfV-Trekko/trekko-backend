@@ -6,6 +6,6 @@ class BuildException<T> {
 
   @override
   String toString() {
-    return "RequestException: $reason, $cause";
+    return "BuildException: $reason, $cause";
   }
 }
