@@ -1,4 +1,5 @@
 import 'package:app_backend/controller/request/bodies/request/send_code_request.dart';
+import 'package:app_backend/controller/request/endpoint.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/utils/database_utils.dart';
@@ -11,7 +12,8 @@ class AuthentificationUtils {
   }
 
   static Future<bool> deleteProfile(String projectUrl, String email) async {
-    Isar db = await DatabaseUtils.establishConnection([ProfileSchema], "delete");
+    Isar db =
+        await DatabaseUtils.establishConnection([ProfileSchema], "delete");
     Profile? profile = await db.profiles
         .filter()
         .projectUrlEqualTo(projectUrl)
@@ -29,5 +31,16 @@ class AuthentificationUtils {
       await db.close();
       return value;
     });
+  }
+
+  static Future<bool> isServerValid(String projectUrl) async {
+    try {
+      String aboutText = await UrlTrekkoServer(projectUrl)
+          .getOnboardingText(Endpoint.onboardingTextGoal)
+          .then((value) => value.text);
+      return aboutText.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
   }
 }
