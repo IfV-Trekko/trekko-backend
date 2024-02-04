@@ -40,7 +40,7 @@ class UrlTrekkoServer implements TrekkoServer {
 
   Map<String, String> _buildHeader(Endpoint endpoint) {
     Map<String, String> header = {};
-    header["Content-Type"] = "application/json";
+    header["Content-Type"] = "application/json;charset=UTF-8";
 
     if (endpoint.needsAuth) {
       if (token == null) {
@@ -68,7 +68,7 @@ class UrlTrekkoServer implements TrekkoServer {
       return EmptyResponse() as T;
     }
 
-    return parser.call(jsonDecode(response.body));
+    return parser.call(jsonDecode(utf8.decode(response.bodyBytes)));
   }
 
   Future<T> _sendGet<T>(

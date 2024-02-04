@@ -18,5 +18,4 @@ void main() {
       expect(onboardingText, isNotEmpty);
     }
   });
-
 }
