@@ -34,7 +34,7 @@ class LastLoginBuilder extends TrekkoBuilder {
                 latestProfile.projectUrl, latestProfile.token)
             .getUser();
       } catch (e) {
-        if (e is RequestException && (e.code == 404 || e.code == 401)) {
+        if (e is RequestException && (e.code == 404 || e.code == 403)) {
           throw BuildException(e, LoginResult.failedSessionExpired);
         }
       }
