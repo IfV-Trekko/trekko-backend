@@ -8,6 +8,9 @@
 .sconsign.dblite
 .svn/
 
+/coverage/
+libisar.so
+
 migrate_working_dir/
 
 *.swp
