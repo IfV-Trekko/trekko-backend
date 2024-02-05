@@ -1,7 +1,7 @@
 enum RegistrationResult {
   failedNoConnection(-2),
   failedBadCode(-4), // Bad request
-  failedWeakPassword(13),
+  failedWeakPassword(16),
   failedPasswordRepeat(-3),
   failedFailedEmail(-5), // Request exception
   failedEmailAlreadyUsed(11),
