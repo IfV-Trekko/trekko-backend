@@ -57,9 +57,9 @@ class TripBuilder {
     return this;
   }
 
-  TripBuilder leg() {
+  TripBuilder leg({TransportType type = TransportType.by_foot}) {
     if (_leg.isNotEmpty) {
-      _legs.add(Leg.withData(TransportType.by_foot, _leg));
+      _legs.add(Leg.withData(type, _leg));
     }
     _leg = List.empty(growable: true);
     return this;
