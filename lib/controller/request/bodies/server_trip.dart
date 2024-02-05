@@ -1,5 +1,5 @@
-import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/model/trip/trip.dart';
+import 'package:fling_units/fling_units.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'server_trip.g.dart';
@@ -28,17 +28,12 @@ class ServerTrip {
       : uid = trip.id.toString(),
         startTimestamp = trip.calculateStartTime().millisecondsSinceEpoch,
         endTimestamp = trip.calculateEndTime().millisecondsSinceEpoch,
-        distance = PositionUtils.distanceBetweenPoints(trip.legs
-            .expand((e) => e.trackedPoints)
-            .map((e) => e.toPosition())
-            .toList()),
-        transportTypes =
-            trip.legs.map((e) => e.transportType.toString()).toList(),
+        distance = trip.getDistance().as(meters),
+        transportTypes = trip.getTransportTypes().map((e) => e.name).toList(),
         purpose = trip.purpose,
         comment = trip.comment;
 
   dynamic toJson() => _$ServerTripToJson(this);
 
-  factory ServerTrip.fromJson(dynamic json) =>
-      _$ServerTripFromJson(json);
+  factory ServerTrip.fromJson(dynamic json) => _$ServerTripFromJson(json);
 }
