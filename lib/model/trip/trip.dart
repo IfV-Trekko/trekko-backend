@@ -158,6 +158,7 @@ class Trip {
     this._startTime = null;
     this._endTime = null;
     this._distanceInMeters = null;
+    this._transportTypes = null;
     this._comment = null;
     this._purpose = null;
   }
