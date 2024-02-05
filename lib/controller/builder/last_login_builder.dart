@@ -11,12 +11,8 @@ import 'package:app_backend/model/profile/profile.dart';
 import 'package:isar/isar.dart';
 
 class LastLoginBuilder extends TrekkoBuilder {
-  Isar? _database;
-
   Future<Isar> _getDatabase() async {
-    return _database ??
-        (_database = await DatabaseUtils.establishConnection(
-            [ProfileSchema], "lastLogin"));
+    return DatabaseUtils.establishConnection([ProfileSchema], "lastLogin");
   }
 
   @override
@@ -29,7 +25,7 @@ class LastLoginBuilder extends TrekkoBuilder {
     return _getDatabase().then((value) async {
       Profile? latestProfile =
           await value.profiles.where().sortByLastLoginDesc().findFirst();
-      await _database!.close();
+      await value.close();
       if (latestProfile == null)
         throw new BuildException(null, LoginResult.failedNoSuchUser);
 

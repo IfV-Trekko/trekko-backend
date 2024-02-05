@@ -248,7 +248,7 @@ class ProfiledTrekko implements Trekko {
     if (trip.donationState == DonationState.donated) {
       await _server.updateTrip(ServerTrip.fromTrip(trip));
     }
-    return _isar.writeTxn(() async => await _isar.trips.put(trip));
+    return _isar.writeTxn(() => _isar.trips.put(trip));
   }
 
   @override
