@@ -12,7 +12,7 @@ import 'package:isar/isar.dart';
 
 class LastLoginBuilder extends TrekkoBuilder {
   Future<Isar> _getDatabase() async {
-    return DatabaseUtils.establishConnection([ProfileSchema], "lastLogin");
+    return DatabaseUtils.openProfiles();
   }
 
   @override

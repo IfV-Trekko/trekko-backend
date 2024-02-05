@@ -12,8 +12,7 @@ class AuthentificationUtils {
   }
 
   static Future<bool> deleteProfile(String projectUrl, String email) async {
-    Isar db =
-        await DatabaseUtils.establishConnection([ProfileSchema], "delete");
+    Isar db = await DatabaseUtils.openProfiles();
     Profile? profile = await db.profiles
         .filter()
         .projectUrlEqualTo(projectUrl)

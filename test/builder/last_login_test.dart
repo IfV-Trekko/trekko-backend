@@ -1,7 +1,6 @@
-import 'package:app_backend/controller/builder/build_exception.dart';
+import 'package:app_backend/controller/builder/authentification_utils.dart';
 import 'package:app_backend/controller/builder/last_login_builder.dart';
 import 'package:app_backend/controller/builder/registration_builder.dart';
-import 'package:app_backend/controller/builder/registration_result.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -15,17 +14,10 @@ void main() {
   setUp(() async {
     // Register new account
     await TrekkoBuildUtils().init();
-    try {
-      Trekko trekko =
-          await RegistrationBuilder("http://localhost:8080", email, password, password, "12345").build();
-      await trekko.terminate();
-    } catch (e) {
-      if (e is BuildException) {
-        expect((e).reason, RegistrationResult.failedEmailAlreadyUsed);
-      } else {
-        throw e;
-      }
-    }
+    Trekko trekko = await RegistrationBuilder(
+            "http://localhost:8080", email, password, password, "12345")
+        .build();
+    await trekko.terminate();
   });
 
   test("Last login works", () async {
@@ -36,7 +28,7 @@ void main() {
     await trekko.terminate();
   });
 
-  // tearDown(() async {
-  //   await AuthentificationUtils.deleteProfile(ip, email);
-  // });
+  tearDown(() async {
+    await AuthentificationUtils.deleteProfile(ip, email);
+  });
 }

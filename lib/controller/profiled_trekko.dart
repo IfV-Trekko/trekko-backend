@@ -27,7 +27,8 @@ class ProfiledTrekko implements Trekko {
   final String _email;
   final String _token;
   late int _profileId;
-  late Isar _isar;
+  late Isar _profileDb;
+  late Isar _tripDb;
   late StreamController<Position> _positionController;
   late TrekkoServer _server;
   StreamSubscription? _positionSubscription;
@@ -44,7 +45,7 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<int> _saveProfile(Profile profile) {
-    return _isar.writeTxn(() async => _isar.profiles.put(profile));
+    return _profileDb.writeTxn(() async => _profileDb.profiles.put(profile));
   }
 
   Future<void> _initProfile() async {
@@ -53,7 +54,7 @@ class ProfiledTrekko implements Trekko {
         .map((e) => OnboardingQuestion.fromServer(e))
         .toList();
 
-    var profileQuery = _isar.profiles
+    var profileQuery = _profileDb.profiles
         .filter()
         .projectUrlEqualTo(_projectUrl)
         .and()
@@ -120,9 +121,9 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> init() async {
-    _isar =
-        await DatabaseUtils.establishConnection([TripSchema, ProfileSchema], "trekko");
+    _profileDb = await DatabaseUtils.openProfiles();
     await _initProfile();
+    _tripDb = await DatabaseUtils.openTrips(this._profileId);
     await _listenForLocationPermission();
 
     if ((await getProfile().first).trackingState == TrackingState.running) {
@@ -133,13 +134,14 @@ class ProfiledTrekko implements Trekko {
 
   Future<void> terminate() async {
     await _positionController.close();
-    await _isar.close();
+    await _profileDb.close();
+    await _tripDb.close();
     await _server.close();
   }
 
   @override
   Stream<Profile> getProfile() {
-    return _isar.profiles
+    return _profileDb.profiles
         .filter()
         .idEqualTo(_profileId)
         .build()
@@ -206,7 +208,7 @@ class ProfiledTrekko implements Trekko {
           await revoke(getTripQuery().idEqualTo(trip.id).build());
         }
       }
-      return _isar.writeTxn(() async => await trips.deleteAll());
+      return _tripDb.writeTxn(() => trips.deleteAll());
     });
   }
 
@@ -249,12 +251,12 @@ class ProfiledTrekko implements Trekko {
     if (trip.donationState == DonationState.donated) {
       await _server.updateTrip(ServerTrip.fromTrip(trip));
     }
-    return _isar.writeTxn(() => _isar.trips.put(trip));
+    return _tripDb.writeTxn(() => _tripDb.trips.put(trip));
   }
 
   @override
   QueryBuilder<Trip, Trip, QWhere> getTripQuery() {
-    return _isar.trips.where();
+    return _tripDb.trips.where();
   }
 
   @override
