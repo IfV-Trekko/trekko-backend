@@ -1,7 +1,7 @@
 enum LoginResult {
   failedNoConnection(-2),
-  failedWrongPassword(12),
-  failedNoSuchUser(14),
+  failedInvalidCredentials(16),
+  failedNoSuchUser(-3),
   failedSessionExpired(20),
   failedOther(-1);
 
