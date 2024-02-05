@@ -80,8 +80,6 @@ void main() {
   });
 
   tearDownAll(() async {
-    await trekko.deleteTrip(trekko.getTripQuery().idEqualTo(trip1Read.id).build());
-    await trekko.deleteTrip(trekko.getTripQuery().idEqualTo(trip2Read.id).build());
-    await trekko.terminate();
+    await TrekkoBuildUtils().close(trekko);
   });
 }

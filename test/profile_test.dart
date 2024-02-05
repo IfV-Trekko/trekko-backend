@@ -43,5 +43,5 @@ void main() {
     expect(profile.preferences.batteryUsageSetting, equals(BatteryUsageSetting.low));
   });
 
-  tearDownAll(() async => await trekko.terminate());
+  tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
 }

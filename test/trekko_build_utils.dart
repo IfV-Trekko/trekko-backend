@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:app_backend/controller/builder/authentification_utils.dart';
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/login_builder.dart';
 import 'package:app_backend/controller/builder/login_result.dart';
 import 'package:app_backend/controller/builder/registration_builder.dart';
 import 'package:app_backend/controller/trekko.dart';
+import 'package:app_backend/model/profile/profile.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 import 'package:mockito/mockito.dart';
@@ -13,8 +15,8 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockPathProvider extends Mock
-    with MockPlatformInterfaceMixin implements PathProviderPlatform {
-
+    with MockPlatformInterfaceMixin
+    implements PathProviderPlatform {
   @override
   Future<String?> getApplicationDocumentsPath() async {
     return (Directory.systemTemp).path;
@@ -23,10 +25,7 @@ class MockPathProvider extends Mock
 
 class MyHttpOverrides extends HttpOverrides {}
 
-
-
 class TrekkoBuildUtils {
-
   Future<void> init() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     HttpOverrides.global = MyHttpOverrides();
@@ -59,5 +58,12 @@ class TrekkoBuildUtils {
       }
       rethrow;
     }
+  }
+
+  Future<void> close(Trekko trekko) async {
+    Profile profile = await trekko.getProfile().first;
+    await trekko.terminate();
+    await AuthentificationUtils.deleteProfile(
+        profile.projectUrl, profile.email);
   }
 }

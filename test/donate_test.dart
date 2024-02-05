@@ -112,7 +112,6 @@ void main() {
   });
 
   tearDownAll(() async {
-    // Delete all trips
-    await trekko.deleteTrip(trekko.getTripQuery().filter().idGreaterThan(-1).build());
+    await TrekkoBuildUtils().close(trekko);
   });
 }

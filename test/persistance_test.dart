@@ -45,7 +45,6 @@ void main() {
   });
 
   tearDownAll(() async {
-    await trekko.deleteTrip(trekko.getTripQuery().build());
-    await trekko.terminate();
+    await TrekkoBuildUtils().close(trekko);
   });
 }

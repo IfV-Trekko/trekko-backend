@@ -22,5 +22,5 @@ void main() {
   //   expect(changed, equals(true));
   // });
 
-  tearDownAll(() async => await trekko.terminate());
+  tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
 }

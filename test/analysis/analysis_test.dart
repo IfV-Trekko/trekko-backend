@@ -77,5 +77,5 @@ void main() {
     expect(transportTypeData, equals(null));
   });
 
-  tearDownAll(() async => await trekko.terminate());
+  tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
 }
