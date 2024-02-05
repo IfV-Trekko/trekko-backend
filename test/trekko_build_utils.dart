@@ -43,13 +43,19 @@ class TrekkoBuildUtils {
       ip = "localhost";
     }
     try {
-      return await LoginBuilder("http://$ip:8080", email, password).build();
+      return await LoginBuilder.withData(
+              projectUrl: "http://$ip:8080", email: email, password: password)
+          .build();
     } catch (e) {
       if (e is BuildException) {
         if (e.reason == LoginResult.failedNoSuchUser) {
           try {
-            return await RegistrationBuilder(
-                    "http://$ip:8080", email, password, password, "12345")
+            return await RegistrationBuilder.withData(
+                    projectUrl: "http://$ip:8080",
+                    email: email,
+                    password: password,
+                    passwordConfirmation: password,
+                    code: "12345")
                 .build();
           } catch (e) {
             print((e as BuildException).reason);

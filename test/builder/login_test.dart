@@ -6,8 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test("Building a Trekko with invalid login data", () async {
     try {
-      await LoginBuilder("http://localhost:8080", "notExistingAccount@web.de",
-              "1aA!hklj32r4hkjl324ra")
+      await LoginBuilder.withData(
+              projectUrl: "http://localhost:8080",
+              email: "notExistingAccount@web.de",
+              password: "1aA!hklj32r4hkjl324ra")
           .build();
       fail("Expected exception");
     } catch (e) {
@@ -18,8 +20,10 @@ void main() {
 
   test("Building a Trekko with invalid server address", () async {
     try {
-      await LoginBuilder("http://localhost:8081", "notExistingAccount@web.de",
-              "1aA!hklj32r4hkjl324ra")
+      await LoginBuilder.withData(
+              projectUrl: "http://localhost:8081",
+              email: "notExistingAccount@web.de",
+              password: "1aA!hklj32r4hkjl324ra")
           .build();
       fail("Expected exception");
     } catch (e) {

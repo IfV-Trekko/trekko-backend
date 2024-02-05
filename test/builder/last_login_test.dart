@@ -14,8 +14,12 @@ void main() {
   setUp(() async {
     // Register new account
     await TrekkoBuildUtils().init();
-    Trekko trekko = await RegistrationBuilder(
-            "http://localhost:8080", email, password, password, "12345")
+    Trekko trekko = await RegistrationBuilder.withData(
+            projectUrl: "http://localhost:8080",
+            email: email,
+            password: password,
+            passwordConfirmation: password,
+            code: "12345")
         .build();
     await trekko.terminate();
   });

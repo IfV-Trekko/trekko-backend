@@ -1,20 +1,18 @@
+import 'package:app_backend/controller/builder/auth_builder.dart';
 import 'package:app_backend/controller/builder/login_result.dart';
-import 'package:app_backend/controller/builder/trekko_builder.dart';
 import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
 import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
 
-class LoginBuilder extends TrekkoBuilder {
-  final String _projectUrl;
-  final String _email;
-  final String _password;
-  late final TrekkoServer _server;
+class LoginBuilder extends AuthBuilder {
+  String? password;
 
-  LoginBuilder(this._projectUrl, this._email, this._password) {
-    _server = UrlTrekkoServer(_projectUrl);
-  }
+  LoginBuilder();
+
+  LoginBuilder.withData({String? projectUrl, String? email, this.password})
+      : super.withData(projectUrl: projectUrl, email: email);
 
   @override
   Map<int, Object> getErrorCodes() {
@@ -23,9 +21,10 @@ class LoginBuilder extends TrekkoBuilder {
 
   @override
   Future<Trekko> build() {
-    return _server
-        .signIn(AuthRequest(_email, _password))
+    TrekkoServer server = UrlTrekkoServer(projectUrl!);
+    return server
+        .signIn(AuthRequest(email!, password!))
         .catchError(onError<AuthResponse>)
-        .then((value) => makeTrekko(_projectUrl, _email, value.token));
+        .then((value) => makeTrekko(projectUrl!, email!, value.token));
   }
 }

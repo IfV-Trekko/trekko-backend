@@ -11,10 +11,6 @@ import 'package:app_backend/model/profile/profile.dart';
 import 'package:isar/isar.dart';
 
 class LastLoginBuilder extends TrekkoBuilder {
-  Future<Isar> _getDatabase() async {
-    return DatabaseUtils.openProfiles();
-  }
-
   @override
   Map<int, Object> getErrorCodes() {
     return LoginResult.map;
@@ -22,7 +18,7 @@ class LastLoginBuilder extends TrekkoBuilder {
 
   @override
   Future<Trekko> build() {
-    return _getDatabase().then((value) async {
+    return DatabaseUtils.openProfiles().then((value) async {
       Profile? latestProfile =
           await value.profiles.where().sortByLastLoginDesc().findFirst();
       await value.close();
