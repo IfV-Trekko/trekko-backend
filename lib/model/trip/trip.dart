@@ -13,6 +13,7 @@ class Trip {
   @enumerated
   DonationState _donationState = DonationState.undefined;
   List<Leg> _legs = List.empty(growable: true);
+  List<String>? _transportTypes = List.empty(growable: true);
   DateTime? _startTime;
   DateTime? _endTime;
   double? _distanceInMeters;
@@ -133,9 +134,25 @@ class Trip {
     this._legs = legs;
   }
 
+  List<String>? get transportTypes => this._transportTypes;
+
+  set transportTypes(List<String>? transportTypes) {
+    this._transportTypes = transportTypes;
+  }
+
   /// Returns the transport types of the trip
-  List<TransportType> getTransportTypes() =>
-      this.legs.map((e) => e.transportType).toList();
+  List<TransportType> getTransportTypes() => this._transportTypes != null
+      ? this
+          ._transportTypes!
+          .map((e) => TransportType.values
+              .firstWhere((element) => element.toString() == e))
+          .toList()
+      : this.legs.map((e) => e.transportType).toList();
+
+  // Sets the transport types of the trip
+  setTransportTypes(List<TransportType> transportTypes) {
+    this.transportTypes = transportTypes.map((e) => e.name).toList();
+  }
 
   void reset() {
     this._startTime = null;

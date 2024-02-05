@@ -264,7 +264,7 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<bool> setTrackingState(TrackingState state) async {
     if (this.getTrackingState().first == state) {
-      return true;
+      return false;
     }
 
     if (state == TrackingState.running) {
