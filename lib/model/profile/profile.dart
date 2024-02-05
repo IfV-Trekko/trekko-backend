@@ -14,10 +14,11 @@ class Profile {
   final String email;
   String token;
   DateTime lastLogin;
+  DateTime? lastTimeTracked;
   @enumerated
   TrackingState trackingState;
   Preferences preferences;
 
   Profile(this.projectUrl, this.email, this.token, this.lastLogin,
-      this.trackingState, this.preferences);
+      this.lastTimeTracked, this.trackingState, this.preferences);
 }

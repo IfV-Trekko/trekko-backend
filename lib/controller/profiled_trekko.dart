@@ -64,6 +64,7 @@ class ProfiledTrekko implements Trekko {
           _email,
           _token,
           DateTime.now(),
+          null,
           TrackingState.paused,
           Preferences.withData(List.empty(growable: true),
               BatteryUsageSetting.medium, questions)));
@@ -276,6 +277,7 @@ class ProfiledTrekko implements Trekko {
     }
 
     Profile profile = await getProfile().first;
+    profile.lastTimeTracked = DateTime.now();
     profile.trackingState = state;
     _saveProfile(profile);
     return true;

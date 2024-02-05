@@ -27,24 +27,29 @@ const ProfileSchema = CollectionSchema(
       name: r'lastLogin',
       type: IsarType.dateTime,
     ),
-    r'preferences': PropertySchema(
+    r'lastTimeTracked': PropertySchema(
       id: 2,
+      name: r'lastTimeTracked',
+      type: IsarType.dateTime,
+    ),
+    r'preferences': PropertySchema(
+      id: 3,
       name: r'preferences',
       type: IsarType.object,
       target: r'Preferences',
     ),
     r'projectUrl': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'projectUrl',
       type: IsarType.string,
     ),
     r'token': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'token',
       type: IsarType.string,
     ),
     r'trackingState': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'trackingState',
       type: IsarType.byte,
       enumMap: _ProfiletrackingStateEnumValueMap,
@@ -110,15 +115,16 @@ void _profileSerialize(
 ) {
   writer.writeString(offsets[0], object.email);
   writer.writeDateTime(offsets[1], object.lastLogin);
+  writer.writeDateTime(offsets[2], object.lastTimeTracked);
   writer.writeObject<Preferences>(
-    offsets[2],
+    offsets[3],
     allOffsets,
     PreferencesSchema.serialize,
     object.preferences,
   );
-  writer.writeString(offsets[3], object.projectUrl);
-  writer.writeString(offsets[4], object.token);
-  writer.writeByte(offsets[5], object.trackingState.index);
+  writer.writeString(offsets[4], object.projectUrl);
+  writer.writeString(offsets[5], object.token);
+  writer.writeByte(offsets[6], object.trackingState.index);
 }
 
 Profile _profileDeserialize(
@@ -128,14 +134,15 @@ Profile _profileDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Profile(
-    reader.readString(offsets[3]),
-    reader.readString(offsets[0]),
     reader.readString(offsets[4]),
+    reader.readString(offsets[0]),
+    reader.readString(offsets[5]),
     reader.readDateTime(offsets[1]),
-    _ProfiletrackingStateValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+    reader.readDateTimeOrNull(offsets[2]),
+    _ProfiletrackingStateValueEnumMap[reader.readByteOrNull(offsets[6])] ??
         TrackingState.running,
     reader.readObjectOrNull<Preferences>(
-          offsets[2],
+          offsets[3],
           PreferencesSchema.deserialize,
           allOffsets,
         ) ??
@@ -157,17 +164,19 @@ P _profileDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 3:
       return (reader.readObjectOrNull<Preferences>(
             offset,
             PreferencesSchema.deserialize,
             allOffsets,
           ) ??
           Preferences()) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
       return (_ProfiletrackingStateValueEnumMap[
               reader.readByteOrNull(offset)] ??
           TrackingState.running) as P;
@@ -687,6 +696,78 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      lastTimeTrackedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastTimeTracked',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      lastTimeTrackedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastTimeTracked',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTimeTrackedEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTimeTracked',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      lastTimeTrackedGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastTimeTracked',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTimeTrackedLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastTimeTracked',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTimeTrackedBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastTimeTracked',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> projectUrlEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1040,6 +1121,18 @@ extension ProfileQuerySortBy on QueryBuilder<Profile, Profile, QSortBy> {
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterSortBy> sortByLastTimeTracked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTimeTracked', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> sortByLastTimeTrackedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTimeTracked', Sort.desc);
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterSortBy> sortByProjectUrl() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'projectUrl', Sort.asc);
@@ -1115,6 +1208,18 @@ extension ProfileQuerySortThenBy
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterSortBy> thenByLastTimeTracked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTimeTracked', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> thenByLastTimeTrackedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTimeTracked', Sort.desc);
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterSortBy> thenByProjectUrl() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'projectUrl', Sort.asc);
@@ -1167,6 +1272,12 @@ extension ProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Profile, Profile, QDistinct> distinctByLastTimeTracked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastTimeTracked');
+    });
+  }
+
   QueryBuilder<Profile, Profile, QDistinct> distinctByProjectUrl(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1205,6 +1316,12 @@ extension ProfileQueryProperty
   QueryBuilder<Profile, DateTime, QQueryOperations> lastLoginProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastLogin');
+    });
+  }
+
+  QueryBuilder<Profile, DateTime?, QQueryOperations> lastTimeTrackedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastTimeTracked');
     });
   }
 
