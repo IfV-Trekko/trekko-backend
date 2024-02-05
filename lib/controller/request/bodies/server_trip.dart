@@ -26,8 +26,8 @@ class ServerTrip {
 
   ServerTrip.fromTrip(Trip trip)
       : uid = trip.id.toString(),
-        startTimestamp = trip.calculateStartTime().millisecondsSinceEpoch,
-        endTimestamp = trip.calculateEndTime().millisecondsSinceEpoch,
+        startTimestamp = trip.getStartTime().millisecondsSinceEpoch,
+        endTimestamp = trip.getEndTime().millisecondsSinceEpoch,
         distance = trip.getDistance().as(meters),
         transportTypes = trip.getTransportTypes().map((e) => e.name).toList(),
         purpose = trip.purpose,

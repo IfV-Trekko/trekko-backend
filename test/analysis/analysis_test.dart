@@ -20,10 +20,10 @@ Future<void> checkTrip(
       .analyze(query, (t) => t.getDistance(), DistanceReduction.SUM)
       .first;
   Duration? calculatedDuration = await trekko
-      .analyze(query, (t) => t.getDuration(), DurationReduction.SUM)
+      .analyze(query, (t) => t.calculateDuration(), DurationReduction.SUM)
       .first;
   var calculatedSpeed = await trekko
-      .analyze(query, (t) => t.getSpeed(), SpeedReduction.AVERAGE)
+      .analyze(query, (t) => t.calculateSpeed(), SpeedReduction.AVERAGE)
       .first;
 
   expect(calculatedDistance!.as(kilo.meters).round(),

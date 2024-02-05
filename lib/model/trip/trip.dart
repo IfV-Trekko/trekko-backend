@@ -44,16 +44,24 @@ class Trip {
   DateTime? get endTime => this._endTime;
 
   DateTime calculateStartTime() {
-    return this._startTime ?? this.legs.first.calculateStartTime();
+    return this.legs.first.calculateStartTime();
   }
 
   DateTime calculateEndTime() {
-    return this._endTime ?? this.legs.last.calculateEndTime();
+    return this.legs.last.calculateEndTime();
+  }
+
+  DateTime getStartTime() {
+    return this._startTime ?? calculateStartTime();
+  }
+
+  DateTime getEndTime() {
+    return this._endTime ?? calculateEndTime();
   }
 
   /// Sets the start time of the trip
   set startTime(DateTime? startTime) {
-    if (this.endTime != null && this.calculateEndTime().isBefore(startTime!)) {
+    if (this.endTime != null && this.getEndTime().isBefore(startTime!)) {
       throw Exception("The start time must be before the end time");
     }
 
@@ -63,7 +71,7 @@ class Trip {
   /// Sets the end time of the trip
   set endTime(DateTime? endTime) {
     if (this._startTime != null &&
-        this.calculateStartTime().isAfter(endTime!)) {
+        this.getStartTime().isAfter(endTime!)) {
       throw Exception("The end time must be after the start time");
     }
 
@@ -78,7 +86,11 @@ class Trip {
   /// Returns the distance of the trip
   Distance getDistance() => this._distanceInMeters != null
       ? this._distanceInMeters!.meters
-      : Distance.sum(legs.map((e) => e.getDistance()));
+      : calculateDistance();
+
+  Distance calculateDistance() {
+    return Distance.sum(legs.map((e) => e.getDistance()));
+  }
 
   /// Set the distance of the trip
   setDistance(Distance? distance) {
@@ -107,12 +119,13 @@ class Trip {
   String? get comment => this._comment;
 
   /// Returns the average speed of the trip
-  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() =>
-      this.getDistance().per(this.getDuration().inSeconds.seconds);
+  DerivedMeasurement<Measurement<Distance>, Measurement<Time>>
+      calculateSpeed() =>
+          this.getDistance().per(this.calculateDuration().inSeconds.seconds);
 
   /// Returns the duration of the trip
-  Duration getDuration() =>
-      this.calculateEndTime().difference(this.calculateStartTime());
+  Duration calculateDuration() =>
+      this.getEndTime().difference(this.getStartTime());
 
   /// Returns the legs of the trip
   List<Leg> get legs => this._legs;
@@ -147,7 +160,11 @@ class Trip {
           .map((e) => TransportType.values
               .firstWhere((element) => element.toString() == e))
           .toList()
-      : this.legs.map((e) => e.transportType).toList();
+      : calculateTransportTypes();
+
+  List<TransportType> calculateTransportTypes() {
+    return this.legs.map((e) => e.transportType).toList();
+  }
 
   // Sets the transport types of the trip
   setTransportTypes(List<TransportType> transportTypes) {

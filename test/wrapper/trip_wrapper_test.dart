@@ -36,8 +36,8 @@ void main() {
     Trip wrapped = await tripWrapper.get();
     expect(wrapped.legs.length, equals(2));
     expect(wrapped.getDistance().as(meters), inInclusiveRange(700, 1000));
-    expect(wrapped.getDuration().inMinutes, inInclusiveRange(20, 25));
-    expect(wrapped.getSpeed().as(kilo.meters, hours).round(),
+    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(20, 25));
+    expect(wrapped.calculateSpeed().as(kilo.meters, hours).round(),
         inInclusiveRange(1, 3));
   });
 
