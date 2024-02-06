@@ -20,6 +20,7 @@ class LocationCallbackHandler {
     IsolateNameServer.registerPortWithName(port!.sendPort, _isolateName);
     initPlatformState();
     port!.listen((dynamic dto) {
+      print("PUT: $dto");
       if (dto != null) locations.add(LocationDto.fromJson(dto));
     });
   }
@@ -27,7 +28,9 @@ class LocationCallbackHandler {
   static Stream<LocationDto> hook() {
     StreamController<LocationDto> controller = StreamController<LocationDto>();
     Stream.periodic(Duration(seconds: 1), (int _) {
+      print("HOOK");
       while (locations.isNotEmpty) {
+        print("ADD HOOK");
         controller.add(locations.removeAt(0));
       }
     });
