@@ -12,8 +12,8 @@ class Trip {
   Id _id = Isar.autoIncrement;
   @enumerated
   DonationState _donationState = DonationState.undefined;
-  List<Leg> _legs = List.empty(growable: true);
-  List<String>? _transportTypes = List.empty(growable: true);
+  late List<Leg> _legs;
+  List<String>? _transportTypes;
   DateTime? _startTime;
   DateTime? _endTime;
   double? _distanceInMeters;

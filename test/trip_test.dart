@@ -3,6 +3,7 @@ import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
+import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
@@ -77,6 +78,23 @@ void main() {
         equals(trip2.legs[0].trackedPoints[0].latitude));
     expect(trip2Read.legs[0].trackedPoints[0].timestamp,
         equals(trip2.legs[0].trackedPoints[0].timestamp));
+  });
+
+  test("Reset trip, save and read out again", () async {
+    trip1Read.setDistance(2.5.kilo.meters);
+    await trekko.saveTrip(trip1Read);
+    trip1Read = (await trekko.getTripQuery().filter().idEqualTo(trip1Read.id).findFirst())!;
+    expect(trip1Read.getDistance(), equals(2.5.kilo.meters));
+
+    trip1Read.reset();
+    await trekko.saveTrip(trip1Read);
+    trip1Read = (await trekko.getTripQuery().filter().idEqualTo(trip1Read.id).findFirst())!;
+    expect(trip1Read.getStartTime(), equals(trip1.getStartTime()));
+    expect(trip1Read.getEndTime(), equals(trip1.getEndTime()));
+    expect(trip1Read.getDistance(), equals(trip1.getDistance()));
+    expect(trip1Read.calculateDuration(), equals(trip1.calculateDuration()));
+    expect(trip1Read.calculateSpeed(), equals(trip1.calculateSpeed()));
+    expect(trip1Read.getTransportTypes(), equals(trip1.getTransportTypes()));
   });
 
   tearDownAll(() async {
