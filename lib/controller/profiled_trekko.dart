@@ -88,8 +88,11 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> _startTracking() async {
-    LocationCallbackHandler.initState();
-    LocationCallbackHandler.startLocationService();
+    print(LocationCallbackHandler.locations);
+    if (!LocationCallbackHandler.isRunning()) {
+      LocationCallbackHandler.initState();
+      LocationCallbackHandler.startLocationService();
+    }
     _positionSubscription =
         LocationCallbackHandler.hook().listen((LocationDto loc) {
       if (_positionController.isClosed) {

@@ -15,11 +15,11 @@ class LocationCallbackHandler {
   static List<LocationDto> locations =
       List.empty(growable: true); // TODO: In database
 
-  static void initState() {
-    if (IsolateNameServer.lookupPortByName(_isolateName) != null) {
-      IsolateNameServer.removePortNameMapping(_isolateName);
-    }
+  static bool isRunning() {
+    return port != null;
+  }
 
+  static void initState() {
     port = ReceivePort();
     IsolateNameServer.registerPortWithName(port!.sendPort, _isolateName);
     port!.listen((dynamic dto) {
@@ -47,6 +47,7 @@ class LocationCallbackHandler {
   static Future<void> shutdown() async {
     IsolateNameServer.removePortNameMapping(_isolateName);
     port?.close();
+    port = null;
     await BackgroundLocator.unRegisterLocationUpdate();
   }
 
