@@ -19,6 +19,7 @@ import 'package:app_backend/model/tracking_state.dart';
 import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/trip.dart';
+import 'package:background_locator_2/location_dto.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 
@@ -87,9 +88,21 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> startTracking() async {
-    _positionSubscription = LocationCallbackHandler().initState()
-        .listen((event) {
-      _positionController.add(event);
+    LocationCallbackHandler.startLocationService();
+    _positionSubscription =
+        LocationCallbackHandler().initState().listen((LocationDto loc) {
+      Position position = Position(
+          longitude: loc.longitude,
+          latitude: loc.latitude,
+          timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time as int),
+          accuracy: loc.accuracy,
+          altitude: loc.altitude,
+          altitudeAccuracy: 0,
+          heading: loc.heading,
+          headingAccuracy: 0,
+          speed: loc.speed,
+          speedAccuracy: loc.speedAccuracy);
+      _positionController.add(position);
       if (_positionController.isClosed) {
         _positionSubscription?.cancel();
       }
