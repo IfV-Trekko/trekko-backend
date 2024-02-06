@@ -88,9 +88,15 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> startTracking() async {
+    LocationCallbackHandler.initState();
     LocationCallbackHandler.startLocationService();
     _positionSubscription =
-        LocationCallbackHandler().initState().listen((LocationDto loc) {
+        LocationCallbackHandler.hook().listen((LocationDto loc) {
+      if (_positionController.isClosed) {
+        _positionSubscription?.cancel();
+        return;
+      }
+
       Position position = Position(
           longitude: loc.longitude,
           latitude: loc.latitude,
@@ -103,9 +109,6 @@ class ProfiledTrekko implements Trekko {
           speed: loc.speed,
           speedAccuracy: loc.speedAccuracy);
       _positionController.add(position);
-      if (_positionController.isClosed) {
-        _positionSubscription?.cancel();
-      }
     });
   }
 
@@ -145,8 +148,8 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> terminate() async {
-    await LocationCallbackHandler.shutdown();
     await _positionController.close();
+    if (_positionSubscription != null) await _positionSubscription!.cancel();
     await _profileDb.close();
     await _tripDb.close();
     await _server.close();

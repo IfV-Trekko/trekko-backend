@@ -11,19 +11,28 @@ import 'package:flutter/material.dart';
 
 class LocationCallbackHandler {
   static const String _isolateName = "LocatorIsolate";
-  ReceivePort port = ReceivePort();
+  static ReceivePort port = ReceivePort();
+  static List<LocationDto> locations = List.empty(growable: true); // TODO: In database
 
-  Stream<LocationDto> initState() {
+  static void initState() {
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
     initPlatformState();
-    StreamController<LocationDto> controller = StreamController<LocationDto>();
     port.listen((dynamic dto) {
-      controller.add(dto);
+      locations.add(dto);
+    });
+  }
+
+  static Stream<LocationDto> hook() {
+    StreamController<LocationDto> controller = StreamController<LocationDto>();
+    Stream.periodic(Duration(seconds: 1), (int _) {
+      while (locations.isNotEmpty) {
+        controller.add(locations.removeAt(0));
+      }
     });
     return controller.stream;
   }
 
-  Future<void> initPlatformState() async {
+  static Future<void> initPlatformState() async {
     await BackgroundLocator.initialize();
   }
 
@@ -52,7 +61,7 @@ class LocationCallbackHandler {
 
   @pragma("vm:entry-point")
   static void disposeCallback() {
-    // TODO: implement disposeCallback
+    // TODO: save all uncollected data
     print('Dispose callback');
   }
 
