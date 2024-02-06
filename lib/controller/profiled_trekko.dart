@@ -93,7 +93,7 @@ class ProfiledTrekko implements Trekko {
     print("start");
     _positionSubscription =
         LocationCallbackHandler.hook().listen((LocationDto loc) {
-          print("LOCATION: $loc");
+      print("LOCATION: $loc");
       if (_positionController.isClosed) {
         _positionSubscription?.cancel();
         return;
@@ -296,11 +296,15 @@ class ProfiledTrekko implements Trekko {
     }
 
     if (state == TrackingState.running) {
-      LocationPermission permission = await Geolocator.requestPermission();
-      // if (permission != LocationPermission.always) {
-      //   await Geolocator.openLocationSettings();
-      //   return false;
-      // } // TODO: fix
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission != LocationPermission.always) {
+        permission = await Geolocator.requestPermission();
+        await Geolocator.openLocationSettings();
+        permission = await Geolocator.checkPermission();
+        if (permission != LocationPermission.always) {
+          return false;
+        }
+      }
     }
 
     Profile profile = await getProfile().first;
