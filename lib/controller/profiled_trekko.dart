@@ -115,6 +115,7 @@ class ProfiledTrekko implements Trekko {
         await startTracking();
       } else {
         _positionSubscription?.cancel();
+        LocationCallbackHandler.shutdown();
       }
     });
 
