@@ -90,20 +90,17 @@ class ProfiledTrekko implements Trekko {
   Future<void> _startTracking() async {
     LocationCallbackHandler.initState();
     LocationCallbackHandler.startLocationService();
-    print("start");
     _positionSubscription =
         LocationCallbackHandler.hook().listen((LocationDto loc) {
-      print("LOCATION: $loc");
       if (_positionController.isClosed) {
         _positionSubscription?.cancel();
         return;
       }
 
-      print("LOCATION: $loc");
       Position position = Position(
           longitude: loc.longitude,
           latitude: loc.latitude,
-          timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time as int),
+          timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
           accuracy: loc.accuracy,
           altitude: loc.altitude,
           altitudeAccuracy: 0,
@@ -111,28 +108,23 @@ class ProfiledTrekko implements Trekko {
           headingAccuracy: 0,
           speed: loc.speed,
           speedAccuracy: loc.speedAccuracy);
-      print("LOCATION: $position");
       _positionController.add(position);
     });
   }
 
   Future<void> _startTrackingListener() async {
-    print("LISTENER REG");
     this.getTrackingState().listen((event) async {
       print("TRACKINGSTATE CHANGE");
       if (event == TrackingState.running) {
-        print("TRACKING START");
         await _startTracking();
       } else {
         _positionSubscription?.cancel();
         LocationCallbackHandler.shutdown();
-        print("Tracking paused and shutdown");
       }
     });
 
     TripWrapper tripWrapper = AnalyzingTripWrapper();
     _positionController.stream.listen((event) async {
-      print("LOCATION: $event");
       double endTripProbability = await tripWrapper.calculateEndProbability();
       if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.9) {
         await saveTrip(await tripWrapper.get());

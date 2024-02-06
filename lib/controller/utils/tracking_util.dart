@@ -23,7 +23,6 @@ class LocationCallbackHandler {
     port = ReceivePort();
     IsolateNameServer.registerPortWithName(port!.sendPort, _isolateName);
     port!.listen((dynamic dto) {
-      print("PUT: $dto");
       if (dto != null) locations.add(LocationDto.fromJson(dto));
     });
     initPlatformState();
