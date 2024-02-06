@@ -286,7 +286,7 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future<Stream<Position>> getPosition() async {
+  Stream<Position> getPosition() {
     // A stream that returns the current position. The stream will not send any data when the tracking state is paused.
     // The moment the tracking state is changed to running, the stream will start sending data.
     // If the tracking state is running, returns the positionstream from the geolocator package.

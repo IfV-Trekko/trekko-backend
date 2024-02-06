@@ -48,7 +48,7 @@ abstract class Trekko {
   Future<int> revoke(Query<Trip> query);
 
   /// Returns a stream of the current position.
-  Future<Stream<Position>> getPosition();
+  Stream<Position> getPosition();
 
   /// Returns a stream of the current tracking state.
   Stream<TrackingState> getTrackingState();
