@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:app_backend/controller/analysis/reductions.dart';
-import 'package:app_backend/controller/location_settings.dart';
+import 'package:app_backend/controller/utils/tracking_util.dart';
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
 import 'package:app_backend/controller/request/trekko_server.dart';
@@ -87,9 +87,7 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> startTracking() async {
-    _positionSubscription = Geolocator.getPositionStream(
-            locationSettings: getSettings(
-                (await getProfile().first).preferences.batteryUsageSetting))
+    _positionSubscription = LocationCallbackHandler().initState()
         .listen((event) {
       _positionController.add(event);
       if (_positionController.isClosed) {
@@ -133,6 +131,7 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> terminate() async {
+    await LocationCallbackHandler.shutdown();
     await _positionController.close();
     await _profileDb.close();
     await _tripDb.close();
