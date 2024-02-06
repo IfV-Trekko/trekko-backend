@@ -87,7 +87,7 @@ class ProfiledTrekko implements Trekko {
     });
   }
 
-  Future<void> startTracking() async {
+  Future<void> _startTracking() async {
     LocationCallbackHandler.initState();
     LocationCallbackHandler.startLocationService();
     print("start");
@@ -117,9 +117,12 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> _startTrackingListener() async {
+    print("LISTENER REG");
     this.getTrackingState().listen((event) async {
+      print("TRACKINGSTATE CHANGE");
       if (event == TrackingState.running) {
-        await startTracking();
+        print("TRACKING START");
+        await _startTracking();
       } else {
         _positionSubscription?.cancel();
         LocationCallbackHandler.shutdown();
@@ -148,7 +151,7 @@ class ProfiledTrekko implements Trekko {
     await _listenForLocationPermission();
 
     if ((await getProfile().first).trackingState == TrackingState.running) {
-      await startTracking();
+      await _startTracking();
     }
     await _startTrackingListener();
   }
