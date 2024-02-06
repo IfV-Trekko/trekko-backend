@@ -37,4 +37,12 @@ class DatabaseUtils {
       name: "trip",
     );
   }
+
+  static Future<Isar> openCache(String name) async {
+    return Isar.open(
+      [TripSchema],
+      directory: await _getDatabasePath("cache"),
+      name: name,
+    );
+  }
 }

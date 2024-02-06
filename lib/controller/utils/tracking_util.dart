@@ -1,40 +1,54 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:app_backend/controller/utils/database_utils.dart';
+import 'package:app_backend/model/cache_object.dart';
 import 'package:background_locator_2/background_locator.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:background_locator_2/settings/android_settings.dart';
 import 'package:background_locator_2/settings/ios_settings.dart';
 import 'package:background_locator_2/settings/locator_settings.dart';
 import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
 
 class LocationCallbackHandler {
   static const String _isolateName = "LocatorIsolate";
-  static ReceivePort? port;
-  static List<LocationDto> locations =
-      List.empty(growable: true); // TODO: In database
+  static Isar? isar;
 
   static bool isRunning() {
-    return port != null;
+    return IsolateNameServer.lookupPortByName(_isolateName) != null;
   }
 
-  static void initState() {
-    port = ReceivePort();
-    IsolateNameServer.registerPortWithName(port!.sendPort, _isolateName);
-    port!.listen((dynamic dto) {
-      if (dto != null) locations.add(LocationDto.fromJson(dto));
+  static Future<void> initState() async {
+    Isar isar = await DatabaseUtils.openCache("write_location");
+    ReceivePort port = ReceivePort();
+    IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
+    port.listen((dynamic dto) {
+      if (dto != null) {
+        isar.writeTxn(() {
+          return isar.cacheObjects.put(CacheObject(jsonEncode(dto)));
+        });
+      }
     });
     initPlatformState();
   }
 
-  static Stream<LocationDto> hook() {
+  static Future<Stream<LocationDto>> hook() async {
+    Isar isar = await DatabaseUtils.openCache("read_location");
     StreamController<LocationDto> controller = StreamController<LocationDto>();
     // Create timer to send locations to the stream
     Timer.periodic(Duration(seconds: 5), (timer) {
-      if (controller.isClosed) timer.cancel();
-      if (locations.isNotEmpty) {
-        controller.add(locations.removeAt(0));
+      if (controller.isClosed) {
+        isar.close();
+        timer.cancel();
+      }
+
+      List<CacheObject> locations = isar.cacheObjects.where().findAllSync();
+      for (CacheObject location in locations) {
+        controller.add(LocationDto.fromJson(jsonDecode(location.value)));
+        isar.cacheObjects.delete(location.id);
       }
     });
     return controller.stream;
@@ -46,8 +60,6 @@ class LocationCallbackHandler {
 
   static Future<void> shutdown() async {
     IsolateNameServer.removePortNameMapping(_isolateName);
-    port?.close();
-    port = null;
     await BackgroundLocator.unRegisterLocationUpdate();
   }
 
