@@ -16,23 +16,25 @@ class LocationCallbackHandler {
       List.empty(growable: true); // TODO: In database
 
   static void initState() {
+    if (IsolateNameServer.lookupPortByName(_isolateName) != null) {
+      IsolateNameServer.removePortNameMapping(_isolateName);
+    }
+
     port = ReceivePort();
     IsolateNameServer.registerPortWithName(port!.sendPort, _isolateName);
-    print("LISTEN");
     port!.listen((dynamic dto) {
       print("PUT: $dto");
       if (dto != null) locations.add(LocationDto.fromJson(dto));
     });
-    print("INITSTATE");
     initPlatformState();
   }
 
   static Stream<LocationDto> hook() {
     StreamController<LocationDto> controller = StreamController<LocationDto>();
-    Stream.periodic(Duration(seconds: 1), (int _) {
-      print("HOOK");
-      while (locations.isNotEmpty) {
-        print("ADD HOOK");
+    // Create timer to send locations to the stream
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      if (controller.isClosed) timer.cancel();
+      if (locations.isNotEmpty) {
         controller.add(locations.removeAt(0));
       }
     });
