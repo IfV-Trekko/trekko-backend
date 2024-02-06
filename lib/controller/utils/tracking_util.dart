@@ -18,11 +18,13 @@ class LocationCallbackHandler {
   static void initState() {
     port = ReceivePort();
     IsolateNameServer.registerPortWithName(port!.sendPort, _isolateName);
-    initPlatformState();
+    print("LISTEN");
     port!.listen((dynamic dto) {
       print("PUT: $dto");
       if (dto != null) locations.add(LocationDto.fromJson(dto));
     });
+    print("INITSTATE");
+    initPlatformState();
   }
 
   static Stream<LocationDto> hook() {
