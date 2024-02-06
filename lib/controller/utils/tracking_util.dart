@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -15,7 +16,11 @@ class LocationCallbackHandler {
   Stream<LocationDto> initState() {
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
     initPlatformState();
-    return port as Stream<LocationDto>;
+    StreamController<LocationDto> controller = StreamController<LocationDto>();
+    port.listen((dynamic dto) {
+      controller.add(dto);
+    });
+    return controller.stream;
   }
 
   Future<void> initPlatformState() async {
