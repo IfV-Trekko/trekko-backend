@@ -114,7 +114,6 @@ class ProfiledTrekko implements Trekko {
 
   Future<void> _startTrackingListener() async {
     this.getTrackingState().listen((event) async {
-      print("TRACKINGSTATE CHANGE");
       if (event == TrackingState.running) {
         await _startTracking();
       } else {
@@ -126,6 +125,7 @@ class ProfiledTrekko implements Trekko {
     TripWrapper tripWrapper = AnalyzingTripWrapper();
     _positionController.stream.listen((event) async {
       double endTripProbability = await tripWrapper.calculateEndProbability();
+      print("End trip probability: $endTripProbability");
       if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.9) {
         await saveTrip(await tripWrapper.get());
         tripWrapper = AnalyzingTripWrapper();
