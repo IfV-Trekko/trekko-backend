@@ -90,13 +90,16 @@ class ProfiledTrekko implements Trekko {
   Future<void> startTracking() async {
     LocationCallbackHandler.initState();
     LocationCallbackHandler.startLocationService();
+    print("start");
     _positionSubscription =
         LocationCallbackHandler.hook().listen((LocationDto loc) {
+          print("LOCATION: $loc");
       if (_positionController.isClosed) {
         _positionSubscription?.cancel();
         return;
       }
 
+      print("LOCATION: $loc");
       Position position = Position(
           longitude: loc.longitude,
           latitude: loc.latitude,
@@ -108,6 +111,7 @@ class ProfiledTrekko implements Trekko {
           headingAccuracy: 0,
           speed: loc.speed,
           speedAccuracy: loc.speedAccuracy);
+      print("LOCATION: $position");
       _positionController.add(position);
     });
   }
