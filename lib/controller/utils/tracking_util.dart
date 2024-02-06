@@ -11,14 +11,16 @@ import 'package:flutter/material.dart';
 
 class LocationCallbackHandler {
   static const String _isolateName = "LocatorIsolate";
-  static ReceivePort port = ReceivePort();
-  static List<LocationDto> locations = List.empty(growable: true); // TODO: In database
+  static ReceivePort? port;
+  static List<LocationDto> locations =
+      List.empty(growable: true); // TODO: In database
 
   static void initState() {
-    IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
+    port = ReceivePort();
+    IsolateNameServer.registerPortWithName(port!.sendPort, _isolateName);
     initPlatformState();
-    port.listen((dynamic dto) {
-      locations.add(dto);
+    port!.listen((dynamic dto) {
+      if (dto != null) locations.add(LocationDto.fromJson(dto));
     });
   }
 
@@ -38,13 +40,14 @@ class LocationCallbackHandler {
 
   static Future<void> shutdown() async {
     IsolateNameServer.removePortNameMapping(_isolateName);
+    port?.close();
     await BackgroundLocator.unRegisterLocationUpdate();
   }
 
   @pragma('vm:entry-point')
   static void callback(LocationDto locationDto) async {
     final SendPort? send = IsolateNameServer.lookupPortByName(_isolateName);
-    send?.send(locationDto);
+    send?.send(locationDto.toJson());
   }
 
 //Optional
@@ -71,8 +74,8 @@ class LocationCallbackHandler {
         // initDataCallback: data, // TODO: was das
         disposeCallback: LocationCallbackHandler.disposeCallback,
         autoStop: false,
-        iosSettings:
-        IOSSettings(accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
+        iosSettings: IOSSettings(
+            accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
         androidSettings: AndroidSettings(
             accuracy: LocationAccuracy.NAVIGATION,
             interval: 5,
@@ -82,12 +85,10 @@ class LocationCallbackHandler {
                 notificationTitle: 'Start Location Tracking',
                 notificationMsg: 'Track location in background',
                 notificationBigMsg:
-                'Background location is on to keep the app up-tp-date with your location. This is required for main features to work properly when the app is not running.',
+                    'Background location is on to keep the app up-tp-date with your location. This is required for main features to work properly when the app is not running.',
                 notificationIcon: '',
                 notificationIconColor: Colors.grey,
                 notificationTapCallback:
-                LocationCallbackHandler.notificationCallback)));
+                    LocationCallbackHandler.notificationCallback)));
   }
 }
-
-
