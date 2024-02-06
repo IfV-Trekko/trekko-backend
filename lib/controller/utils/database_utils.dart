@@ -16,7 +16,7 @@ enum Databases {
 }
 
 class DatabaseUtils {
-  static Future<String> getDatabasePath(String name) async {
+  static Future<String> _getDatabasePath(String name) async {
     String dir = p.join((await getApplicationDocumentsDirectory()).path, name);
     await Directory(dir).create(recursive: true);
     return dir;
@@ -25,7 +25,7 @@ class DatabaseUtils {
   static Future<Isar> openProfiles() async {
     return Isar.open(
       [ProfileSchema],
-      directory: await getDatabasePath("profiles"),
+      directory: await _getDatabasePath("profiles"),
       name: "profile",
     );
   }
@@ -33,7 +33,7 @@ class DatabaseUtils {
   static Future<Isar> openTrips(int profileId) async {
     return Isar.open(
       [TripSchema],
-      directory: await getDatabasePath("$profileId"),
+      directory: await _getDatabasePath("$profileId"),
       name: "trip",
     );
   }
