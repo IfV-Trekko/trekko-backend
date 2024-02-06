@@ -61,7 +61,9 @@ class Trip {
 
   /// Sets the start time of the trip
   set startTime(DateTime? startTime) {
-    if (this.endTime != null && this.getEndTime().isBefore(startTime!)) {
+    if (this.endTime != null &&
+        startTime != null &&
+        this.getEndTime().isBefore(startTime)) {
       throw Exception("The start time must be before the end time");
     }
 
@@ -71,7 +73,8 @@ class Trip {
   /// Sets the end time of the trip
   set endTime(DateTime? endTime) {
     if (this._startTime != null &&
-        this.getStartTime().isAfter(endTime!)) {
+        endTime != null &&
+        this.getStartTime().isAfter(endTime)) {
       throw Exception("The end time must be after the start time");
     }
 
