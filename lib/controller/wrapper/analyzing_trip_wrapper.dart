@@ -31,7 +31,7 @@ class AnalyzingTripWrapper implements TripWrapper {
   Future<void> add(Position position) async {
     newestTimestamp = position.timestamp;
     double probability = await _legWrapper.calculateEndProbability();
-    print("Trip end probability: $probability");
+    print("Leg end probability: $probability");
     if (_legWrapper.collectedDataPoints() > 0 && probability > 0.9) {
       _legs.add(await _legWrapper.get());
       _legWrapper = AnalyzingLegWrapper();

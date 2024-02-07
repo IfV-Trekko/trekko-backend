@@ -44,7 +44,6 @@ class AnalyzingLegWrapper implements LegWrapper {
       if (from.isBefore(_startedMoving!.timestamp)) return 0;
       double holdAgainProb = await PositionUtils.calculateSingleHoldProbability(
           from, _stayDuration, _stayDistance, _positions);
-      print("Leg end probability: $holdAgainProb");
       return holdAgainProb;
     });
   }
