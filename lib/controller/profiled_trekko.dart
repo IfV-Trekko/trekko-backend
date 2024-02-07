@@ -9,6 +9,7 @@ import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/database_utils.dart';
+import 'package:app_backend/controller/utils/trip_builder.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
@@ -22,6 +23,7 @@ import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:background_locator_2/location_dto.dart';
+import 'package:fling_units/fling_units.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 
@@ -237,6 +239,9 @@ class ProfiledTrekko implements Trekko {
         .expand((e) => e)
         .toSet()
         .toList();
+    final Distance totalDistance = trips
+        .map((t) => t.getDistance())
+        .reduce((value, element) => value + element);
     final DateTime startTime = trips
         .map((t) => t.getStartTime())
         .reduce((value, element) => value.isBefore(element) ? value : element);
@@ -250,29 +255,29 @@ class ProfiledTrekko implements Trekko {
         .expand((leg) => leg)
         .expand((p) => p.trackedPoints)
         .toList();
-    points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    print(points.length);
     for (var point in points) {
-      print("in point");
       await tripWrapper.add(point.toPosition());
     }
 
     final Trip mergedTrip = await tripWrapper.get();
 
-    print(mergedTrip.legs.length);
-
     mergedTrip.startTime = startTime;
     mergedTrip.endTime = endTime;
     mergedTrip.setTransportTypes(transportTypes);
+    mergedTrip.setDistance(totalDistance);
 
-    // final int mergedTripId = await saveTrip(mergedTrip);
+    if (mergedTrip.legs.isEmpty) {
+      mergedTrip.legs = trips.first.legs;
+    }
+
+    final int mergedTripId = await saveTrip(mergedTrip);
 
     await deleteTrip(tripsQuery);
 
     // if any of the merged trips are donated, donate the merged trip
-    // if (trips.any((t) => t.donationState == DonationState.donated)) {
-    //   await donate(getTripQuery().idEqualTo(mergedTripId).build());
-    // }
+    if (trips.any((t) => t.donationState == DonationState.donated)) {
+      await donate(getTripQuery().idEqualTo(mergedTripId).build());
+    }
 
     return mergedTrip;
 
