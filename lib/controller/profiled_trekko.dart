@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_backend/controller/analysis/reductions.dart';
+import 'package:app_backend/controller/utils/query_util.dart';
 import 'package:app_backend/controller/utils/tracking_util.dart';
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
@@ -219,11 +220,13 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<int> deleteTrip(Query<Trip> trips) async {
     return trips.findAll().then((foundTrips) async {
-      for (Trip trip in foundTrips) {
-        if (trip.donationState == DonationState.donated) {
-          // TODO: You may want to make this better performing
-          await revoke(getTripQuery().idEqualTo(trip.id).build());
-        }
+      List<Trip> toRevoke = foundTrips
+          .where((t) => t.donationState == DonationState.donated)
+          .toList();
+      if (!toRevoke.isEmpty) {
+        await revoke(QueryUtil(this)
+            .idsOr(foundTrips.map((e) => e.id).toList())
+            .build());
       }
       return _tripDb.writeTxn(() => trips.deleteAll());
     });
