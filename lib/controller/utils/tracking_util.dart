@@ -83,11 +83,11 @@ class LocationBackgroundTracking {
             interval: 5,
             distanceFilter: 0,
             androidNotificationSettings: AndroidNotificationSettings(
-                notificationChannelName: 'Location tracking',
-                notificationTitle: 'Start Location Tracking',
-                notificationMsg: 'Track location in background',
+                notificationChannelName: 'Tracking',
+                notificationTitle: 'Trekko',
+                notificationMsg: 'Sammeln von Standortdaten...',
                 notificationBigMsg:
-                    'Background location is on to keep the app up-tp-date with your location. This is required for main features to work properly when the app is not running.',
+                    'Um die Wegeerkennung zu nutzen, sammeln wir Standortdaten. Diese werden nur lokal gespeichert und auch nur nach Wahl gespendet.',
                 notificationIcon: '',
                 notificationIconColor: Colors.grey)));
   }
