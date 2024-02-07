@@ -26,12 +26,12 @@ class LocationCallbackHandler {
       shutdown();
     }
 
+    Isar isar =
+        Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
     ReceivePort port = ReceivePort();
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
     port.listen((dynamic dto) async {
       if (dto != null) {
-        Isar isar =
-            Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
         isar.writeTxn(() {
           String encode = jsonEncode(dto);
           LocationDto decode = LocationDto.fromJson(dto);
@@ -69,7 +69,6 @@ class LocationCallbackHandler {
   static Future<void> shutdown() async {
     IsolateNameServer.removePortNameMapping(_isolateName);
     await BackgroundLocator.unRegisterLocationUpdate();
-    await Isar.getInstance(_dbName)!.close();
   }
 
   @pragma('vm:entry-point')
