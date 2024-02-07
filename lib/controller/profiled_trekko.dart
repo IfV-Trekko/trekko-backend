@@ -112,7 +112,7 @@ class ProfiledTrekko implements Trekko {
             speedAccuracy: loc.speedAccuracy);
         _positionController.add(position);
       }
-      await LocationBackgroundTracking.onEditFinish();
+      await LocationBackgroundTracking.clearCache();
     });
   }
 

@@ -41,7 +41,7 @@ class LocationBackgroundTracking {
             .toList());
   }
 
-  static Future<void> onEditFinish() async {
+  static Future<void> clearCache() async {
     Isar isar = await _getDatabase();
     return isar.writeTxn(() => isar.cacheObjects.where().deleteAll());
   }
