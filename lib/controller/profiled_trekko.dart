@@ -132,7 +132,6 @@ class ProfiledTrekko implements Trekko {
     TripWrapper tripWrapper = AnalyzingTripWrapper();
     _positionController.stream.listen((event) async {
       double endTripProbability = await tripWrapper.calculateEndProbability();
-      print("End trip probability: $endTripProbability");
       if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.9) {
         await saveTrip(await tripWrapper.get());
         tripWrapper = AnalyzingTripWrapper();

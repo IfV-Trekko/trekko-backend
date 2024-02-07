@@ -26,7 +26,6 @@ class LocationBackgroundTracking {
     if (await isRunning()) {
       throw "Cannot init twice";
     }
-    print("INIT");
     await BackgroundLocator.initialize();
     startLocationService(setting);
   }
