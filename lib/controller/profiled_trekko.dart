@@ -9,7 +9,6 @@ import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/database_utils.dart';
-import 'package:app_backend/controller/utils/trip_builder.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
