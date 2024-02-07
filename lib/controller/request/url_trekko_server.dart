@@ -11,6 +11,7 @@ import 'package:app_backend/controller/request/bodies/response/empty_response.da
 import 'package:app_backend/controller/request/bodies/response/error_response.dart';
 import 'package:app_backend/controller/request/bodies/response/form_response.dart';
 import 'package:app_backend/controller/request/bodies/response/onboarding_text_response.dart';
+import 'package:app_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:app_backend/controller/request/bodies/response/trips_response.dart';
 import 'package:app_backend/controller/request/bodies/server_profile.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
@@ -31,8 +32,7 @@ class UrlTrekkoServer implements TrekkoServer {
       : this.token = null,
         _client = http.Client();
 
-  UrlTrekkoServer.withToken(this.baseUrl, this.token)
-      : _client = http.Client();
+  UrlTrekkoServer.withToken(this.baseUrl, this.token) : _client = http.Client();
 
   Uri _parseUrl<S, R>(Endpoint endpoint, List<String> pathParams) {
     return Uri.parse(baseUrl + sprintf(endpoint.path, pathParams));
@@ -154,6 +154,15 @@ class UrlTrekkoServer implements TrekkoServer {
       endpoint,
       200,
       OnboardingTextResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<ProjectMetadataResponse> getProjectMetadata() {
+    return _sendGet(
+      Endpoint.projectMetadata,
+      200,
+      ProjectMetadataResponse.fromJson,
     );
   }
 

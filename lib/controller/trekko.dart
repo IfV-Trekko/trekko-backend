@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_backend/controller/analysis/reductions.dart';
+import 'package:app_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
 import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
@@ -24,6 +25,8 @@ abstract class Trekko {
 
   /// Loads a onboarding tex from the server
   Future<String> loadText(OnboardingTextType type);
+
+  Future<ProjectMetadataResponse> loadProjectMetadata();
 
   /// Saves a trip. Also synchronizes the trip with the server.
   Future<int> saveTrip(Trip trip);
