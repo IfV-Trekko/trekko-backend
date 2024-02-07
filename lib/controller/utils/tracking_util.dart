@@ -18,17 +18,20 @@ class LocationBackgroundTracking {
     return await BackgroundLocator.isServiceRunning();
   }
 
+  static Future<Isar> _getDatabase() async {
+    return Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
+  }
+
   static Future<void> init() async {
     if (await isRunning()) {
       throw "Cannot init twice";
     }
-    await DatabaseUtils.openCache(_dbName);
     await BackgroundLocator.initialize();
     startLocationService();
   }
 
-  static Stream<List<LocationDto>> hook() {
-    Isar isar = Isar.getInstance(_dbName)!;
+  static Future<Stream<List<LocationDto>>> hook() async {
+    Isar isar = await _getDatabase();
     return isar.cacheObjects
         .where()
         .sortByTimestamp()
@@ -39,7 +42,7 @@ class LocationBackgroundTracking {
   }
 
   static Future<void> onEditFinish() async {
-    Isar isar = Isar.getInstance(_dbName)!;
+    Isar isar = await _getDatabase();
     return isar.writeTxn(() => isar.cacheObjects.where().deleteAll());
   }
 
@@ -53,8 +56,7 @@ class LocationBackgroundTracking {
 
   @pragma('vm:entry-point')
   static void callback(LocationDto locationDto) async {
-    Isar isar =
-        Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
+    Isar isar = await _getDatabase();
     await isar.writeTxn(() {
       String encode = jsonEncode(locationDto.toJson());
       return isar.cacheObjects
