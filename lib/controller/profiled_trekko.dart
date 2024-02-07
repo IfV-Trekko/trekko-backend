@@ -117,6 +117,7 @@ class ProfiledTrekko implements Trekko {
       }
 
       for (Position position in positions) {
+        print("TRACKED $position");
         double endTripProbability = await tripWrapper.calculateEndProbability();
         if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.9) {
           await saveTrip(await tripWrapper.get());
