@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_backend/model/cache_object.dart';
 import 'package:app_backend/model/profile/profile.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
@@ -35,6 +36,14 @@ class DatabaseUtils {
       [TripSchema],
       directory: await _getDatabasePath("$profileId"),
       name: "trip",
+    );
+  }
+
+  static Future<Isar> openCache(String name) async {
+    return Isar.open(
+      [CacheObjectSchema],
+      directory: await _getDatabasePath("cache"),
+      name: name,
     );
   }
 }

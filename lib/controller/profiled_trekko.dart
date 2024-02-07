@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_backend/controller/analysis/reductions.dart';
+import 'package:app_backend/controller/utils/query_util.dart';
 import 'package:app_backend/controller/utils/tracking_util.dart';
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
@@ -88,40 +89,41 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> _startTracking() async {
-    print(LocationCallbackHandler.locations);
-    if (!LocationCallbackHandler.isRunning()) {
-      LocationCallbackHandler.initState();
-      LocationCallbackHandler.startLocationService();
-    }
-    _positionSubscription =
-        LocationCallbackHandler.hook().listen((LocationDto loc) {
+    if (!(await LocationBackgroundTracking.isRunning()))
+      await LocationBackgroundTracking.init();
+    _positionSubscription = (await LocationBackgroundTracking.hook())
+        .listen((List<LocationDto> locations) async {
       if (_positionController.isClosed) {
         _positionSubscription?.cancel();
         return;
       }
 
-      Position position = Position(
-          longitude: loc.longitude,
-          latitude: loc.latitude,
-          timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
-          accuracy: loc.accuracy,
-          altitude: loc.altitude,
-          altitudeAccuracy: 0,
-          heading: loc.heading,
-          headingAccuracy: 0,
-          speed: loc.speed,
-          speedAccuracy: loc.speedAccuracy);
-      _positionController.add(position);
+      for (LocationDto loc in locations) {
+        Position position = Position(
+            longitude: loc.longitude,
+            latitude: loc.latitude,
+            timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
+            accuracy: loc.accuracy,
+            altitude: loc.altitude,
+            altitudeAccuracy: 0,
+            heading: loc.heading,
+            headingAccuracy: 0,
+            speed: loc.speed,
+            speedAccuracy: loc.speedAccuracy);
+        _positionController.add(position);
+      }
+      await LocationBackgroundTracking.clearCache();
     });
   }
 
   Future<void> _startTrackingListener() async {
-    this.getTrackingState().listen((event) async {
-      if (event == TrackingState.running) {
+    this._profileDb.profiles.watchObject(this._profileId).listen((event) async {
+      TrackingState state = event!.trackingState;
+      if (state == TrackingState.running) {
         await _startTracking();
       } else {
         _positionSubscription?.cancel();
-        LocationCallbackHandler.shutdown();
+        LocationBackgroundTracking.shutdown();
       }
     });
 
@@ -162,11 +164,8 @@ class ProfiledTrekko implements Trekko {
   @override
   Stream<Profile> getProfile() {
     return _profileDb.profiles
-        .filter()
-        .idEqualTo(_profileId)
-        .build()
-        .watch(fireImmediately: true)
-        .map((event) => event.first);
+        .watchObject(this._profileId, fireImmediately: true)
+        .map((event) => event!);
   }
 
   @override
@@ -222,11 +221,13 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<int> deleteTrip(Query<Trip> trips) async {
     return trips.findAll().then((foundTrips) async {
-      for (Trip trip in foundTrips) {
-        if (trip.donationState == DonationState.donated) {
-          // You may want to make this better performing
-          await revoke(getTripQuery().idEqualTo(trip.id).build());
-        }
+      List<Trip> toRevoke = foundTrips
+          .where((t) => t.donationState == DonationState.donated)
+          .toList();
+      if (!toRevoke.isEmpty) {
+        await revoke(QueryUtil(this)
+            .idsOr(foundTrips.map((e) => e.id).toList())
+            .build());
       }
       return _tripDb.writeTxn(() => trips.deleteAll());
     });
@@ -281,7 +282,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Stream<TrackingState> getTrackingState() {
-    return this.getProfile().map((profile) => profile.trackingState).distinct();
+    return this.getProfile().map((event) => event.trackingState);
   }
 
   @override
