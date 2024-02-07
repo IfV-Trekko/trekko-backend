@@ -36,6 +36,7 @@ class LocationBackgroundTracking {
         .where()
         .sortByTimestamp()
         .watch(fireImmediately: true)
+        .distinct()
         .map((event) => event
             .map((e) => LocationDto.fromJson(jsonDecode(e.value)))
             .toList());
