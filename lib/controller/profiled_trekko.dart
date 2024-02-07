@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_backend/controller/analysis/reductions.dart';
+import 'package:app_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:app_backend/controller/utils/query_util.dart';
 import 'package:app_backend/controller/utils/tracking_util.dart';
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
@@ -167,6 +168,15 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<String> loadText(OnboardingTextType type) {
     return _server.getOnboardingText(type.endpoint).then((value) => value.text);
+  }
+
+  @override
+  Future<ProjectMetadataResponse> loadProjectMetadata() async {
+    final ProjectMetadataResponse? metadata =
+        await _server.getProjectMetadata();
+    if (metadata == null) throw Exception("Could not load project metadata");
+
+    return metadata;
   }
 
   @override
