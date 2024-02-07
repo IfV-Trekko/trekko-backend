@@ -15,19 +15,18 @@ import 'package:isar/isar.dart';
 
 class LocationCallbackHandler {
   static const String _isolateName = "LocatorIsolate";
+  static const String _dbName = "locaiton";
 
   static bool isRunning() {
     return IsolateNameServer.lookupPortByName(_isolateName) != null;
   }
 
   static Future<void> initState() async {
-    Isar isar = await DatabaseUtils.openCache("location");
+    Isar isar = await DatabaseUtils.openCache(_dbName);
     ReceivePort port = ReceivePort();
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
-    print("REGISTER HOOK");
     port.listen((dynamic dto) {
       if (dto != null) {
-        print("PUT");
         isar.writeTxn(() {
           String encode = jsonEncode(dto);
           LocationDto decode = LocationDto.fromJson(jsonDecode(encode));
@@ -41,7 +40,7 @@ class LocationCallbackHandler {
 
   static Stream<List<LocationDto>> hook() {
     if (!isRunning()) throw Exception("Service not running");
-    Isar isar = Isar.getInstance("location")!;
+    Isar isar = Isar.getInstance(_dbName)!;
     print("Adding hook");
     // StreamController<LocationDto> controller = StreamController<LocationDto>();
     // // Create timer to send locations to the stream
@@ -68,6 +67,12 @@ class LocationCallbackHandler {
         .map((event) => event
             .map((e) => LocationDto.fromJson(jsonDecode(e.value)))
             .toList());
+  }
+
+  static Future<void> onEditFinish() async {
+    if (!isRunning()) throw Exception("Service not running");
+    Isar isar = Isar.getInstance(_dbName)!;
+    return isar.writeTxn(() => isar.cacheObjects.where().deleteAll());
   }
 
   static Future<void> initPlatformState() async {
