@@ -15,7 +15,6 @@ import 'package:isar/isar.dart';
 
 class LocationCallbackHandler {
   static const String _isolateName = "LocatorIsolate";
-  static Isar? isar;
 
   static bool isRunning() {
     return IsolateNameServer.lookupPortByName(_isolateName) != null;
@@ -25,6 +24,7 @@ class LocationCallbackHandler {
     Isar isar = await DatabaseUtils.openCache("write_location");
     ReceivePort port = ReceivePort();
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
+    print("REGISTER HOOK");
     port.listen((dynamic dto) {
       if (dto != null) {
         print("PUT");
