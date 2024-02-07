@@ -30,16 +30,19 @@ class LocationBackgroundTracking {
     startLocationService(setting);
   }
 
-  static Future<Stream<List<LocationDto>>> hook() async {
+  static Future<List<LocationDto>> readCache() async {
     Isar isar = await _getDatabase();
-    return isar.cacheObjects
-        .where()
-        .sortByTimestamp()
-        .watch(fireImmediately: true)
-        .distinct()
-        .map((event) => event
-            .map((e) => LocationDto.fromJson(jsonDecode(e.value)))
-            .toList());
+    return isar.cacheObjects.where().sortByTimestamp().findAll().then((value) =>
+        value.map((e) => LocationDto.fromJson(jsonDecode(e.value))).toList());
+  }
+
+  static Future<Stream<LocationDto>> hook() async {
+    Isar isar = await _getDatabase();
+    return isar.cacheObjects.watchLazy().map((void event) {
+      CacheObject? last =
+          isar.cacheObjects.where().sortByTimestampDesc().findFirstSync();
+      return LocationDto.fromJson(jsonDecode(last!.value));
+    });
   }
 
   static Future<void> clearCache() async {

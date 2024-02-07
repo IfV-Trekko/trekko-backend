@@ -46,6 +46,20 @@ class ProfiledTrekko implements Trekko {
     _server = UrlTrekkoServer.withToken(projectUrl, token);
   }
 
+  Position _toPosition(LocationDto loc) {
+    return Position(
+        longitude: loc.longitude,
+        latitude: loc.latitude,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
+        accuracy: loc.accuracy,
+        altitude: loc.altitude,
+        altitudeAccuracy: 0,
+        heading: loc.heading,
+        headingAccuracy: 0,
+        speed: loc.speed,
+        speedAccuracy: loc.speedAccuracy);
+  }
+
   Future<int> _saveProfile(Profile profile) {
     return _profileDb.writeTxn(() async => _profileDb.profiles.put(profile));
   }
@@ -87,27 +101,28 @@ class ProfiledTrekko implements Trekko {
           (await this.getProfile().first).preferences.batteryUsageSetting);
     }
 
+    TripWrapper tripWrapper = AnalyzingTripWrapper();
+    List<Position> toProcess = await LocationBackgroundTracking.readCache()
+        .then((value) => value.map((e) => _toPosition(e)).toList());
     _positionSubscription = (await LocationBackgroundTracking.hook())
-        .listen((List<LocationDto> locations) async {
-      if (_positionController.isClosed) {
-        _positionSubscription?.cancel();
-        return;
+        .listen((LocationDto loc) async {
+      Position detected = _toPosition(loc);
+      _positionController.add(detected);
+
+      List<Position> positions = toProcess.toList()..add(detected);
+      if (!toProcess.isEmpty) {
+        toProcess.clear();
       }
 
-      print("LOC + ${locations.length}");
-      for (LocationDto loc in locations) {
-        Position position = Position(
-            longitude: loc.longitude,
-            latitude: loc.latitude,
-            timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
-            accuracy: loc.accuracy,
-            altitude: loc.altitude,
-            altitudeAccuracy: 0,
-            heading: loc.heading,
-            headingAccuracy: 0,
-            speed: loc.speed,
-            speedAccuracy: loc.speedAccuracy);
-        _positionController.add(position);
+      for (Position position in positions) {
+        double endTripProbability = await tripWrapper.calculateEndProbability();
+        if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.9) {
+          await saveTrip(await tripWrapper.get());
+          tripWrapper = AnalyzingTripWrapper();
+          await LocationBackgroundTracking.clearCache();
+        } else {
+          await tripWrapper.add(position);
+        }
       }
     });
   }
@@ -120,18 +135,6 @@ class ProfiledTrekko implements Trekko {
       } else {
         _positionSubscription?.cancel();
         LocationBackgroundTracking.shutdown();
-      }
-    });
-
-    TripWrapper tripWrapper = AnalyzingTripWrapper();
-    _positionController.stream.listen((event) async {
-      double endTripProbability = await tripWrapper.calculateEndProbability();
-      if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.9) {
-        await saveTrip(await tripWrapper.get());
-        tripWrapper = AnalyzingTripWrapper();
-        await LocationBackgroundTracking.clearCache();
-      } else {
-        await tripWrapper.add(event);
       }
     });
   }
