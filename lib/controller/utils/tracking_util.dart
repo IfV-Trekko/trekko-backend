@@ -51,6 +51,7 @@ class LocationBackgroundTracking {
   }
 
   static Future<void> shutdown() async {
+    await (await _getDatabase()).close();
     await BackgroundLocator.unRegisterLocationUpdate();
   }
 
@@ -75,8 +76,7 @@ class LocationBackgroundTracking {
         LocationBackgroundTracking.callback,
         initCallback: LocationBackgroundTracking.initCallback,
         autoStop: false,
-        iosSettings: IOSSettings(
-            accuracy: setting.accuracy, distanceFilter: 0),
+        iosSettings: IOSSettings(accuracy: setting.accuracy, distanceFilter: 0),
         androidSettings: AndroidSettings(
             accuracy: setting.accuracy,
             // TODO: Depending on battery
