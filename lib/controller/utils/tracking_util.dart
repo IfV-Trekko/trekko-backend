@@ -26,12 +26,12 @@ class LocationCallbackHandler {
       shutdown();
     }
 
-    await DatabaseUtils.openCache(_dbName);
     ReceivePort port = ReceivePort();
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
-    port.listen((dynamic dto) {
+    port.listen((dynamic dto) async {
       if (dto != null) {
-        Isar isar = Isar.getInstance(_dbName)!;
+        Isar isar =
+            Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
         isar.writeTxn(() {
           String encode = jsonEncode(dto);
           LocationDto decode = LocationDto.fromJson(dto);
