@@ -94,24 +94,26 @@ class ProfiledTrekko implements Trekko {
       LocationCallbackHandler.startLocationService();
     }
     _positionSubscription =
-        (await LocationCallbackHandler.hook()).listen((LocationDto loc) {
+        (LocationCallbackHandler.hook()).listen((List<LocationDto> locations) {
       if (_positionController.isClosed) {
         _positionSubscription?.cancel();
         return;
       }
 
-      Position position = Position(
-          longitude: loc.longitude,
-          latitude: loc.latitude,
-          timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
-          accuracy: loc.accuracy,
-          altitude: loc.altitude,
-          altitudeAccuracy: 0,
-          heading: loc.heading,
-          headingAccuracy: 0,
-          speed: loc.speed,
-          speedAccuracy: loc.speedAccuracy);
-      _positionController.add(position);
+      for (LocationDto loc in locations) {
+        Position position = Position(
+            longitude: loc.longitude,
+            latitude: loc.latitude,
+            timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
+            accuracy: loc.accuracy,
+            altitude: loc.altitude,
+            altitudeAccuracy: 0,
+            heading: loc.heading,
+            headingAccuracy: 0,
+            speed: loc.speed,
+            speedAccuracy: loc.speedAccuracy);
+        _positionController.add(position);
+      }
     });
   }
 

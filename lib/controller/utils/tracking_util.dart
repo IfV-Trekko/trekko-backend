@@ -29,34 +29,45 @@ class LocationCallbackHandler {
       if (dto != null) {
         print("PUT");
         isar.writeTxn(() {
-          return isar.cacheObjects.put(CacheObject(jsonEncode(dto)));
+          String encode = jsonEncode(dto);
+          LocationDto decode = jsonDecode(encode);
+          return isar.cacheObjects
+              .put(CacheObject(encode, decode.time.round()));
         });
       }
     });
     initPlatformState();
   }
 
-  static Future<Stream<LocationDto>> hook() async {
-    Isar isar = await DatabaseUtils.openCache("location");
-    StreamController<LocationDto> controller = StreamController<LocationDto>();
-    // Create timer to send locations to the stream
-    Timer.periodic(Duration(seconds: 5), (timer) {
-      if (controller.isClosed) {
-        isar.close();
-        timer.cancel();
-        return;
-      }
-
-      List<CacheObject> locations = isar.cacheObjects.where().findAllSync();
-      print("TIMER: ${locations.length}");
-      isar.writeTxn(() async {
-        for (CacheObject location in locations) {
-          controller.add(LocationDto.fromJson(jsonDecode(location.value)));
-          isar.cacheObjects.delete(location.id);
-        }
-      });
-    });
-    return controller.stream;
+  static Stream<List<LocationDto>> hook() {
+    if (!isRunning()) throw Exception("Service not running");
+    Isar isar = Isar.getInstance("location")!;
+    print("Adding hook");
+    // StreamController<LocationDto> controller = StreamController<LocationDto>();
+    // // Create timer to send locations to the stream
+    // Timer.periodic(Duration(seconds: 5), (timer) {
+    //   if (controller.isClosed) {
+    //     isar.close();
+    //     timer.cancel();
+    //     return;
+    //   }
+    //
+    //   List<CacheObject> locations = isar.cacheObjects.where().findAllSync();
+    //   print("TIMER: ${locations.length}");
+    //   isar.writeTxn(() async {
+    //     for (CacheObject location in locations) {
+    //       controller.add(LocationDto.fromJson(jsonDecode(location.value)));
+    //       isar.cacheObjects.delete(location.id);
+    //     }
+    //   });
+    // });
+    return isar.cacheObjects
+        .where()
+        .sortByTimestamp()
+        .watch(fireImmediately: true)
+        .map((event) => event
+            .map((e) => LocationDto.fromJson(jsonDecode(e.value)))
+            .toList());
   }
 
   static Future<void> initPlatformState() async {

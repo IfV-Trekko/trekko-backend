@@ -17,8 +17,13 @@ const CacheObjectSchema = CollectionSchema(
   name: r'CacheObject',
   id: 1217021884915065037,
   properties: {
-    r'value': PropertySchema(
+    r'timestamp': PropertySchema(
       id: 0,
+      name: r'timestamp',
+      type: IsarType.long,
+    ),
+    r'value': PropertySchema(
+      id: 1,
       name: r'value',
       type: IsarType.string,
     )
@@ -53,7 +58,8 @@ void _cacheObjectSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.value);
+  writer.writeLong(offsets[0], object.timestamp);
+  writer.writeString(offsets[1], object.value);
 }
 
 CacheObject _cacheObjectDeserialize(
@@ -63,7 +69,8 @@ CacheObject _cacheObjectDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = CacheObject(
-    reader.readString(offsets[0]),
+    reader.readString(offsets[1]),
+    reader.readLong(offsets[0]),
   );
   object.id = id;
   return object;
@@ -77,6 +84,8 @@ P _cacheObjectDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -229,6 +238,62 @@ extension CacheObjectQueryFilter
     });
   }
 
+  QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition>
+      timestampEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'timestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition>
+      timestampGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'timestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition>
+      timestampLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'timestamp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition>
+      timestampBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'timestamp',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition> valueEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -370,6 +435,18 @@ extension CacheObjectQueryLinks
 
 extension CacheObjectQuerySortBy
     on QueryBuilder<CacheObject, CacheObject, QSortBy> {
+  QueryBuilder<CacheObject, CacheObject, QAfterSortBy> sortByTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'timestamp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterSortBy> sortByTimestampDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'timestamp', Sort.desc);
+    });
+  }
+
   QueryBuilder<CacheObject, CacheObject, QAfterSortBy> sortByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -397,6 +474,18 @@ extension CacheObjectQuerySortThenBy
     });
   }
 
+  QueryBuilder<CacheObject, CacheObject, QAfterSortBy> thenByTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'timestamp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterSortBy> thenByTimestampDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'timestamp', Sort.desc);
+    });
+  }
+
   QueryBuilder<CacheObject, CacheObject, QAfterSortBy> thenByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -412,6 +501,12 @@ extension CacheObjectQuerySortThenBy
 
 extension CacheObjectQueryWhereDistinct
     on QueryBuilder<CacheObject, CacheObject, QDistinct> {
+  QueryBuilder<CacheObject, CacheObject, QDistinct> distinctByTimestamp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'timestamp');
+    });
+  }
+
   QueryBuilder<CacheObject, CacheObject, QDistinct> distinctByValue(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -425,6 +520,12 @@ extension CacheObjectQueryProperty
   QueryBuilder<CacheObject, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<CacheObject, int, QQueryOperations> timestampProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'timestamp');
     });
   }
 
