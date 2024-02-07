@@ -158,7 +158,7 @@ class ProfiledTrekko implements Trekko {
     await _positionController.close();
     if (_positionSubscription != null) await _positionSubscription!.cancel();
     if (await LocationBackgroundTracking.isRunning())
-      LocationBackgroundTracking.shutdown();
+      await LocationBackgroundTracking.shutdown();
     await _profileDb.close();
     await _tripDb.close();
     await _server.close();
