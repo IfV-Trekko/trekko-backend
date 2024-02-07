@@ -79,7 +79,6 @@ class LocationBackgroundTracking {
         iosSettings: IOSSettings(accuracy: setting.accuracy, distanceFilter: 0),
         androidSettings: AndroidSettings(
             accuracy: setting.accuracy,
-            // TODO: Depending on battery
             interval: 5,
             distanceFilter: 0,
             androidNotificationSettings: AndroidNotificationSettings(
