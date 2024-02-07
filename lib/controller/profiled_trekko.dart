@@ -115,8 +115,9 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> _startTrackingListener() async {
-    this.getTrackingState().listen((event) async {
-      if (event == TrackingState.running) {
+    this._profileDb.profiles.watchObject(this._profileId).listen((event) async {
+      TrackingState state = event!.trackingState;
+      if (state == TrackingState.running) {
         await _startTracking();
       } else {
         _positionSubscription?.cancel();
@@ -161,11 +162,8 @@ class ProfiledTrekko implements Trekko {
   @override
   Stream<Profile> getProfile() {
     return _profileDb.profiles
-        .filter()
-        .idEqualTo(_profileId)
-        .build()
-        .watch(fireImmediately: true)
-        .map((event) => event.first);
+        .watchObject(this._profileId, fireImmediately: true)
+        .map((event) => event!);
   }
 
   @override
@@ -223,7 +221,7 @@ class ProfiledTrekko implements Trekko {
     return trips.findAll().then((foundTrips) async {
       for (Trip trip in foundTrips) {
         if (trip.donationState == DonationState.donated) {
-          // You may want to make this better performing
+          // TODO: You may want to make this better performing
           await revoke(getTripQuery().idEqualTo(trip.id).build());
         }
       }
@@ -280,7 +278,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Stream<TrackingState> getTrackingState() {
-    return this.getProfile().map((profile) => profile.trackingState).distinct();
+    return this.getProfile().map((event) => event.trackingState);
   }
 
   @override
