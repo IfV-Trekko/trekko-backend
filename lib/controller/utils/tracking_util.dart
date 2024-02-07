@@ -74,6 +74,7 @@ class LocationCallbackHandler {
 
   @pragma('vm:entry-point')
   static void callback(LocationDto locationDto) async {
+    print("CALLBACK");
     final SendPort? send = IsolateNameServer.lookupPortByName(_isolateName);
     send?.send(locationDto.toJson());
   }
