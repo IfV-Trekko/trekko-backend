@@ -94,7 +94,7 @@ class ProfiledTrekko implements Trekko {
         return;
       }
 
-      print("LOC");
+      print("LOC + ${locations.length}");
       for (LocationDto loc in locations) {
         Position position = Position(
             longitude: loc.longitude,
