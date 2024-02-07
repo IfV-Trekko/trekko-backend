@@ -27,6 +27,7 @@ class LocationCallbackHandler {
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
     port.listen((dynamic dto) {
       if (dto != null) {
+        print("PUT");
         isar.writeTxn(() {
           return isar.cacheObjects.put(CacheObject(jsonEncode(dto)));
         });
@@ -43,13 +44,17 @@ class LocationCallbackHandler {
       if (controller.isClosed) {
         isar.close();
         timer.cancel();
+        return;
       }
 
+      print("TIMER");
       List<CacheObject> locations = isar.cacheObjects.where().findAllSync();
-      for (CacheObject location in locations) {
-        controller.add(LocationDto.fromJson(jsonDecode(location.value)));
-        isar.cacheObjects.delete(location.id);
-      }
+      isar.writeTxn(() async {
+        for (CacheObject location in locations) {
+          controller.add(LocationDto.fromJson(jsonDecode(location.value)));
+          isar.cacheObjects.delete(location.id);
+        }
+      });
     });
     return controller.stream;
   }
