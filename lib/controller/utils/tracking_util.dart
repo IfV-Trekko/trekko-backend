@@ -26,21 +26,21 @@ class LocationCallbackHandler {
       shutdown();
     }
 
-    Isar isar =
-        Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
+    // Isar isar =
+    //     Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
     ReceivePort port = ReceivePort();
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
-    port.listen((dynamic dto) async {
-      if (dto != null) {
-        print("PUT");
-        isar.writeTxn(() {
-          String encode = jsonEncode(dto);
-          LocationDto decode = LocationDto.fromJson(dto);
-          return isar.cacheObjects
-              .put(CacheObject(encode, decode.time.round()));
-        });
-      }
-    });
+    // port.listen((dynamic dto) async {
+    //   if (dto != null) {
+    //     print("PUT");
+    //     isar.writeTxn(() {
+    //       String encode = jsonEncode(dto);
+    //       LocationDto decode = LocationDto.fromJson(dto);
+    //       return isar.cacheObjects
+    //           .put(CacheObject(encode, decode.time.round()));
+    //     });
+    //   }
+    // });
     initPlatformState();
     startLocationService();
   }
@@ -74,9 +74,14 @@ class LocationCallbackHandler {
 
   @pragma('vm:entry-point')
   static void callback(LocationDto locationDto) async {
-    print("CALLBACK");
-    final SendPort? send = IsolateNameServer.lookupPortByName(_isolateName);
-    send?.send(locationDto.toJson());
+    print("INTO DB");
+    Isar isar =
+        Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
+    await isar.writeTxn(() {
+      String encode = jsonEncode(locationDto.toJson());
+      return isar.cacheObjects
+          .put(CacheObject(encode, locationDto.time.round()));
+    });
   }
 
 //Optional
@@ -106,7 +111,8 @@ class LocationCallbackHandler {
         iosSettings: IOSSettings(
             accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
         androidSettings: AndroidSettings(
-            accuracy: LocationAccuracy.NAVIGATION, // TODO: Depending on battery
+            accuracy: LocationAccuracy.NAVIGATION,
+            // TODO: Depending on battery
             interval: 5,
             distanceFilter: 0,
             androidNotificationSettings: AndroidNotificationSettings(
