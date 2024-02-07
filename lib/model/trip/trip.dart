@@ -135,9 +135,9 @@ class Trip {
 
   /// Set the legs of the trip
   set legs(List<Leg> legs) {
-    // if (legs.isEmpty) {
-    //   throw Exception("A trip must have at least one leg");
-    // }
+    if (legs.isEmpty) {
+      throw Exception("A trip must have at least one leg");
+    }
 
     for (int i = 1; i < legs.length; i++) {
       if (legs[i]

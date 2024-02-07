@@ -280,28 +280,6 @@ class ProfiledTrekko implements Trekko {
     }
 
     return mergedTrip;
-
-    // return await trips.findAll().then((toMerge) async {
-    //   if (toMerge.isEmpty) throw Exception("No trips to merge");
-
-    //   TripWrapper tripWrapper = AnalyzingTripWrapper();
-    //   List<TrackedPoint> points = toMerge
-    //       .map((trip) => trip.legs)
-    //       .expand((leg) => leg)
-    //       .expand((p) => p.trackedPoints)
-    //       .toList();
-    //   points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    //   for (var point in points) {
-    //     await tripWrapper.add(point.toPosition());
-    //   }
-    //   Trip merged = await tripWrapper.get();
-    //   int mergedTripId = await saveTrip(merged);
-    //   await deleteTrip(trips);
-    //   if (toMerge.any((t) => t.donationState == DonationState.donated)) {
-    //     await donate(getTripQuery().idEqualTo(mergedTripId).build());
-    //   }
-    //   return merged;
-    // });
   }
 
   @override
