@@ -106,7 +106,6 @@ class ProfiledTrekko implements Trekko {
             speedAccuracy: loc.speedAccuracy);
         _positionController.add(position);
       }
-      await LocationBackgroundTracking.clearCache();
     });
   }
 
@@ -127,6 +126,7 @@ class ProfiledTrekko implements Trekko {
       if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.9) {
         await saveTrip(await tripWrapper.get());
         tripWrapper = AnalyzingTripWrapper();
+        await LocationBackgroundTracking.clearCache();
       } else {
         await tripWrapper.add(event);
       }
