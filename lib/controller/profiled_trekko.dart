@@ -251,24 +251,28 @@ class ProfiledTrekko implements Trekko {
         .expand((p) => p.trackedPoints)
         .toList();
     points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    print(points.length);
     for (var point in points) {
+      print("in point");
       await tripWrapper.add(point.toPosition());
     }
 
     final Trip mergedTrip = await tripWrapper.get();
 
+    print(mergedTrip.legs.length);
+
     mergedTrip.startTime = startTime;
     mergedTrip.endTime = endTime;
     mergedTrip.setTransportTypes(transportTypes);
 
-    final int mergedTripId = await saveTrip(mergedTrip);
-
-    // if any of the merged trips are donated, donate the merged trip
-    if (trips.any((t) => t.donationState == DonationState.donated)) {
-      await donate(getTripQuery().idEqualTo(mergedTripId).build());
-    }
+    // final int mergedTripId = await saveTrip(mergedTrip);
 
     await deleteTrip(tripsQuery);
+
+    // if any of the merged trips are donated, donate the merged trip
+    // if (trips.any((t) => t.donationState == DonationState.donated)) {
+    //   await donate(getTripQuery().idEqualTo(mergedTripId).build());
+    // }
 
     return mergedTrip;
 
