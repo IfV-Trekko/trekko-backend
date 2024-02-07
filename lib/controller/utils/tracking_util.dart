@@ -30,7 +30,7 @@ class LocationCallbackHandler {
         print("PUT");
         isar.writeTxn(() {
           String encode = jsonEncode(dto);
-          LocationDto decode = jsonDecode(encode);
+          LocationDto decode = LocationDto.fromJson(jsonDecode(encode));
           return isar.cacheObjects
               .put(CacheObject(encode, decode.time.round()));
         });
