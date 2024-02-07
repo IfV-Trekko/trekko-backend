@@ -89,8 +89,9 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> _startTracking() async {
-    await LocationCallbackHandler.initState();
-    _positionSubscription = (LocationCallbackHandler.hook())
+    if (!(await LocationBackgroundTracking.isRunning()))
+      await LocationBackgroundTracking.init();
+    _positionSubscription = (LocationBackgroundTracking.hook())
         .listen((List<LocationDto> locations) async {
       if (_positionController.isClosed) {
         _positionSubscription?.cancel();
@@ -111,7 +112,7 @@ class ProfiledTrekko implements Trekko {
             speedAccuracy: loc.speedAccuracy);
         _positionController.add(position);
       }
-      await LocationCallbackHandler.onEditFinish();
+      await LocationBackgroundTracking.onEditFinish();
     });
   }
 
@@ -122,7 +123,7 @@ class ProfiledTrekko implements Trekko {
         await _startTracking();
       } else {
         _positionSubscription?.cancel();
-        LocationCallbackHandler.shutdown();
+        LocationBackgroundTracking.shutdown();
       }
     });
 

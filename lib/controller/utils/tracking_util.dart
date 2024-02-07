@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate';
-import 'dart:ui';
 
 import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:app_backend/model/cache_object.dart';
@@ -13,40 +11,22 @@ import 'package:background_locator_2/settings/locator_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
-class LocationCallbackHandler {
-  static const String _isolateName = "LocatorIsolate";
-  static const String _dbName = "locaiton";
+class LocationBackgroundTracking {
+  static const String _dbName = "location";
 
-  static bool isRunning() {
-    return IsolateNameServer.lookupPortByName(_isolateName) != null;
+  static Future<bool> isRunning() async {
+    return await BackgroundLocator.isServiceRunning();
   }
 
-  static Future<void> initState() async {
-    if (isRunning()) {
-      shutdown();
+  static Future<void> init() async {
+    if (await isRunning()) {
+      throw "Cannot init twice";
     }
-
-    // Isar isar =
-    //     Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
-    ReceivePort port = ReceivePort();
-    IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
-    // port.listen((dynamic dto) async {
-    //   if (dto != null) {
-    //     print("PUT");
-    //     isar.writeTxn(() {
-    //       String encode = jsonEncode(dto);
-    //       LocationDto decode = LocationDto.fromJson(dto);
-    //       return isar.cacheObjects
-    //           .put(CacheObject(encode, decode.time.round()));
-    //     });
-    //   }
-    // });
-    initPlatformState();
+    await BackgroundLocator.initialize();
     startLocationService();
   }
 
   static Stream<List<LocationDto>> hook() {
-    if (!isRunning()) throw Exception("Service not running");
     Isar isar = Isar.getInstance(_dbName)!;
     return isar.cacheObjects
         .where()
@@ -58,7 +38,6 @@ class LocationCallbackHandler {
   }
 
   static Future<void> onEditFinish() async {
-    if (!isRunning()) throw Exception("Service not running");
     Isar isar = Isar.getInstance(_dbName)!;
     return isar.writeTxn(() => isar.cacheObjects.where().deleteAll());
   }
@@ -68,13 +47,11 @@ class LocationCallbackHandler {
   }
 
   static Future<void> shutdown() async {
-    IsolateNameServer.removePortNameMapping(_isolateName);
     await BackgroundLocator.unRegisterLocationUpdate();
   }
 
   @pragma('vm:entry-point')
   static void callback(LocationDto locationDto) async {
-    print("INTO DB");
     Isar isar =
         Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
     await isar.writeTxn(() {
@@ -90,23 +67,9 @@ class LocationCallbackHandler {
     print('Plugin initialization');
   }
 
-//Optional
-  @pragma('vm:entry-point')
-  static void notificationCallback() {
-    print('User clicked on the notification');
-  }
-
-  @pragma("vm:entry-point")
-  static void disposeCallback() {
-    // TODO: save all uncollected data
-    print('Dispose callback');
-  }
-
   static void startLocationService() {
-    BackgroundLocator.registerLocationUpdate(LocationCallbackHandler.callback,
-        initCallback: LocationCallbackHandler.initCallback,
-        // initDataCallback: data, // TODO: was das
-        disposeCallback: LocationCallbackHandler.disposeCallback,
+    BackgroundLocator.registerLocationUpdate(LocationBackgroundTracking.callback,
+        initCallback: LocationBackgroundTracking.initCallback,
         autoStop: false,
         iosSettings: IOSSettings(
             accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
@@ -122,8 +85,6 @@ class LocationCallbackHandler {
                 notificationBigMsg:
                     'Background location is on to keep the app up-tp-date with your location. This is required for main features to work properly when the app is not running.',
                 notificationIcon: '',
-                notificationIconColor: Colors.grey,
-                notificationTapCallback:
-                    LocationCallbackHandler.notificationCallback)));
+                notificationIconColor: Colors.grey)));
   }
 }
