@@ -90,7 +90,9 @@ class ProfiledTrekko implements Trekko {
 
   Future<void> _startTracking() async {
     if (!(await LocationBackgroundTracking.isRunning()))
-      await LocationBackgroundTracking.init();
+      await LocationBackgroundTracking.init(
+          // Wont update on preferences change
+          (await this.getProfile().first).preferences.batteryUsageSetting);
     _positionSubscription = (await LocationBackgroundTracking.hook())
         .listen((List<LocationDto> locations) async {
       if (_positionController.isClosed) {

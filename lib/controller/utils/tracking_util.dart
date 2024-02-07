@@ -3,11 +3,11 @@ import 'dart:convert';
 
 import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:app_backend/model/cache_object.dart';
+import 'package:app_backend/model/profile/battery_usage_setting.dart';
 import 'package:background_locator_2/background_locator.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:background_locator_2/settings/android_settings.dart';
 import 'package:background_locator_2/settings/ios_settings.dart';
-import 'package:background_locator_2/settings/locator_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -22,12 +22,13 @@ class LocationBackgroundTracking {
     return Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
   }
 
-  static Future<void> init() async {
+  static Future<void> init(BatteryUsageSetting setting) async {
     if (await isRunning()) {
       throw "Cannot init twice";
     }
+    print("INIT");
     await BackgroundLocator.initialize();
-    startLocationService();
+    startLocationService(setting);
   }
 
   static Future<Stream<List<LocationDto>>> hook() async {
@@ -70,15 +71,15 @@ class LocationBackgroundTracking {
     print('Plugin initialization');
   }
 
-  static void startLocationService() {
+  static void startLocationService(BatteryUsageSetting setting) {
     BackgroundLocator.registerLocationUpdate(
         LocationBackgroundTracking.callback,
         initCallback: LocationBackgroundTracking.initCallback,
         autoStop: false,
         iosSettings: IOSSettings(
-            accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
+            accuracy: setting.accuracy, distanceFilter: 0),
         androidSettings: AndroidSettings(
-            accuracy: LocationAccuracy.NAVIGATION,
+            accuracy: setting.accuracy,
             // TODO: Depending on battery
             interval: 5,
             distanceFilter: 0,

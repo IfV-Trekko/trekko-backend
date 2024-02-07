@@ -1,10 +1,11 @@
 // Leave order and names as is!
-import 'package:geolocator/geolocator.dart';
+
+import 'package:background_locator_2/settings/locator_settings.dart';
 
 enum BatteryUsageSetting {
-  low(LocationAccuracy.low),
-  medium(LocationAccuracy.medium),
-  high(LocationAccuracy.high);
+  low(LocationAccuracy.POWERSAVE),
+  medium(LocationAccuracy.BALANCED),
+  high(LocationAccuracy.HIGH);
 
   final LocationAccuracy accuracy;
 
