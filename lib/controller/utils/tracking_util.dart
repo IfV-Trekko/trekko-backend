@@ -22,6 +22,10 @@ class LocationCallbackHandler {
   }
 
   static Future<void> initState() async {
+    if (isRunning()) {
+      shutdown();
+    }
+
     Isar isar = await DatabaseUtils.openCache(_dbName);
     ReceivePort port = ReceivePort();
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
@@ -29,37 +33,19 @@ class LocationCallbackHandler {
       if (dto != null) {
         isar.writeTxn(() {
           String encode = jsonEncode(dto);
-          LocationDto decode = LocationDto.fromJson(jsonDecode(encode));
+          LocationDto decode = LocationDto.fromJson(dto);
           return isar.cacheObjects
               .put(CacheObject(encode, decode.time.round()));
         });
       }
     });
     initPlatformState();
+    startLocationService();
   }
 
   static Stream<List<LocationDto>> hook() {
     if (!isRunning()) throw Exception("Service not running");
     Isar isar = Isar.getInstance(_dbName)!;
-    print("Adding hook");
-    // StreamController<LocationDto> controller = StreamController<LocationDto>();
-    // // Create timer to send locations to the stream
-    // Timer.periodic(Duration(seconds: 5), (timer) {
-    //   if (controller.isClosed) {
-    //     isar.close();
-    //     timer.cancel();
-    //     return;
-    //   }
-    //
-    //   List<CacheObject> locations = isar.cacheObjects.where().findAllSync();
-    //   print("TIMER: ${locations.length}");
-    //   isar.writeTxn(() async {
-    //     for (CacheObject location in locations) {
-    //       controller.add(LocationDto.fromJson(jsonDecode(location.value)));
-    //       isar.cacheObjects.delete(location.id);
-    //     }
-    //   });
-    // });
     return isar.cacheObjects
         .where()
         .sortByTimestamp()
@@ -82,6 +68,7 @@ class LocationCallbackHandler {
   static Future<void> shutdown() async {
     IsolateNameServer.removePortNameMapping(_isolateName);
     await BackgroundLocator.unRegisterLocationUpdate();
+    await Isar.getInstance(_dbName)!.close();
   }
 
   @pragma('vm:entry-point')
@@ -117,7 +104,7 @@ class LocationCallbackHandler {
         iosSettings: IOSSettings(
             accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
         androidSettings: AndroidSettings(
-            accuracy: LocationAccuracy.NAVIGATION,
+            accuracy: LocationAccuracy.NAVIGATION, // TODO: Depending on battery
             interval: 5,
             distanceFilter: 0,
             androidNotificationSettings: AndroidNotificationSettings(
