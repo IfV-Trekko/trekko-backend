@@ -19,6 +19,7 @@ import 'package:app_backend/model/profile/profile.dart';
 import 'package:app_backend/model/tracking_state.dart';
 import 'package:app_backend/model/trip/donation_state.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
+import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:geolocator/geolocator.dart';
@@ -227,28 +228,71 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future<Trip> mergeTrips(Query<Trip> trips) async {
-    return await trips.findAll().then((toMerge) async {
-      if (toMerge.isEmpty) throw Exception("No trips to merge");
+  Future<Trip> mergeTrips(Query<Trip> tripsQuery) async {
+    final List<Trip> trips = await tripsQuery.findAll();
+    if (trips.isEmpty) throw Exception("No trips to merge");
 
-      TripWrapper tripWrapper = AnalyzingTripWrapper();
-      List<TrackedPoint> points = toMerge
-          .map((trip) => trip.legs)
-          .expand((leg) => leg)
-          .expand((p) => p.trackedPoints)
-          .toList();
-      points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      for (var point in points) {
-        await tripWrapper.add(point.toPosition());
-      }
-      Trip merged = await tripWrapper.get();
-      int mergedTripId = await saveTrip(merged);
-      await deleteTrip(trips);
-      if (toMerge.any((t) => t.donationState == DonationState.donated)) {
-        await donate(getTripQuery().idEqualTo(mergedTripId).build());
-      }
-      return merged;
-    });
+    final List<TransportType> transportTypes = trips
+        .map((t) => t.getTransportTypes())
+        .expand((e) => e)
+        .toSet()
+        .toList();
+    final DateTime startTime = trips
+        .map((t) => t.getStartTime())
+        .reduce((value, element) => value.isBefore(element) ? value : element);
+    final DateTime endTime = trips
+        .map((t) => t.getEndTime())
+        .reduce((value, element) => value.isAfter(element) ? value : element);
+
+    final TripWrapper tripWrapper = AnalyzingTripWrapper();
+    final List<TrackedPoint> points = trips
+        .map((trip) => trip.legs)
+        .expand((leg) => leg)
+        .expand((p) => p.trackedPoints)
+        .toList();
+    points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    for (var point in points) {
+      await tripWrapper.add(point.toPosition());
+    }
+
+    final Trip mergedTrip = await tripWrapper.get();
+
+    mergedTrip.startTime = startTime;
+    mergedTrip.endTime = endTime;
+    mergedTrip.setTransportTypes(transportTypes);
+
+    final int mergedTripId = await saveTrip(mergedTrip);
+
+    // if any of the merged trips are donated, donate the merged trip
+    if (trips.any((t) => t.donationState == DonationState.donated)) {
+      await donate(getTripQuery().idEqualTo(mergedTripId).build());
+    }
+
+    await deleteTrip(tripsQuery);
+
+    return mergedTrip;
+
+    // return await trips.findAll().then((toMerge) async {
+    //   if (toMerge.isEmpty) throw Exception("No trips to merge");
+
+    //   TripWrapper tripWrapper = AnalyzingTripWrapper();
+    //   List<TrackedPoint> points = toMerge
+    //       .map((trip) => trip.legs)
+    //       .expand((leg) => leg)
+    //       .expand((p) => p.trackedPoints)
+    //       .toList();
+    //   points.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    //   for (var point in points) {
+    //     await tripWrapper.add(point.toPosition());
+    //   }
+    //   Trip merged = await tripWrapper.get();
+    //   int mergedTripId = await saveTrip(merged);
+    //   await deleteTrip(trips);
+    //   if (toMerge.any((t) => t.donationState == DonationState.donated)) {
+    //     await donate(getTripQuery().idEqualTo(mergedTripId).build());
+    //   }
+    //   return merged;
+    // });
   }
 
   @override
