@@ -264,26 +264,23 @@ class ProfiledTrekko implements Trekko {
         .map((t) => t.getEndTime())
         .reduce((value, element) => value.isAfter(element) ? value : element);
 
-    final TripWrapper tripWrapper = AnalyzingTripWrapper();
-    final List<TrackedPoint> points = trips
-        .map((trip) => trip.legs)
-        .expand((leg) => leg)
-        .expand((p) => p.trackedPoints)
-        .toList();
-    for (var point in points) {
-      await tripWrapper.add(point.toPosition());
-    }
+    // final TripWrapper tripWrapper = AnalyzingTripWrapper();
+    // final List<TrackedPoint> points = trips
+    //     .map((trip) => trip.legs)
+    //     .expand((leg) => leg)
+    //     .expand((p) => p.trackedPoints)
+    //     .toList();
+    // for (var point in points) {
+    //   await tripWrapper.add(point.toPosition());
+    // }
 
-    final Trip mergedTrip = await tripWrapper.get();
+    final Trip mergedTrip = new Trip();
 
     mergedTrip.startTime = startTime;
     mergedTrip.endTime = endTime;
     mergedTrip.setTransportTypes(transportTypes);
     mergedTrip.setDistance(totalDistance);
-
-    if (mergedTrip.legs.isEmpty) {
-      mergedTrip.legs = trips.first.legs;
-    }
+    mergedTrip.legs = trips.first.legs;
 
     final int mergedTripId = await saveTrip(mergedTrip);
 
