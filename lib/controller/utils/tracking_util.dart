@@ -32,6 +32,7 @@ class LocationCallbackHandler {
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
     port.listen((dynamic dto) async {
       if (dto != null) {
+        print("PUT");
         isar.writeTxn(() {
           String encode = jsonEncode(dto);
           LocationDto decode = LocationDto.fromJson(dto);
