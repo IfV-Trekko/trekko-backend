@@ -79,14 +79,14 @@ class ProfiledTrekko implements Trekko {
       _profileId = await _saveProfile(found);
     }
   }
-
-  Future<void> _listenForLocationPermission() async {
-    await Geolocator.getServiceStatusStream().listen((event) {
-      if (event == ServiceStatus.disabled) {
-        setTrackingState(TrackingState.paused);
-      }
-    });
-  }
+  //
+  // Future<void> _listenForLocationPermission() async {
+  //   await Geolocator.getServiceStatusStream().listen((event) {
+  //     if (event == ServiceStatus.disabled) {
+  //       setTrackingState(TrackingState.paused);
+  //     }
+  //   });
+  // }
 
   Future<void> _startTracking() async {
     if (!(await LocationBackgroundTracking.isRunning()))
@@ -146,7 +146,7 @@ class ProfiledTrekko implements Trekko {
     _profileDb = await DatabaseUtils.openProfiles();
     await _initProfile();
     _tripDb = await DatabaseUtils.openTrips(this._profileId);
-    await _listenForLocationPermission();
+    // await _listenForLocationPermission();
 
     if ((await getProfile().first).trackingState == TrackingState.running) {
       await _startTracking();
