@@ -3,7 +3,7 @@ import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 
 class OnboardingUtils {
-  Future<ProjectMetadataResponse> loadProjectMetadata(
+  static Future<ProjectMetadataResponse> loadProjectMetadata(
       final String projectUrl) async {
     final TrekkoServer _server = new UrlTrekkoServer(projectUrl);
 
