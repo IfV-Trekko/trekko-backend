@@ -21,7 +21,7 @@ class LocationCallbackHandler {
   }
 
   static Future<void> initState() async {
-    Isar isar = await DatabaseUtils.openCache("write_location");
+    Isar isar = await DatabaseUtils.openCache("location");
     ReceivePort port = ReceivePort();
     IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
     print("REGISTER HOOK");
@@ -37,7 +37,7 @@ class LocationCallbackHandler {
   }
 
   static Future<Stream<LocationDto>> hook() async {
-    Isar isar = await DatabaseUtils.openCache("read_location");
+    Isar isar = await DatabaseUtils.openCache("location");
     StreamController<LocationDto> controller = StreamController<LocationDto>();
     // Create timer to send locations to the stream
     Timer.periodic(Duration(seconds: 5), (timer) {
@@ -47,8 +47,8 @@ class LocationCallbackHandler {
         return;
       }
 
-      print("TIMER");
       List<CacheObject> locations = isar.cacheObjects.where().findAllSync();
+      print("TIMER: ${locations.length}");
       isar.writeTxn(() async {
         for (CacheObject location in locations) {
           controller.add(LocationDto.fromJson(jsonDecode(location.value)));
