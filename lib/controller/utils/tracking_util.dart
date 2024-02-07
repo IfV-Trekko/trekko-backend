@@ -53,7 +53,8 @@ class LocationBackgroundTracking {
 
   @pragma('vm:entry-point')
   static void callback(LocationDto locationDto) async {
-    Isar isar = Isar.getInstance(_dbName)!;
+    Isar isar =
+        Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
     await isar.writeTxn(() {
       String encode = jsonEncode(locationDto.toJson());
       return isar.cacheObjects
