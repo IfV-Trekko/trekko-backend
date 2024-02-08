@@ -1,5 +1,3 @@
-// import 'package:geolocator/geolocator.dart';
-import 'package:fling_units/fling_units.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 
