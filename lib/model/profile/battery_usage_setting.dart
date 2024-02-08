@@ -1,13 +1,11 @@
 // Leave order and names as is!
 
-import 'package:background_locator_2/settings/locator_settings.dart';
-
 enum BatteryUsageSetting {
-  low(LocationAccuracy.LOW),
-  medium(LocationAccuracy.BALANCED),
-  high(LocationAccuracy.HIGH);
+  low(15),
+  medium(10),
+  high(5);
 
-  final LocationAccuracy accuracy;
+  final int interval;
 
-  const BatteryUsageSetting(this.accuracy);
+  const BatteryUsageSetting(this.interval);
 }

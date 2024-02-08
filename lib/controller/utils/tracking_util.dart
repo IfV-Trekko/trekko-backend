@@ -8,6 +8,7 @@ import 'package:background_locator_2/background_locator.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:background_locator_2/settings/android_settings.dart';
 import 'package:background_locator_2/settings/ios_settings.dart';
+import 'package:background_locator_2/settings/locator_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -80,10 +81,10 @@ class LocationBackgroundTracking {
         LocationBackgroundTracking.callback,
         initCallback: LocationBackgroundTracking.initCallback,
         autoStop: false,
-        iosSettings: IOSSettings(accuracy: setting.accuracy, distanceFilter: 0),
+        iosSettings: IOSSettings(accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
         androidSettings: AndroidSettings(
-            accuracy: setting.accuracy,
-            interval: 5,
+            accuracy: LocationAccuracy.NAVIGATION,
+            interval: setting.interval,
             distanceFilter: 0,
             androidNotificationSettings: AndroidNotificationSettings(
                 notificationChannelName: 'Tracking',
