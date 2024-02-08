@@ -40,8 +40,10 @@ class AnalyzingLegWrapper implements LegWrapper {
       }
 
       if (_startedMoving == null) return 0;
-      DateTime from = _positions.last.timestamp.subtract(_stayDuration);
-      if (from.isBefore(_startedMoving!.timestamp)) return 0;
+      DateTime last = _positions.last.timestamp;
+      DateTime from = last.subtract(_stayDuration);
+      if (from.isBefore(_startedMoving!.timestamp) ||
+          last.difference(_startedMoving!.timestamp) < _stayDuration) return 0;
       double holdAgainProb = await PositionUtils.calculateSingleHoldProbability(
           from, _stayDuration, _stayDistance, _positions);
       return holdAgainProb;
@@ -79,7 +81,7 @@ class AnalyzingLegWrapper implements LegWrapper {
           trimmedPositions.add(_positions[i]);
         }
       }
-      if (endCenter != null) _positions.add(endCenter);
+      if (endCenter != null) trimmedPositions.add(endCenter);
       _positions = trimmedPositions;
 
       // Calculating probability
