@@ -19,7 +19,6 @@ import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
 import 'package:app_backend/model/tracking_state.dart';
 import 'package:app_backend/model/trip/donation_state.dart';
-import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:background_locator_2/location_dto.dart';
@@ -264,16 +263,6 @@ class ProfiledTrekko implements Trekko {
         .map((t) => t.getEndTime())
         .reduce((value, element) => value.isAfter(element) ? value : element);
 
-    // final TripWrapper tripWrapper = AnalyzingTripWrapper();
-    // final List<TrackedPoint> points = trips
-    //     .map((trip) => trip.legs)
-    //     .expand((leg) => leg)
-    //     .expand((p) => p.trackedPoints)
-    //     .toList();
-    // for (var point in points) {
-    //   await tripWrapper.add(point.toPosition());
-    // }
-
     final Trip mergedTrip = new Trip();
 
     mergedTrip.startTime = startTime;
@@ -284,12 +273,12 @@ class ProfiledTrekko implements Trekko {
 
     final int mergedTripId = await saveTrip(mergedTrip);
 
-    await deleteTrip(tripsQuery);
-
     // if any of the merged trips are donated, donate the merged trip
     if (trips.any((t) => t.donationState == DonationState.donated)) {
       await donate(getTripQuery().idEqualTo(mergedTripId).build());
     }
+
+    await deleteTrip(tripsQuery);
 
     return mergedTrip;
   }
