@@ -1,4 +1,5 @@
 // import 'package:geolocator/geolocator.dart';
+import 'package:fling_units/fling_units.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 
@@ -26,7 +27,7 @@ class TrackedPoint {
   TrackedPoint.fromPosition(Position position)
       : latitude = position.latitude,
         longitude = position.longitude,
-        speed_in_kmh = position.speed,
+        speed_in_kmh = position.speed * 3.6,
         timestamp = position.timestamp;
 
   /// Returns the position of the tracked point
