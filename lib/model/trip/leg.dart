@@ -24,7 +24,10 @@ class Leg {
     }
 
     for (int i = 1; i < this.trackedPoints.length; i++) {
-      if (this.trackedPoints[i].timestamp.isBefore(this.trackedPoints[i - 1].timestamp)) {
+      if (this
+          .trackedPoints[i]
+          .timestamp
+          .isBefore(this.trackedPoints[i - 1].timestamp)) {
         throw Exception("The tracked points must be in chronological order");
       }
     }
@@ -47,7 +50,11 @@ class Leg {
 
   /// Returns the average speed of the leg
   DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() {
-    return this.getDistance().per(this.getDuration().inSeconds.seconds);
+    return ((this.getDistance().as(meters) /
+        this.getDuration().inSeconds.toDouble()) * 3.6)
+        .kilo
+        .meters
+        .per(1.hours);
   }
 
   /// Returns the distance of the leg
