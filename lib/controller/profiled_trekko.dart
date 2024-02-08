@@ -215,12 +215,10 @@ class ProfiledTrekko implements Trekko {
     return query.findAll().then((trips) async {
       if (trips.isEmpty) throw Exception("No trips to revoke");
 
-      if (trips
-          .any((element) => element.donationState != DonationState.donated))
-        throw Exception("Some trips aren't donated");
-
       for (Trip trip in trips) {
-        await _server.deleteTrip(trip.id.toString());
+        if (trip.donationState == DonationState.donated) {
+          await _server.deleteTrip(trip.id.toString());
+        }
         trip.donationState = DonationState.notDonated;
         await saveTrip(trip);
       }
