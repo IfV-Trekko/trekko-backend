@@ -23,9 +23,12 @@ class AuthentificationUtils {
       return false;
     }
 
+    Isar tripDb = await DatabaseUtils.openTrips(profile.id);
     TrekkoServer server = UrlTrekkoServer.withToken(projectUrl, profile.token);
     return server.deleteAccount().then((value) async {
       return db.writeTxn(() async => db.profiles.delete(profile.id));
+    }).then((value) {
+      return tripDb.close(deleteFromDisk: true);
     }).then((value) async {
       await db.close();
       return value;
