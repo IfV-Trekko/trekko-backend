@@ -11,24 +11,38 @@ class AnalyzingTripWrapper implements TripWrapper {
   final List<Leg> _legs = List.empty(growable: true);
   LegWrapper _legWrapper = AnalyzingLegWrapper();
   DateTime? newestTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime? oldestTimestamp;
+  Duration _minDuration = Duration(minutes: 20);
 
   @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
-      if (_legs.isEmpty || newestTimestamp == null) return 0;
+      if (_legs.isEmpty || newestTimestamp == null || oldestTimestamp == null)
+        return 0;
+      if (newestTimestamp!.difference(oldestTimestamp!) < _minDuration)
+        return 0;
       List<Position> positionsInOrder = _legs
           .expand((element) => element.trackedPoints)
           .map((e) => e.toPosition())
           .toList();
-      Duration min = Duration(minutes: 15);
-      Duration max = Duration(minutes: 30);
-      return PositionUtils.calculateHoldProbability(
-          newestTimestamp!, min, max, 200.meters, positionsInOrder);
+      return PositionUtils.calculateSingleHoldProbability(
+          newestTimestamp!.subtract(_minDuration),
+          _minDuration,
+          meters(200),
+          positionsInOrder);
     });
   }
 
   @override
   Future<void> add(Position position) async {
+    if (oldestTimestamp == null) {
+      oldestTimestamp = position.timestamp;
+    }
+
+    if (position.timestamp.isBefore(oldestTimestamp!))
+      throw Exception(
+          "The position is older than the oldest position in the trip");
+
     newestTimestamp = position.timestamp;
     double probability = await _legWrapper.calculateEndProbability();
     if (_legWrapper.collectedDataPoints() > 0 && probability > 0.95) {

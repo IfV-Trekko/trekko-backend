@@ -75,8 +75,8 @@ final class PositionUtils {
     Position anchor = positions[0];
     result.add(anchor);
     for (int i = 1; i < positions.length; i++) {
-      Distance distance = distanceBetween(anchor, positions[i]).meters;
-      if (distance > radius) {
+      double distance = distanceBetween(anchor, positions[i]);
+      if (distance > radius.as(meters)) {
         return result;
       }
       result.add(positions[i]);
