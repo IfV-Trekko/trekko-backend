@@ -124,7 +124,8 @@ class Trip {
   /// Returns the average speed of the trip
   DerivedMeasurement<Measurement<Distance>, Measurement<Time>>
       calculateSpeed() => ((this.calculateDistance().as(meters) /
-              this.calculateDuration().inSeconds.toDouble()) * 3.6)
+                  this.calculateDuration().inSeconds.toDouble()) *
+              3.6)
           .kilo
           .meters
           .per(1.hours);
@@ -188,5 +189,14 @@ class Trip {
     this._transportTypes = null;
     this._comment = null;
     this._purpose = null;
+  }
+
+  bool isModified() {
+    return this._startTime != null ||
+        this._endTime != null ||
+        this._distanceInMeters != null ||
+        this._transportTypes != null ||
+        this._comment != null ||
+        this._purpose != null;
   }
 }
