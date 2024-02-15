@@ -123,7 +123,7 @@ class Trip {
 
   /// Returns the average speed of the trip
   DerivedMeasurement<Measurement<Distance>, Measurement<Time>>
-      calculateSpeed() => ((this.getDistance().as(meters) /
+      calculateSpeed() => ((this.calculateDistance().as(meters) /
               this.calculateDuration().inSeconds.toDouble()) * 3.6)
           .kilo
           .meters
