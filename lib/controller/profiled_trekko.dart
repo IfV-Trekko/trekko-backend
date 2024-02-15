@@ -316,7 +316,14 @@ class ProfiledTrekko implements Trekko {
     }
 
     if (state == TrackingState.running) {
-      PermissionStatus permission = await Permission.locationAlways.status;
+      PermissionStatus permission = await Permission.locationWhenInUse.status;
+      if (permission != PermissionStatus.granted) {
+        permission = await Permission.locationWhenInUse.request();
+        if (permission != PermissionStatus.granted) {
+          return false;
+        }
+      }
+      permission = await Permission.locationAlways.status;
       if (permission != PermissionStatus.granted) {
         permission = await Permission.locationAlways.request();
         if (permission != PermissionStatus.granted) {
