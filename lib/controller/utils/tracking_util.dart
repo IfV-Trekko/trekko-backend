@@ -14,9 +14,10 @@ import 'package:isar/isar.dart';
 
 class LocationBackgroundTracking {
   static const String _dbName = "location";
+  static bool debug = false;
 
   static Future<bool> isRunning() async {
-    return await BackgroundLocator.isServiceRunning();
+    return debug ? true : await BackgroundLocator.isServiceRunning();
   }
 
   static Future<Isar> _getDatabase() async {
@@ -56,6 +57,7 @@ class LocationBackgroundTracking {
   }
 
   static Future<void> shutdown() async {
+    if (debug) return;
     await (await _getDatabase()).close();
     await BackgroundLocator.unRegisterLocationUpdate();
   }
