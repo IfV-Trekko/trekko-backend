@@ -19,8 +19,8 @@ class AnalyzingTripWrapper implements TripWrapper {
     return Future.microtask(() async {
       if (_legs.isEmpty || newestTimestamp == null || oldestTimestamp == null)
         return 0;
-      if (newestTimestamp!.difference(oldestTimestamp!) < _minDuration)
-        return 0;
+      if (newestTimestamp!.difference(oldestTimestamp!) < _minDuration ||
+          await _legWrapper.hasStartedMoving()) return 0;
       List<Position> positionsInOrder = _legs
           .expand((element) => element.trackedPoints)
           .map((e) => e.toPosition())
