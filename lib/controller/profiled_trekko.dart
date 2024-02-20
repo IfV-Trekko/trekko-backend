@@ -25,6 +25,7 @@ import 'package:background_locator_2/location_dto.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ProfiledTrekko implements Trekko {
   final String _projectUrl;
@@ -316,10 +317,17 @@ class ProfiledTrekko implements Trekko {
     }
 
     if (state == TrackingState.running) {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission != LocationPermission.always) {
-        permission = await Geolocator.requestPermission();
-        if (permission != LocationPermission.always) {
+      PermissionStatus permission = await Permission.locationWhenInUse.status;
+      if (permission != PermissionStatus.granted) {
+        permission = await Permission.locationWhenInUse.request();
+        if (permission != PermissionStatus.granted) {
+          return false;
+        }
+      }
+      permission = await Permission.locationAlways.status;
+      if (permission != PermissionStatus.granted) {
+        permission = await Permission.locationAlways.request();
+        if (permission != PermissionStatus.granted) {
           return false;
         }
       }
