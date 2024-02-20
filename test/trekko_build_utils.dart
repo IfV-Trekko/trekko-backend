@@ -14,6 +14,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:background_locator_2/background_locator.dart';
 
@@ -28,6 +29,14 @@ class MockPathProvider extends Mock
 
 class MyHttpOverrides extends HttpOverrides {}
 
+class CustomPermissionHandlerPlatform extends Mock
+    with MockPlatformInterfaceMixin
+    implements PermissionHandlerPlatform {
+  @override
+  Future<PermissionStatus> checkPermissionStatus(Permission permission) async {
+    return PermissionStatus.granted;
+  }
+}
 
 class TrekkoBuildUtils {
 
@@ -39,6 +48,7 @@ class TrekkoBuildUtils {
     PathProviderPlatform.instance = MockPathProvider();
     disablePathProviderPlatformOverride = true;
     LocationBackgroundTracking.debug = true;
+    PermissionHandlerPlatform.instance = CustomPermissionHandlerPlatform();
   }
 
   Future<Trekko> loginOrRegister(String email, String password) async {
