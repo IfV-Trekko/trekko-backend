@@ -286,7 +286,7 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(
       Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final List<Trip> unmodifiedTrips = trips.where((trip) => !trip.isModified()).toList();
+      final List<Trip> unmodifiedTrips = trips.where((trip) => !trip.isModified()).toList(); // TODO: Fix, this is highly inefficient
       if (unmodifiedTrips.isEmpty) return null;
       return unmodifiedTrips.map(tripData).reduce((t0, t1) => reduction.reduce(t0, t1));
     });
