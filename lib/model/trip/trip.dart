@@ -134,10 +134,6 @@ class Trip {
   Duration calculateDuration() =>
       this.getEndTime().difference(this.getStartTime());
 
-  /// Returns the duration of the trip calculated from its legs
-  Duration calculateDurationFromTrips() =>
-      this.calculateEndTime().difference(this.calculateStartTime());
-
   /// Returns the legs of the trip
   List<Leg> get legs => this._legs;
 
