@@ -17,7 +17,7 @@ class LocationBackgroundTracking {
   static bool debug = false;
 
   static Future<bool> isRunning() async {
-    return debug ? true : await BackgroundLocator.isServiceRunning();
+    return debug || await BackgroundLocator.isServiceRunning();
   }
 
   static Future<Isar> _getDatabase() async {

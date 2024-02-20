@@ -2,10 +2,10 @@ import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/position/transport_type_data.dart';
 import 'package:app_backend/controller/wrapper/leg/position/weighted_transport_type_evaluator.dart';
+import 'package:app_backend/model/position.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:geolocator/geolocator.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
   static const Duration _stayDuration = Duration(minutes: 2);

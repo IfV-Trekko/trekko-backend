@@ -1,7 +1,7 @@
+import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 
 part 'leg.g.dart';
@@ -51,7 +51,8 @@ class Leg {
   /// Returns the average speed of the leg
   DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() {
     return ((this.getDistance().as(meters) /
-        this.getDuration().inSeconds.toDouble()) * 3.6)
+                this.getDuration().inSeconds.toDouble()) *
+            3.6)
         .kilo
         .meters
         .per(1.hours);
@@ -63,7 +64,7 @@ class Leg {
     for (int i = 1; i < trackedPoints.length; i++) {
       TrackedPoint p0 = trackedPoints[i - 1];
       TrackedPoint p1 = trackedPoints[i];
-      distanceInMeters += Geolocator.distanceBetween(
+      distanceInMeters += PositionUtils.calculateDistance(
           p0.latitude, p0.longitude, p1.latitude, p1.longitude);
     }
     return distanceInMeters.meters;

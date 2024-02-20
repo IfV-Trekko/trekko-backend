@@ -13,6 +13,7 @@ import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
+import 'package:app_backend/model/position.dart';
 import 'package:app_backend/model/profile/battery_usage_setting.dart';
 import 'package:app_backend/model/profile/onboarding_question.dart';
 import 'package:app_backend/model/profile/preferences.dart';
@@ -23,7 +24,6 @@ import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -47,20 +47,6 @@ class ProfiledTrekko implements Trekko {
         _token = token {
     _positionController = StreamController.broadcast();
     _server = UrlTrekkoServer.withToken(projectUrl, token);
-  }
-
-  Position _toPosition(LocationDto loc) {
-    return Position(
-        longitude: loc.longitude,
-        latitude: loc.latitude,
-        timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
-        accuracy: loc.accuracy,
-        altitude: loc.altitude,
-        altitudeAccuracy: 0,
-        heading: loc.heading,
-        headingAccuracy: 0,
-        speed: loc.speed,
-        speedAccuracy: loc.speedAccuracy);
   }
 
   Future<int> _saveProfile(Profile profile) {
@@ -106,10 +92,10 @@ class ProfiledTrekko implements Trekko {
 
     TripWrapper tripWrapper = AnalyzingTripWrapper();
     List<Position> toProcess = await LocationBackgroundTracking.readCache()
-        .then((value) => value.map((e) => _toPosition(e)).toList());
+        .then((value) => value.map(Position.fromLocationDto).toList());
     _positionSubscription = (await LocationBackgroundTracking.hook())
         .listen((LocationDto loc) async {
-      Position detected = _toPosition(loc);
+      Position detected = Position.fromLocationDto(loc);
       _positionController.add(detected);
 
       List<Position> positions = toProcess.toList()..add(detected);

@@ -1,12 +1,34 @@
 import 'dart:math';
 
+import 'package:app_backend/model/position.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:geolocator/geolocator.dart';
 
 final class PositionUtils {
-  static double distanceBetween(Position a, Position b) {
-    return Geolocator.distanceBetween(
-        a.latitude, a.longitude, b.latitude, b.longitude);
+  static double calculateDistance(
+      double startLat, double startLong, double endLat, double endLong) {
+    const double earthRadius = 6371000; // Erdradius in Metern
+    double dLat = _toRadians(endLat - startLat);
+    double dLong = _toRadians(endLong - startLong);
+
+    startLat = _toRadians(startLat);
+    endLat = _toRadians(endLat);
+
+    double a = pow(sin(dLat / 2), 2) +
+        pow(sin(dLong / 2), 2) * cos(startLat) * cos(endLat);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    double distance = earthRadius * c;
+
+    return distance;
+  }
+
+  static double _toRadians(double degree) {
+    return degree * pi / 180;
+  }
+
+  static double distanceBetween(Position start, Position end) {
+    return calculateDistance(
+        start.latitude, start.longitude, end.latitude, end.longitude);
   }
 
   static Position getCenter(List<Position> positions) {
@@ -23,7 +45,7 @@ final class PositionUtils {
     Position? tripStart;
     for (int i = positions.length - 1; i >= 0; i--) {
       Position position = positions[i];
-      double distanceToCenter = Geolocator.distanceBetween(
+      double distanceToCenter = calculateDistance(
           sumLat, sumLong, position.latitude, position.longitude);
       if (previousDistanceToCenter == null) {
         previousDistanceToCenter = distanceToCenter;
