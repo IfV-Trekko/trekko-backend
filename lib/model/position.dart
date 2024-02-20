@@ -9,21 +9,21 @@ class Position {
   final double latitude;
   @JsonKey(name: "longitude")
   final double longitude;
-  @JsonKey(name: "timestamp")
+  @JsonKey(name: "time", toJson: _dateTimeToJson, fromJson: _dateTimeFromJson)
   final DateTime timestamp;
   @JsonKey(name: "accuracy")
   final double accuracy;
   @JsonKey(name: "altitude")
   final double altitude;
-  @JsonKey(name: "altitudeAccuracy")
-  final double altitudeAccuracy;
+  @JsonKey(name: "altitude_accuracy")
+  final double? altitudeAccuracy;
   @JsonKey(name: "heading")
   final double heading;
-  @JsonKey(name: "headingAccuracy")
-  final double headingAccuracy;
+  @JsonKey(name: "heading_accuracy")
+  final double? headingAccuracy;
   @JsonKey(name: "speed")
   final double speed;
-  @JsonKey(name: "speedAccuracy")
+  @JsonKey(name: "speed_accuracy")
   final double speedAccuracy;
 
   Position({
@@ -39,19 +39,19 @@ class Position {
     required this.speedAccuracy,
   });
 
-  Position.fromLocationDto(LocationDto locationDto)
-      : latitude = locationDto.latitude,
-        longitude = locationDto.longitude,
-        timestamp = DateTime.fromMillisecondsSinceEpoch(locationDto.time.round()),
-        accuracy = locationDto.accuracy,
-        altitude = locationDto.altitude,
-        altitudeAccuracy = 0,
-        heading = locationDto.heading,
-        headingAccuracy = 0,
-        speed = locationDto.speed,
-        speedAccuracy = locationDto.speedAccuracy;
+  factory Position.fromLocationDto(LocationDto locationDto) {
+    return _$PositionFromJson(locationDto.toJson());
+  }
 
   LocationDto toLocationDto() {
     return LocationDto.fromJson(_$PositionToJson(this));
+  }
+
+  static DateTime _dateTimeFromJson(double value) {
+    return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+  }
+
+  static double _dateTimeToJson(DateTime value) {
+    return value.millisecondsSinceEpoch.toDouble();
   }
 }

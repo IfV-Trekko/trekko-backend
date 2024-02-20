@@ -9,25 +9,25 @@ part of 'position.dart';
 Position _$PositionFromJson(Map<String, dynamic> json) => Position(
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      timestamp: Position._dateTimeFromJson(json['time'] as double),
       accuracy: (json['accuracy'] as num).toDouble(),
       altitude: (json['altitude'] as num).toDouble(),
-      altitudeAccuracy: (json['altitudeAccuracy'] as num).toDouble(),
+      altitudeAccuracy: (json['altitude_accuracy'] as num?)?.toDouble(),
       heading: (json['heading'] as num).toDouble(),
-      headingAccuracy: (json['headingAccuracy'] as num).toDouble(),
+      headingAccuracy: (json['heading_accuracy'] as num?)?.toDouble(),
       speed: (json['speed'] as num).toDouble(),
-      speedAccuracy: (json['speedAccuracy'] as num).toDouble(),
+      speedAccuracy: (json['speed_accuracy'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$PositionToJson(Position instance) => <String, dynamic>{
       'latitude': instance.latitude,
       'longitude': instance.longitude,
-      'timestamp': instance.timestamp.toIso8601String(),
+      'time': Position._dateTimeToJson(instance.timestamp),
       'accuracy': instance.accuracy,
       'altitude': instance.altitude,
-      'altitudeAccuracy': instance.altitudeAccuracy,
+      'altitude_accuracy': instance.altitudeAccuracy,
       'heading': instance.heading,
-      'headingAccuracy': instance.headingAccuracy,
+      'heading_accuracy': instance.headingAccuracy,
       'speed': instance.speed,
-      'speedAccuracy': instance.speedAccuracy,
+      'speed_accuracy': instance.speedAccuracy,
     };

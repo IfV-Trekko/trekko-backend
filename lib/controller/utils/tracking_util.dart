@@ -15,13 +15,21 @@ import 'package:isar/isar.dart';
 class LocationBackgroundTracking {
   static const String _dbName = "location";
   static bool debug = false;
+  static Isar? _isar;
 
   static Future<bool> isRunning() async {
     return debug || await BackgroundLocator.isServiceRunning();
   }
 
   static Future<Isar> _getDatabase() async {
-    return Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
+    if (_isar == null) {
+      if (Isar.getInstance(_dbName) != null) {
+        _isar = Isar.getInstance(_dbName)!;
+      } else {
+        _isar = await DatabaseUtils.openCache(_dbName);
+      }
+    }
+    return _isar!;
   }
 
   static Future<void> init(BatteryUsageSetting setting) async {
@@ -63,12 +71,13 @@ class LocationBackgroundTracking {
   }
 
   @pragma('vm:entry-point')
-  static void callback(LocationDto locationDto) async {
-    Isar isar = await _getDatabase();
-    await isar.writeTxn(() {
-      String encode = jsonEncode(locationDto.toJson());
-      return isar.cacheObjects
-          .put(CacheObject(encode, locationDto.time.round()));
+  static void callback(LocationDto locationDto) {
+    _getDatabase().then((isar) {
+      isar.writeTxn(() {
+        String encode = jsonEncode(locationDto.toJson());
+        return isar.cacheObjects
+            .put(CacheObject(encode, locationDto.time.round()));
+      });
     });
   }
 
@@ -83,7 +92,8 @@ class LocationBackgroundTracking {
         LocationBackgroundTracking.callback,
         initCallback: LocationBackgroundTracking.initCallback,
         autoStop: false,
-        iosSettings: IOSSettings(accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
+        iosSettings: IOSSettings(
+            accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
         androidSettings: AndroidSettings(
             accuracy: LocationAccuracy.NAVIGATION,
             interval: setting.interval,
