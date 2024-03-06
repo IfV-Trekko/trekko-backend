@@ -12,7 +12,7 @@ class AnalyzingTripWrapper implements TripWrapper {
   LegWrapper _legWrapper = AnalyzingLegWrapper();
   DateTime? newestTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime? oldestTimestamp;
-  Duration _minDuration = Duration(minutes: 20);
+  Duration _minDuration = Duration(minutes: 25);
 
   @override
   Future<double> calculateEndProbability() {
@@ -39,9 +39,9 @@ class AnalyzingTripWrapper implements TripWrapper {
       oldestTimestamp = position.timestamp;
     }
 
-    if (position.timestamp.isBefore(oldestTimestamp!))
+    if (newestTimestamp != null && position.timestamp.isBefore(newestTimestamp!))
       throw Exception(
-          "The position is older than the oldest position in the trip");
+          "Positions must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${position.timestamp}");
 
     newestTimestamp = position.timestamp;
     double probability = await _legWrapper.calculateEndProbability();
