@@ -341,6 +341,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> signOut() async {
+    await LocationBackgroundTracking.clearCache();
     await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
   }
 
