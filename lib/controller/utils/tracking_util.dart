@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
@@ -19,6 +20,9 @@ class LocationBackgroundTracking {
   static const String isolateName = "LocatorIsolate";
   static bool debug = false;
   static Isar? _isar;
+  static final Queue<LocationDto> locationQueue = Queue<LocationDto>();
+  static bool isProcessing = false;
+
 
   static Future<bool> isRunning() async {
     return debug || await BackgroundLocator.isServiceRunning();
@@ -49,18 +53,34 @@ class LocationBackgroundTracking {
         value.map((e) => LocationDto.fromJson(jsonDecode(e.value))).toList());
   }
 
-  static Future<Stream<LocationDto>> hook() async {
+  static void hook(Function(LocationDto) consumer) async {
     ReceivePort port = ReceivePort();
+
     if (IsolateNameServer.lookupPortByName(isolateName) != null) {
       IsolateNameServer.removePortNameMapping(isolateName);
     }
-
     IsolateNameServer.registerPortWithName(port.sendPort, isolateName);
-    StreamController<LocationDto> controller = StreamController();
-    port.listen((message) {
-      controller.add(LocationDto.fromJson(jsonDecode(message)));
+
+    port.listen((message) async {
+      LocationDto loc = LocationDto.fromJson(jsonDecode(message));
+      locationQueue.add(loc);
+      if (!isProcessing) {
+        processNextLocation(consumer);
+      }
     });
-    return controller.stream;
+  }
+
+  static void processNextLocation(Function(LocationDto) consumer) async {
+    if (locationQueue.isEmpty) {
+      isProcessing = false;
+      return;
+    }
+
+    isProcessing = true;
+    LocationDto loc = locationQueue.removeFirst();
+    await consumer(loc);
+
+    processNextLocation(consumer);
   }
 
   static Future<void> clearCache() async {
