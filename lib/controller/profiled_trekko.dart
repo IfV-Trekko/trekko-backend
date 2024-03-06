@@ -95,7 +95,7 @@ class ProfiledTrekko implements Trekko {
         .then((value) => value.map(Position.fromLocationDto).toList());
     LocationBackgroundTracking.hook((LocationDto loc) async {
       Position detected = Position.fromLocationDto(loc);
-      _positionController.add(detected);
+      if (!_positionController.isClosed) _positionController.add(detected);
 
       List<Position> positions = toProcess.toList()..add(detected);
       if (!toProcess.isEmpty) {
