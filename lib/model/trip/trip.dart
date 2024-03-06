@@ -170,7 +170,7 @@ class Trip {
       : calculateTransportTypes();
 
   List<TransportType> calculateTransportTypes() {
-    return this.legs.map((e) => e.transportType).toList();
+    return this.legs.map((e) => e.transportType).toSet().toList();
   }
 
   // Sets the transport types of the trip
@@ -191,8 +191,6 @@ class Trip {
     return this._startTime != null ||
         this._endTime != null ||
         this._distanceInMeters != null ||
-        this._transportTypes != null ||
-        this._comment != null ||
-        this._purpose != null;
+        this._transportTypes != null;
   }
 }
