@@ -36,7 +36,7 @@ class ProfiledTrekko implements Trekko {
   late Isar _tripDb;
   late StreamController<Position> _positionController;
   late TrekkoServer _server;
-  StreamSubscription? _positionSubscription;
+  // StreamSubscription? _positionSubscription;
 
   ProfiledTrekko(
       {required String projectUrl,
@@ -93,10 +93,9 @@ class ProfiledTrekko implements Trekko {
     TripWrapper tripWrapper = AnalyzingTripWrapper();
     List<Position> toProcess = await LocationBackgroundTracking.readCache()
         .then((value) => value.map(Position.fromLocationDto).toList());
-    _positionSubscription = (await LocationBackgroundTracking.hook())
-        .listen((LocationDto loc) async {
+    LocationBackgroundTracking.hook((LocationDto loc) async {
       Position detected = Position.fromLocationDto(loc);
-      _positionController.add(detected);
+      if (!_positionController.isClosed) _positionController.add(detected);
 
       List<Position> positions = toProcess.toList()..add(detected);
       if (!toProcess.isEmpty) {
@@ -123,7 +122,6 @@ class ProfiledTrekko implements Trekko {
       if (state == TrackingState.running) {
         await _startTracking();
       } else {
-        _positionSubscription?.cancel();
         LocationBackgroundTracking.shutdown();
       }
     });
@@ -142,11 +140,10 @@ class ProfiledTrekko implements Trekko {
 
   Future<void> terminate({bool hardDelete = false}) async {
     await _positionController.close();
-    if (_positionSubscription != null) await _positionSubscription!.cancel();
     if (await LocationBackgroundTracking.isRunning())
       await LocationBackgroundTracking.shutdown();
 
-    if (_profileDb.isOpen) await _profileDb.close(deleteFromDisk: hardDelete);
+    if (_profileDb.isOpen) await _profileDb.close();
     if (_tripDb.isOpen) await _tripDb.close(deleteFromDisk: hardDelete);
 
     await _server.close();
@@ -344,6 +341,7 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> signOut() async {
+    await LocationBackgroundTracking.clearCache();
     await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
   }
 

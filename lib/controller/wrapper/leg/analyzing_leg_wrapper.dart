@@ -31,15 +31,21 @@ class AnalyzingLegWrapper implements LegWrapper {
   }
 
   @override
+  Future<bool> hasStartedMoving() {
+    return Future.microtask(() async {
+      if (_startedMoving != null) return true;
+      if (_positions.length < 2) return false;
+      Position? centerStart = cluster(_positions);
+      if (centerStart == null) return false;
+      _startedMoving = centerStart;
+      return true;
+    });
+  }
+
+  @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
-      if (_startedMoving == null) {
-        Position? centerStart = cluster(_positions);
-        if (centerStart == null) return 0;
-        _startedMoving = centerStart;
-      }
-
-      if (_startedMoving == null) return 0;
+      if (!(await hasStartedMoving())) return 0;
       DateTime last = _positions.last.timestamp;
       DateTime from = last.subtract(_stayDuration);
       if (from.isBefore(_startedMoving!.timestamp) ||
