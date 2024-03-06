@@ -1,13 +1,12 @@
 import 'dart:io';
 
-import 'package:app_backend/controller/builder/authentification_utils.dart';
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/login_builder.dart';
 import 'package:app_backend/controller/builder/login_result.dart';
 import 'package:app_backend/controller/builder/registration_builder.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/tracking_util.dart';
-import 'package:app_backend/model/profile/profile.dart';
+import 'package:background_locator_2/background_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 import 'package:mockito/annotations.dart';
@@ -16,7 +15,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:background_locator_2/background_locator.dart';
 
 class MockPathProvider extends Mock
     with MockPlatformInterfaceMixin
@@ -39,7 +37,6 @@ class CustomPermissionHandlerPlatform extends Mock
 }
 
 class TrekkoBuildUtils {
-
   @GenerateMocks([BackgroundLocator])
   Future<void> init() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -84,9 +81,6 @@ class TrekkoBuildUtils {
   }
 
   Future<void> close(Trekko trekko) async {
-    Profile profile = await trekko.getProfile().first;
-    await trekko.terminate();
-    await AuthentificationUtils.deleteProfile(
-        profile.projectUrl, profile.email);
+    await trekko.deleteProfile();
   }
 }
