@@ -52,6 +52,9 @@ class TripBuilder {
       time = time.add(Duration(seconds: 5));
       latitude += latAddPer5Sec;
     } while (time.isBefore(end));
+    _leg.add(TrackedPoint.withData(
+        latitude, longitude, speed.as(kilo.meters, hours), time));
+    latitude += latAddPer5Sec;
     return this;
   }
 

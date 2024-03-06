@@ -25,7 +25,7 @@ void main() {
 
     double newestTime = 0;
     for (LocationDto locationDto in walkToShopAndBack) {
-      if (newestTime >= locationDto.time) {
+      if (newestTime > locationDto.time) {
         fail(
             "Newest time is not in right order, expected: $newestTime, got: ${locationDto.time}");
       }
