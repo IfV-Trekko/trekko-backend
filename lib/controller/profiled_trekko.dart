@@ -105,7 +105,8 @@ class ProfiledTrekko implements Trekko {
 
       for (Position position in positions) {
         double endTripProbability = await tripWrapper.calculateEndProbability();
-        if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.95) {
+        if (tripWrapper.collectedDataPoints() > 0 &&
+            endTripProbability > 0.95) {
           await saveTrip(await tripWrapper.get());
           tripWrapper = AnalyzingTripWrapper();
           await LocationBackgroundTracking.clearCache();
@@ -274,9 +275,13 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(
       Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final List<Trip> unmodifiedTrips = trips.where((trip) => !trip.isModified()).toList(); // TODO: Fix, this is highly inefficient
+      final List<Trip> unmodifiedTrips = trips
+          .where((trip) => !trip.isModified())
+          .toList(); // TODO: Fix, this is highly inefficient
       if (unmodifiedTrips.isEmpty) return null;
-      return unmodifiedTrips.map(tripData).reduce((t0, t1) => reduction.reduce(t0, t1));
+      return unmodifiedTrips
+          .map(tripData)
+          .reduce((t0, t1) => reduction.reduce(t0, t1));
     });
   }
 
