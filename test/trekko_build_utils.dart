@@ -37,6 +37,19 @@ class CustomPermissionHandlerPlatform extends Mock
 }
 
 class TrekkoBuildUtils {
+
+  static String getAddress() {
+    String ip = "localhost";
+    if (Platform.isAndroid) {
+      ip = "10.0.2.2";
+    } else if (Platform.isMacOS) {
+      ip =  "127.0.0.1";
+    } else {
+      ip =  "localhost";
+    }
+    return "http://$ip:8080";
+  }
+
   @GenerateMocks([BackgroundLocator])
   Future<void> init() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -50,22 +63,17 @@ class TrekkoBuildUtils {
 
   Future<Trekko> loginOrRegister(String email, String password) async {
     await init();
-    late String ip;
-    if (Platform.isAndroid) {
-      ip = "10.0.2.2";
-    } else {
-      ip = "localhost";
-    }
+    late String ip = getAddress();
     try {
       return await LoginBuilder.withData(
-              projectUrl: "http://$ip:8080", email: email, password: password)
+              projectUrl: ip, email: email, password: password)
           .build();
     } catch (e) {
       if (e is BuildException) {
         if (e.reason == LoginResult.failedNoSuchUser) {
           try {
             return await RegistrationBuilder.withData(
-                    projectUrl: "http://$ip:8080",
+                    projectUrl: ip,
                     email: email,
                     password: password,
                     passwordConfirmation: password,
