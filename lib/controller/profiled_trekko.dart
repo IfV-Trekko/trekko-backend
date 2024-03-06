@@ -105,7 +105,8 @@ class ProfiledTrekko implements Trekko {
 
       for (Position position in positions) {
         double endTripProbability = await tripWrapper.calculateEndProbability();
-        if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.95) {
+        if (tripWrapper.collectedDataPoints() > 0 &&
+            endTripProbability > 0.95) {
           await saveTrip(await tripWrapper.get());
           tripWrapper = AnalyzingTripWrapper();
           await LocationBackgroundTracking.clearCache();
@@ -139,13 +140,15 @@ class ProfiledTrekko implements Trekko {
     await _startTrackingListener();
   }
 
-  Future<void> terminate() async {
+  Future<void> terminate({bool hardDelete = false}) async {
     await _positionController.close();
     if (_positionSubscription != null) await _positionSubscription!.cancel();
     if (await LocationBackgroundTracking.isRunning())
       await LocationBackgroundTracking.shutdown();
-    await _profileDb.close();
-    await _tripDb.close();
+
+    if (_profileDb.isOpen) await _profileDb.close(deleteFromDisk: hardDelete);
+    if (_tripDb.isOpen) await _tripDb.close(deleteFromDisk: hardDelete);
+
     await _server.close();
   }
 
@@ -272,9 +275,13 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(
       Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final List<Trip> unmodifiedTrips = trips.where((trip) => !trip.isModified()).toList(); // TODO: Fix, this is highly inefficient
+      final List<Trip> unmodifiedTrips = trips
+          .where((trip) => !trip.isModified())
+          .toList(); // TODO: Fix, this is highly inefficient
       if (unmodifiedTrips.isEmpty) return null;
-      return unmodifiedTrips.map(tripData).reduce((t0, t1) => reduction.reduce(t0, t1));
+      return unmodifiedTrips
+          .map(tripData)
+          .reduce((t0, t1) => reduction.reduce(t0, t1));
     });
   }
 
@@ -333,5 +340,17 @@ class ProfiledTrekko implements Trekko {
     // If the tracking state is running, returns the positionstream from the geolocator package.
 
     return _positionController.stream;
+  }
+
+  @override
+  Future<void> signOut() async {
+    await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+  }
+
+  @override
+  Future<void> deleteProfile() async {
+    await _server.deleteAccount();
+    await this.signOut();
+    await this.terminate(hardDelete: true);
   }
 }
