@@ -170,7 +170,7 @@ class Trip {
       : calculateTransportTypes();
 
   List<TransportType> calculateTransportTypes() {
-    return this.legs.map((e) => e.transportType).toList();
+    return this.legs.map((e) => e.transportType).toSet().toList();
   }
 
   // Sets the transport types of the trip
