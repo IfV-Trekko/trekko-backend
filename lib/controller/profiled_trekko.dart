@@ -139,13 +139,15 @@ class ProfiledTrekko implements Trekko {
     await _startTrackingListener();
   }
 
-  Future<void> terminate() async {
+  Future<void> terminate({bool hardDelete = false}) async {
     await _positionController.close();
     if (_positionSubscription != null) await _positionSubscription!.cancel();
     if (await LocationBackgroundTracking.isRunning())
       await LocationBackgroundTracking.shutdown();
-    await _profileDb.close();
-    await _tripDb.close();
+
+    if (_profileDb.isOpen) await _profileDb.close(deleteFromDisk: hardDelete);
+    if (_tripDb.isOpen) await _tripDb.close(deleteFromDisk: hardDelete);
+
     await _server.close();
   }
 
@@ -333,5 +335,17 @@ class ProfiledTrekko implements Trekko {
     // If the tracking state is running, returns the positionstream from the geolocator package.
 
     return _positionController.stream;
+  }
+
+  @override
+  Future<void> signOut() async {
+    await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+  }
+
+  @override
+  Future<void> deleteProfile() async {
+    await _server.deleteAccount();
+    await this.signOut();
+    await this.terminate(hardDelete: true);
   }
 }
