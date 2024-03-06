@@ -46,14 +46,15 @@ class TripBuilder {
     double forwardMultiplier = forward ? 1 : -1;
     double latAddPer5Sec = speedAsMetersPerSecond * latDegreesPerMeter * 5 * forwardMultiplier;
     DateTime end = time.add(duration);
-    while (time.isBefore(end)) {
+    do {
       _leg.add(TrackedPoint.withData(
           latitude, longitude, speed.as(kilo.meters, hours), time));
-      latitude += latAddPer5Sec;
       time = time.add(Duration(seconds: 5));
-    }
+      latitude += latAddPer5Sec;
+    } while (time.isBefore(end));
     _leg.add(TrackedPoint.withData(
         latitude, longitude, speed.as(kilo.meters, hours), time));
+    latitude += latAddPer5Sec;
     return this;
   }
 

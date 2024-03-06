@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:app_backend/model/cache_object.dart';
@@ -14,8 +17,12 @@ import 'package:isar/isar.dart';
 
 class LocationBackgroundTracking {
   static const String _dbName = "location";
+  static const String isolateName = "LocatorIsolate";
   static bool debug = false;
   static Isar? _isar;
+  static final Queue<LocationDto> locationQueue = Queue<LocationDto>();
+  static bool isProcessing = false;
+
 
   static Future<bool> isRunning() async {
     return debug || await BackgroundLocator.isServiceRunning();
@@ -46,13 +53,34 @@ class LocationBackgroundTracking {
         value.map((e) => LocationDto.fromJson(jsonDecode(e.value))).toList());
   }
 
-  static Future<Stream<LocationDto>> hook() async {
-    Isar isar = await _getDatabase();
-    return isar.cacheObjects.watchLazy().map((void event) {
-      CacheObject? last =
-          isar.cacheObjects.where().sortByTimestampDesc().findFirstSync();
-      return LocationDto.fromJson(jsonDecode(last!.value));
+  static void hook(Function(LocationDto) consumer) async {
+    ReceivePort port = ReceivePort();
+
+    if (IsolateNameServer.lookupPortByName(isolateName) != null) {
+      IsolateNameServer.removePortNameMapping(isolateName);
+    }
+    IsolateNameServer.registerPortWithName(port.sendPort, isolateName);
+
+    port.listen((message) async {
+      LocationDto loc = LocationDto.fromJson(jsonDecode(message));
+      locationQueue.add(loc);
+      if (!isProcessing) {
+        processNextLocation(consumer);
+      }
     });
+  }
+
+  static void processNextLocation(Function(LocationDto) consumer) async {
+    if (locationQueue.isEmpty) {
+      isProcessing = false;
+      return;
+    }
+
+    isProcessing = true;
+    LocationDto loc = locationQueue.removeFirst();
+    await consumer(loc);
+
+    processNextLocation(consumer);
   }
 
   static Future<void> clearCache() async {
@@ -71,10 +99,12 @@ class LocationBackgroundTracking {
   }
 
   @pragma('vm:entry-point')
-  static void callback(LocationDto locationDto) {
-    _getDatabase().then((isar) {
-      isar.writeTxn(() {
+  static Future<void> callback(LocationDto locationDto) async {
+    return _getDatabase().then((isar) async {
+      await isar.writeTxn(() {
         String encode = jsonEncode(locationDto.toJson());
+        SendPort? port = IsolateNameServer.lookupPortByName(isolateName);
+        if (port != null) port.send(encode);
         return isar.cacheObjects
             .put(CacheObject(encode, locationDto.time.round()));
       });
