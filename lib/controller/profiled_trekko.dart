@@ -146,7 +146,7 @@ class ProfiledTrekko implements Trekko {
     if (await LocationBackgroundTracking.isRunning())
       await LocationBackgroundTracking.shutdown();
 
-    if (_profileDb.isOpen) await _profileDb.close(deleteFromDisk: hardDelete);
+    if (_profileDb.isOpen) await _profileDb.close();
     if (_tripDb.isOpen) await _tripDb.close(deleteFromDisk: hardDelete);
 
     await _server.close();
