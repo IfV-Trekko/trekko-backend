@@ -53,7 +53,7 @@ class LocationBackgroundTracking {
         value.map((e) => LocationDto.fromJson(jsonDecode(e.value))).toList());
   }
 
-  static void hook(Function(LocationDto) consumer) async {
+  static Future<StreamSubscription<dynamic>> hook(Function(LocationDto) consumer) async {
     ReceivePort port = ReceivePort();
 
     if (IsolateNameServer.lookupPortByName(isolateName) != null) {
@@ -61,7 +61,7 @@ class LocationBackgroundTracking {
     }
     IsolateNameServer.registerPortWithName(port.sendPort, isolateName);
 
-    port.listen((message) async {
+    return port.listen((message) async {
       LocationDto loc = LocationDto.fromJson(jsonDecode(message));
       locationQueue.add(loc);
       if (!isProcessing) {
@@ -100,11 +100,12 @@ class LocationBackgroundTracking {
 
   @pragma('vm:entry-point')
   static Future<void> callback(LocationDto locationDto) async {
+    String encode = jsonEncode(locationDto.toJson());
+    SendPort? port = IsolateNameServer.lookupPortByName(isolateName);
+    if (port != null) port.send(encode);
+
     return _getDatabase().then((isar) async {
-      await isar.writeTxn(() {
-        String encode = jsonEncode(locationDto.toJson());
-        SendPort? port = IsolateNameServer.lookupPortByName(isolateName);
-        if (port != null) port.send(encode);
+      return await isar.writeTxn(() {
         return isar.cacheObjects
             .put(CacheObject(encode, locationDto.time.round()));
       });

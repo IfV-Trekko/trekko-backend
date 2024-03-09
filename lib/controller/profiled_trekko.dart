@@ -36,6 +36,7 @@ class ProfiledTrekko implements Trekko {
   late Isar _tripDb;
   late StreamController<Position> _positionController;
   late TrekkoServer _server;
+  late StreamSubscription<dynamic> _locationSubscription;
   late StreamSubscription<Profile?> _profileSubscription;
 
   ProfiledTrekko(
@@ -83,7 +84,7 @@ class ProfiledTrekko implements Trekko {
     }
   }
 
-  Future<void> _startTracking() async {
+  Future<StreamSubscription<dynamic>> _startTracking() async {
     if (!(await LocationBackgroundTracking.isRunning())) {
       await LocationBackgroundTracking.init(
           // Wont update on preferences change
@@ -93,7 +94,7 @@ class ProfiledTrekko implements Trekko {
     TripWrapper tripWrapper = AnalyzingTripWrapper();
     List<Position> toProcess = await LocationBackgroundTracking.readCache()
         .then((value) => value.map(Position.fromLocationDto).toList());
-    LocationBackgroundTracking.hook((LocationDto loc) async {
+    return LocationBackgroundTracking.hook((LocationDto loc) async {
       Position detected = Position.fromLocationDto(loc);
       if (!_positionController.isClosed) _positionController.add(detected);
 
@@ -124,8 +125,9 @@ class ProfiledTrekko implements Trekko {
         .listen((event) async {
       TrackingState state = event!.trackingState;
       if (state == TrackingState.running) {
-        await _startTracking();
+        _locationSubscription = await _startTracking();
       } else {
+        await _locationSubscription.cancel();
         LocationBackgroundTracking.shutdown();
       }
     });
@@ -137,7 +139,7 @@ class ProfiledTrekko implements Trekko {
     await _initProfile();
     _tripDb = await DatabaseUtils.openTrips(this._profileId);
     if ((await getProfile().first).trackingState == TrackingState.running) {
-      await _startTracking();
+      _locationSubscription = await _startTracking();
     }
     _profileSubscription = await _startTrackingListener();
   }
@@ -335,6 +337,7 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
     await _positionController.close();
+    await _locationSubscription.cancel();
     await _profileSubscription.cancel();
     if (await LocationBackgroundTracking.isRunning()) {
       await LocationBackgroundTracking.clearCache();
