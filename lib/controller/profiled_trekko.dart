@@ -36,7 +36,7 @@ class ProfiledTrekko implements Trekko {
   late Isar _tripDb;
   late StreamController<Position> _positionController;
   late TrekkoServer _server;
-  // StreamSubscription? _positionSubscription;
+  late StreamSubscription<Profile?> _profileSubscription;
 
   ProfiledTrekko(
       {required String projectUrl,
@@ -116,8 +116,12 @@ class ProfiledTrekko implements Trekko {
     });
   }
 
-  Future<void> _startTrackingListener() async {
-    this._profileDb.profiles.watchObject(this._profileId).listen((event) async {
+  Future<StreamSubscription<Profile?>> _startTrackingListener() async {
+    return this
+        ._profileDb
+        .profiles
+        .watchObject(this._profileId)
+        .listen((event) async {
       TrackingState state = event!.trackingState;
       if (state == TrackingState.running) {
         await _startTracking();
@@ -135,18 +139,7 @@ class ProfiledTrekko implements Trekko {
     if ((await getProfile().first).trackingState == TrackingState.running) {
       await _startTracking();
     }
-    await _startTrackingListener();
-  }
-
-  Future<void> terminate({bool hardDelete = false}) async {
-    await _positionController.close();
-    if (await LocationBackgroundTracking.isRunning())
-      await LocationBackgroundTracking.shutdown();
-
-    if (_profileDb.isOpen) await _profileDb.close();
-    if (_tripDb.isOpen) await _tripDb.close(deleteFromDisk: hardDelete);
-
-    await _server.close();
+    _profileSubscription = await _startTrackingListener();
   }
 
   @override
@@ -340,15 +333,30 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Future<void> signOut() async {
-    await LocationBackgroundTracking.clearCache();
-    await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+  Future<void> terminate({keepServiceOpen = false}) async {
+    await _positionController.close();
+    await _profileSubscription.cancel();
+    if (await LocationBackgroundTracking.isRunning()) {
+      await LocationBackgroundTracking.clearCache();
+      await LocationBackgroundTracking.shutdown();
+    }
+
+    // If no deletion is planned, we can just close the databases and the server
+    if (!keepServiceOpen) {
+      await Future.wait([_profileDb.close(), _tripDb.close(), _server.close()]);
+    }
   }
 
   @override
-  Future<void> deleteProfile() async {
-    await _server.deleteAccount();
-    await this.signOut();
-    await this.terminate(hardDelete: true);
+  Future<void> signOut({bool delete = false}) async {
+    // Terminate, delete the profile, trips and server
+    await terminate(keepServiceOpen: true);
+
+    if (delete) await _server.deleteAccount();
+    await _server.close();
+
+    await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+    await _profileDb.close();
+    await _tripDb.close(deleteFromDisk: delete);
   }
 }

@@ -14,9 +14,6 @@ abstract class Trekko {
   /// Initializes the Trekko instance.
   Future<void> init();
 
-  /// Terminates the Trekko instance.
-  Future<void> terminate({bool hardDelete = false});
-
   /// Returns a stream of the current profile.
   Stream<Profile> getProfile();
 
@@ -59,9 +56,9 @@ abstract class Trekko {
   /// Sets the tracking state.
   Future<bool> setTrackingState(TrackingState state);
 
-  /// Logs out the user.
-  Future<void> signOut();
+  /// Terminates the Trekko instance
+  Future<void> terminate();
 
-  // Deletes the profile from client and server.
-  Future<void> deleteProfile();
+  /// Logs out the user.
+  Future<void> signOut({bool delete = false});
 }

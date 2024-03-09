@@ -27,6 +27,6 @@ void main() {
     LastLoginBuilder lastLoginBuilder = LastLoginBuilder();
     Trekko? trekko = await lastLoginBuilder.build();
     expect(trekko, isNotNull);
-    await trekko.deleteProfile();
+    await trekko.signOut(delete: true);
   });
 }

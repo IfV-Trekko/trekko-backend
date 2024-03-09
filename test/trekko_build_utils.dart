@@ -89,6 +89,6 @@ class TrekkoBuildUtils {
   }
 
   Future<void> close(Trekko trekko) async {
-    await trekko.deleteProfile();
+    await trekko.signOut(delete: true);
   }
 }

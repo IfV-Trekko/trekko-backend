@@ -68,7 +68,8 @@ class UrlTrekkoServer implements TrekkoServer {
       return EmptyResponse() as T;
     }
 
-    return parser.call(jsonDecode(utf8.decode(response.bodyBytes)));
+    String decode = utf8.decode(response.bodyBytes);
+    return parser.call(jsonDecode(decode));
   }
 
   Future<T> _sendGet<T>(
