@@ -36,8 +36,8 @@ class ProfiledTrekko implements Trekko {
   late Isar _tripDb;
   late StreamController<Position> _positionController;
   late TrekkoServer _server;
-  late StreamSubscription<dynamic> _locationSubscription;
   late StreamSubscription<Profile?> _profileSubscription;
+  StreamSubscription<dynamic>? _locationSubscription;
 
   ProfiledTrekko(
       {required String projectUrl,
@@ -127,7 +127,7 @@ class ProfiledTrekko implements Trekko {
       if (state == TrackingState.running) {
         _locationSubscription = await _startTracking();
       } else {
-        await _locationSubscription.cancel();
+        await _locationSubscription?.cancel();
         LocationBackgroundTracking.shutdown();
       }
     });
@@ -337,8 +337,8 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
     await _positionController.close();
-    await _locationSubscription.cancel();
     await _profileSubscription.cancel();
+    await _locationSubscription?.cancel();
     if (await LocationBackgroundTracking.isRunning()) {
       await LocationBackgroundTracking.clearCache();
       await LocationBackgroundTracking.shutdown();
