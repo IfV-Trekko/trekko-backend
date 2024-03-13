@@ -9,7 +9,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
-import 'trekko_build_utils.dart';
+import '../trekko_build_utils.dart';
 
 const String password = "1aA!hklj32r4hkjl324r";
 const String email = "background_tracking_test@profile_test.com";

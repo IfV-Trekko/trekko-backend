@@ -19,31 +19,22 @@ class BufferedFilterTripWrapper implements TripWrapper {
 
   bool isValidNewPosition(Position newPosition) {
     if (_buffer.isEmpty) {
-      // Wenn der Buffer leer ist, ist jede neue Position valide
       return true;
     }
 
-    // Hole die letzte Position aus dem Buffer
     Position lastPosition = _buffer.last;
 
-    // Berechne die Distanz und Zeitdifferenz
     double distance = PositionUtils.distanceBetween(lastPosition, newPosition);
     int timeDiffInSeconds =
         newPosition.timestamp.difference(lastPosition.timestamp).inSeconds;
 
-    // Vermeide Division durch Null
     if (timeDiffInSeconds <= 0) {
-      return false; // oder handle diesen Fall anders
+      return false;
     }
 
-    // Berechne die Geschwindigkeit basierend auf der Distanz und der Zeitdifferenz
     double calculatedSpeed = distance / timeDiffInSeconds;
-
-    // Überprüfe, ob die berechnete Geschwindigkeit im erwarteten Bereich liegt
-    // Hier könnte z.B. eine Toleranzgrenze von 10% der gemeldeten Geschwindigkeit angenommen werden
     double speedDifference = (calculatedSpeed - newPosition.speed).abs();
 
-    // Angenommene Toleranz: 10% der gemeldeten Geschwindigkeit
     bool isSpeedDifferenceAcceptable =
         speedDifference <= newPosition.speed * tolerance;
 
@@ -67,6 +58,7 @@ class BufferedFilterTripWrapper implements TripWrapper {
       // Check if newly added position is off
       if (!isValidNewPosition(position)) {
         _rejected.add(position);
+        print("REJECT: " + position.timestamp.toString());
         return;
       }
 
