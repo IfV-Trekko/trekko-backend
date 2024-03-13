@@ -39,7 +39,7 @@ abstract class Trekko {
 
   /// Analyzes a query of trips.
   Stream<T?> analyze<T>(
-      Query<Trip> trips, List<T> Function(Trip) tripData, Calculation<T> calc);
+      Query<Trip> trips, Iterable<T> Function(Trip) tripData, Calculation<T> calc);
 
   /// Donates a query of trips to the server.
   Future<int> donate(Query<Trip> query);

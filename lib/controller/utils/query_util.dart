@@ -1,4 +1,6 @@
 import 'package:app_backend/controller/trekko.dart';
+import 'package:app_backend/model/trip/leg.dart';
+import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
 
@@ -14,6 +16,11 @@ class QueryUtil {
     for (int id in ids) {
       query = query.or().idEqualTo(id);
     }
+    return this;
+  }
+
+  QueryUtil transportType(TransportType type) {
+    query = query.legsElement((l) => l.transportTypeEqualTo(type));
     return this;
   }
 
