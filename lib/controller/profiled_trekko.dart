@@ -217,9 +217,8 @@ class ProfiledTrekko implements Trekko {
           .where((t) => t.donationState == DonationState.donated)
           .toList();
       if (!toRevoke.isEmpty) {
-        await revoke(QueryUtil(this)
-            .idsOr(foundTrips.map((e) => e.id).toList())
-            .build());
+        await revoke(
+            QueryUtil(this).buildIdsOr(foundTrips.map((e) => e.id).toList()));
       }
       return _tripDb.writeTxn(() => trips.deleteAll());
     });
@@ -269,7 +268,6 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(Query<Trip> trips, Iterable<T> Function(Trip) tripData,
       Calculation<T> calc) {
     return trips.watch(fireImmediately: true).map((trips) {
-      print(trips.length);
       final Iterable<T> toAnalyse =
           trips.where((trip) => // TODO: Fix, this is highly inefficient
               !trip.isModified()).expand(tripData);
