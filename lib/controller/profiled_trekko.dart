@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_backend/controller/analysis/reductions.dart';
+import 'package:app_backend/controller/analysis/calculation.dart';
 import 'package:app_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:app_backend/controller/utils/query_util.dart';
 import 'package:app_backend/controller/utils/tracking_util.dart';
@@ -266,16 +266,13 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Stream<T?> analyze<T>(
-      Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
+  Stream<T?> analyze<T>(Query<Trip> trips,
+      List<T> Function(Trip) tripData, Calculation<T> calc) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final List<Trip> unmodifiedTrips = trips
-          .where((trip) => !trip.isModified())
-          .toList(); // TODO: Fix, this is highly inefficient
+      final Iterable<Trip> unmodifiedTrips = trips.where((trip) =>
+          !trip.isModified()); // TODO: Fix, this is highly inefficient
       if (unmodifiedTrips.isEmpty) return null;
-      return unmodifiedTrips
-          .map(tripData)
-          .reduce((t0, t1) => reduction.reduce(t0, t1));
+      return calc.calculate(unmodifiedTrips.expand(tripData));
     });
   }
 

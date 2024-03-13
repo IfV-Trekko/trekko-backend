@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_backend/controller/analysis/reductions.dart';
+import 'package:app_backend/controller/analysis/calculation.dart';
 import 'package:app_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
 import 'package:app_backend/model/position.dart';
@@ -39,7 +39,7 @@ abstract class Trekko {
 
   /// Analyzes a query of trips.
   Stream<T?> analyze<T>(
-      Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction);
+      Query<Trip> trips, List<T> Function(Trip) tripData, Calculation<T> calc);
 
   /// Donates a query of trips to the server.
   Future<int> donate(Query<Trip> query);
