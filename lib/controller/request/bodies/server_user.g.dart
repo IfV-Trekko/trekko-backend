@@ -10,7 +10,7 @@ ServerUser _$ServerUserFromJson(Map<String, dynamic> json) => ServerUser(
       json['id'] as String,
       json['email'] as String,
       json['emailConfirmed'] as bool,
-      json['profile'] as Map<String, dynamic>,
+      json['profile'] as Map<String, dynamic>?,
       DateTime.parse(json['createdAt'] as String),
       DateTime.parse(json['updatedAt'] as String),
     );

@@ -1,3 +1,4 @@
+import 'package:app_backend/controller/analysis/average.dart';
 import 'package:app_backend/controller/analysis/reductions.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/trip_builder.dart';
@@ -16,24 +17,26 @@ const String email = "profile_test113@profile_test.com";
 Future<void> checkTrip(
     Trekko trekko, int tripId, Distance distance, Duration duration) async {
   var query = trekko.getTripQuery().idEqualTo(tripId).build();
-  Distance? calculatedDistance = await trekko
-      .analyze(query, (t) => t.getDistance(), DistanceReduction.SUM)
+  double? calculatedDistance = await trekko
+      .analyze(
+          query, (t) => [t.getDistance().as(kilo.meters)], DoubleReduction.SUM)
       .first;
-  Duration? calculatedDuration = await trekko
-      .analyze(query, (t) => t.calculateDuration(), DurationReduction.SUM)
-      .first;
-  var calculatedSpeed = await trekko
-      .analyze(query, (t) => t.calculateSpeed(), SpeedReduction.AVERAGE)
+  double? calculatedDuration = (await trekko
+      .analyze(query, (t) => [t.calculateDuration().inSeconds.toDouble()],
+          DoubleReduction.SUM)
+      .first);
+  double? calculatedSpeed = await trekko
+      .analyze(query, (t) => [t.calculateSpeed().as(kilo.meters, hours)],
+          AverageCalculation())
       .first;
 
-  expect(calculatedDistance!.as(kilo.meters).round(),
-      equals(distance.as(kilo.meters)));
-  expect(calculatedDuration, equals(duration));
+  expect(calculatedDistance!.round(), equals(distance.as(kilo.meters)));
+  expect(calculatedDuration, equals(duration.inSeconds));
   expect(
-      calculatedSpeed?.as(kilo.meters, seconds).round(),
+      calculatedSpeed!.round(),
       equals(equals(distance
-          .per(duration.inSeconds.seconds)
-          .as(kilo.meters, seconds)
+          .per(duration.inHours.hours)
+          .as(kilo.meters, hours)
           .round())));
 }
 
@@ -72,8 +75,14 @@ void main() {
   });
 
   test("Analyze transport type data with not trip in it", () async {
-    var query = trekko.getTripQuery().filter().legsElement((q) => q.transportTypeEqualTo(TransportType.other));
-    var transportTypeData = await trekko.analyze(query.build(), (t) => t.getDistance(), DistanceReduction.SUM).first;
+    var query = trekko
+        .getTripQuery()
+        .filter()
+        .legsElement((q) => q.transportTypeEqualTo(TransportType.other));
+    var transportTypeData = await trekko
+        .analyze(query.build(), (t) => [t.getDistance().as(kilo.meters)],
+            DoubleReduction.SUM)
+        .first;
     expect(transportTypeData, equals(null));
   });
 
