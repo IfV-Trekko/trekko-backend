@@ -14,7 +14,7 @@ class ServerUser {
   final bool emailConfirmed;
 
   @JsonKey(name: "profile")
-  final Map<String, dynamic> profile;
+  final Map<String, dynamic>? profile;
 
   @JsonKey(name: "createdAt")
   final DateTime createdAt;
