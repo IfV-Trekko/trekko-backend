@@ -1,5 +1,4 @@
 import 'package:app_backend/controller/builder/last_login_builder.dart';
-import 'package:app_backend/controller/builder/registration_builder.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,13 +11,7 @@ void main() {
   setUp(() async {
     // Register new account
     await TrekkoBuildUtils().init();
-    Trekko trekko = await RegistrationBuilder.withData(
-            projectUrl: TrekkoBuildUtils.getAddress(),
-            email: email,
-            password: password,
-            passwordConfirmation: password,
-            code: "12345")
-        .build();
+    Trekko trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
     await trekko.terminate();
   });
 
