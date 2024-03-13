@@ -53,10 +53,16 @@ class Preferences {
 
   void setQuestionAnswer(String key, dynamic answer) {
     this.questionAnswers = this.questionAnswers.toList(growable: true);
+    if (answer == null) {
+      this.questionAnswers.removeWhere((element) => element.key == key);
+      return;
+    }
+
+    dynamic answerValue = _parseAnswer(key, answer);
     this.questionAnswers.removeWhere((element) => element.key == key);
-    if (answer != null)
-      this.questionAnswers.add(QuestionAnswer.withData(
-          key, _parseAnswer(key, answer.toString()).toString()));
+    this
+        .questionAnswers
+        .add(QuestionAnswer.withData(key, answerValue.toString()));
   }
 
   ServerProfile toServerProfile() {
