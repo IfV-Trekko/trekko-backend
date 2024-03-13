@@ -58,7 +58,7 @@ class Preferences {
       return;
     }
 
-    dynamic answerValue = _parseAnswer(key, answer);
+    dynamic answerValue = _parseAnswer(key, answer.toString());
     this.questionAnswers.removeWhere((element) => element.key == key);
     this
         .questionAnswers
