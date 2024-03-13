@@ -21,21 +21,28 @@ class LastLoginBuilder extends TrekkoBuilder {
     return DatabaseUtils.openProfiles().then((value) async {
       Profile? latestProfile =
           await value.profiles.where().sortByLastLoginDesc().findFirst();
-      await value.close();
-      if (latestProfile == null)
+      if (latestProfile == null) {
+        await value.close();
         throw new BuildException(null, LoginResult.failedNoSuchUser);
+      }
 
       try {
         await UrlTrekkoServer.withToken(
                 latestProfile.projectUrl, latestProfile.token)
             .getUser();
-      } catch (e) {
-        if (e is RequestException && (e.code == 404 || e.code == 403)) {
+      } on RequestException catch (e) {
+        if ((e.code == 404 || e.code == 403)) {
+          // Delete the profile from the database
+          await value.profiles.filter().idEqualTo(latestProfile.id).deleteAll();
+          value.close();
           throw BuildException(e, LoginResult.failedSessionExpired);
         }
+      } finally {
+        await value.close();
       }
+
       return makeTrekko(
-          latestProfile.projectUrl, latestProfile.email, latestProfile.token);
+          latestProfile.projectUrl, latestProfile.email, latestProfile.token!);
     });
   }
 }

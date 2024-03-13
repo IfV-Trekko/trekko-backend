@@ -13,6 +13,7 @@ import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
+import 'package:app_backend/model/position.dart';
 import 'package:app_backend/model/profile/battery_usage_setting.dart';
 import 'package:app_backend/model/profile/onboarding_question.dart';
 import 'package:app_backend/model/profile/preferences.dart';
@@ -23,7 +24,6 @@ import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -36,7 +36,8 @@ class ProfiledTrekko implements Trekko {
   late Isar _tripDb;
   late StreamController<Position> _positionController;
   late TrekkoServer _server;
-  StreamSubscription? _positionSubscription;
+  late StreamSubscription<Profile?> _profileSubscription;
+  StreamSubscription<dynamic>? _locationSubscription;
 
   ProfiledTrekko(
       {required String projectUrl,
@@ -47,20 +48,6 @@ class ProfiledTrekko implements Trekko {
         _token = token {
     _positionController = StreamController.broadcast();
     _server = UrlTrekkoServer.withToken(projectUrl, token);
-  }
-
-  Position _toPosition(LocationDto loc) {
-    return Position(
-        longitude: loc.longitude,
-        latitude: loc.latitude,
-        timestamp: DateTime.fromMillisecondsSinceEpoch(loc.time.round()),
-        accuracy: loc.accuracy,
-        altitude: loc.altitude,
-        altitudeAccuracy: 0,
-        heading: loc.heading,
-        headingAccuracy: 0,
-        speed: loc.speed,
-        speedAccuracy: loc.speedAccuracy);
   }
 
   Future<int> _saveProfile(Profile profile) {
@@ -97,7 +84,7 @@ class ProfiledTrekko implements Trekko {
     }
   }
 
-  Future<void> _startTracking() async {
+  Future<StreamSubscription<dynamic>> _startTracking() async {
     if (!(await LocationBackgroundTracking.isRunning())) {
       await LocationBackgroundTracking.init(
           // Wont update on preferences change
@@ -106,11 +93,10 @@ class ProfiledTrekko implements Trekko {
 
     TripWrapper tripWrapper = AnalyzingTripWrapper();
     List<Position> toProcess = await LocationBackgroundTracking.readCache()
-        .then((value) => value.map((e) => _toPosition(e)).toList());
-    _positionSubscription = (await LocationBackgroundTracking.hook())
-        .listen((LocationDto loc) async {
-      Position detected = _toPosition(loc);
-      _positionController.add(detected);
+        .then((value) => value.map(Position.fromLocationDto).toList());
+    return LocationBackgroundTracking.hook((LocationDto loc) async {
+      Position detected = Position.fromLocationDto(loc);
+      if (!_positionController.isClosed) _positionController.add(detected);
 
       List<Position> positions = toProcess.toList()..add(detected);
       if (!toProcess.isEmpty) {
@@ -119,7 +105,8 @@ class ProfiledTrekko implements Trekko {
 
       for (Position position in positions) {
         double endTripProbability = await tripWrapper.calculateEndProbability();
-        if (tripWrapper.collectedDataPoints() > 0 && endTripProbability > 0.95) {
+        if (tripWrapper.collectedDataPoints() > 0 &&
+            endTripProbability > 0.95) {
           await saveTrip(await tripWrapper.get());
           tripWrapper = AnalyzingTripWrapper();
           await LocationBackgroundTracking.clearCache();
@@ -130,13 +117,17 @@ class ProfiledTrekko implements Trekko {
     });
   }
 
-  Future<void> _startTrackingListener() async {
-    this._profileDb.profiles.watchObject(this._profileId).listen((event) async {
+  Future<StreamSubscription<Profile?>> _startTrackingListener() async {
+    return this
+        ._profileDb
+        .profiles
+        .watchObject(this._profileId)
+        .listen((event) async {
       TrackingState state = event!.trackingState;
       if (state == TrackingState.running) {
-        await _startTracking();
+        _locationSubscription = await _startTracking();
       } else {
-        _positionSubscription?.cancel();
+        await _locationSubscription?.cancel();
         LocationBackgroundTracking.shutdown();
       }
     });
@@ -148,19 +139,9 @@ class ProfiledTrekko implements Trekko {
     await _initProfile();
     _tripDb = await DatabaseUtils.openTrips(this._profileId);
     if ((await getProfile().first).trackingState == TrackingState.running) {
-      await _startTracking();
+      _locationSubscription = await _startTracking();
     }
-    await _startTrackingListener();
-  }
-
-  Future<void> terminate() async {
-    await _positionController.close();
-    if (_positionSubscription != null) await _positionSubscription!.cancel();
-    if (await LocationBackgroundTracking.isRunning())
-      await LocationBackgroundTracking.shutdown();
-    await _profileDb.close();
-    await _tripDb.close();
-    await _server.close();
+    _profileSubscription = await _startTrackingListener();
   }
 
   @override
@@ -286,9 +267,13 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(
       Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final List<Trip> unmodifiedTrips = trips.where((trip) => !trip.isModified()).toList();
+      final List<Trip> unmodifiedTrips = trips
+          .where((trip) => !trip.isModified())
+          .toList(); // TODO: Fix, this is highly inefficient
       if (unmodifiedTrips.isEmpty) return null;
-      return unmodifiedTrips.map(tripData).reduce((t0, t1) => reduction.reduce(t0, t1));
+      return unmodifiedTrips
+          .map(tripData)
+          .reduce((t0, t1) => reduction.reduce(t0, t1));
     });
   }
 
@@ -347,5 +332,41 @@ class ProfiledTrekko implements Trekko {
     // If the tracking state is running, returns the positionstream from the geolocator package.
 
     return _positionController.stream;
+  }
+
+  @override
+  Future<void> terminate({keepServiceOpen = false}) async {
+    await _positionController.close();
+    await _profileSubscription.cancel();
+    await _locationSubscription?.cancel();
+    if (await LocationBackgroundTracking.isRunning()) {
+      await LocationBackgroundTracking.clearCache();
+      await LocationBackgroundTracking.shutdown();
+    }
+
+    // If no deletion is planned, we can just close the databases and the server
+    if (!keepServiceOpen) {
+      await Future.wait([_profileDb.close(), _tripDb.close(), _server.close()]);
+    }
+  }
+
+  @override
+  Future<void> signOut({bool delete = false}) async {
+    // Terminate, delete the profile, trips and server
+    await terminate(keepServiceOpen: true);
+
+    if (delete) await _server.deleteAccount();
+    await _server.close();
+
+    if (delete) {
+      await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+    } else {
+      Profile profile = await getProfile().first;
+      profile.token = null;
+      await _saveProfile(profile);
+    }
+
+    await _profileDb.close();
+    await _tripDb.close(deleteFromDisk: delete);
   }
 }

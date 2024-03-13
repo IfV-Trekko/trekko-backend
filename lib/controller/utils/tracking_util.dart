@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:app_backend/model/cache_object.dart';
@@ -14,14 +17,26 @@ import 'package:isar/isar.dart';
 
 class LocationBackgroundTracking {
   static const String _dbName = "location";
+  static const String isolateName = "LocatorIsolate";
   static bool debug = false;
+  static Isar? _isar;
+  static final Queue<LocationDto> locationQueue = Queue<LocationDto>();
+  static bool isProcessing = false;
+
 
   static Future<bool> isRunning() async {
-    return debug ? true : await BackgroundLocator.isServiceRunning();
+    return debug || await BackgroundLocator.isServiceRunning();
   }
 
   static Future<Isar> _getDatabase() async {
-    return Isar.getInstance(_dbName) ?? await DatabaseUtils.openCache(_dbName);
+    if (_isar == null) {
+      if (Isar.getInstance(_dbName) != null) {
+        _isar = Isar.getInstance(_dbName)!;
+      } else {
+        _isar = await DatabaseUtils.openCache(_dbName);
+      }
+    }
+    return _isar!;
   }
 
   static Future<void> init(BatteryUsageSetting setting) async {
@@ -38,13 +53,34 @@ class LocationBackgroundTracking {
         value.map((e) => LocationDto.fromJson(jsonDecode(e.value))).toList());
   }
 
-  static Future<Stream<LocationDto>> hook() async {
-    Isar isar = await _getDatabase();
-    return isar.cacheObjects.watchLazy().map((void event) {
-      CacheObject? last =
-          isar.cacheObjects.where().sortByTimestampDesc().findFirstSync();
-      return LocationDto.fromJson(jsonDecode(last!.value));
+  static Future<StreamSubscription<dynamic>> hook(Function(LocationDto) consumer) async {
+    ReceivePort port = ReceivePort();
+
+    if (IsolateNameServer.lookupPortByName(isolateName) != null) {
+      IsolateNameServer.removePortNameMapping(isolateName);
+    }
+    IsolateNameServer.registerPortWithName(port.sendPort, isolateName);
+
+    return port.listen((message) async {
+      LocationDto loc = LocationDto.fromJson(jsonDecode(message));
+      locationQueue.add(loc);
+      if (!isProcessing) {
+        processNextLocation(consumer);
+      }
     });
+  }
+
+  static void processNextLocation(Function(LocationDto) consumer) async {
+    if (locationQueue.isEmpty) {
+      isProcessing = false;
+      return;
+    }
+
+    isProcessing = true;
+    LocationDto loc = locationQueue.removeFirst();
+    await consumer(loc);
+
+    processNextLocation(consumer);
   }
 
   static Future<void> clearCache() async {
@@ -63,12 +99,16 @@ class LocationBackgroundTracking {
   }
 
   @pragma('vm:entry-point')
-  static void callback(LocationDto locationDto) async {
-    Isar isar = await _getDatabase();
-    await isar.writeTxn(() {
-      String encode = jsonEncode(locationDto.toJson());
-      return isar.cacheObjects
-          .put(CacheObject(encode, locationDto.time.round()));
+  static Future<void> callback(LocationDto locationDto) async {
+    String encode = jsonEncode(locationDto.toJson());
+    SendPort? port = IsolateNameServer.lookupPortByName(isolateName);
+    if (port != null) port.send(encode);
+
+    return _getDatabase().then((isar) async {
+      return await isar.writeTxn(() {
+        return isar.cacheObjects
+            .put(CacheObject(encode, locationDto.time.round()));
+      });
     });
   }
 
@@ -83,7 +123,8 @@ class LocationBackgroundTracking {
         LocationBackgroundTracking.callback,
         initCallback: LocationBackgroundTracking.initCallback,
         autoStop: false,
-        iosSettings: IOSSettings(accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
+        iosSettings: IOSSettings(
+            accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
         androidSettings: AndroidSettings(
             accuracy: LocationAccuracy.NAVIGATION,
             interval: setting.interval,

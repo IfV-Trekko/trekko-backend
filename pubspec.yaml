@@ -31,7 +31,6 @@ dependencies:
   test: ^1.24.9
   path_provider: ^2.1.1
   path: ^1.8.3
-  geolocator: ^10.1.0
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
   sprintf: ^7.0.0
@@ -50,6 +49,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   isar_generator: ^3.1.0+1
+  permission_handler_platform_interface: ^4.2.0
 #  flutter_lints: ^3.0.0
 
 # For information on the generic Dart part of this file, see the

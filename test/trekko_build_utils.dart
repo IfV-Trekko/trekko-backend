@@ -1,21 +1,20 @@
 import 'dart:io';
 
-import 'package:app_backend/controller/builder/authentification_utils.dart';
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/login_builder.dart';
 import 'package:app_backend/controller/builder/login_result.dart';
 import 'package:app_backend/controller/builder/registration_builder.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/tracking_util.dart';
-import 'package:app_backend/model/profile/profile.dart';
+import 'package:background_locator_2/background_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:background_locator_2/background_locator.dart';
 
 class MockPathProvider extends Mock
     with MockPlatformInterfaceMixin
@@ -28,8 +27,28 @@ class MockPathProvider extends Mock
 
 class MyHttpOverrides extends HttpOverrides {}
 
+class CustomPermissionHandlerPlatform extends Mock
+    with MockPlatformInterfaceMixin
+    implements PermissionHandlerPlatform {
+  @override
+  Future<PermissionStatus> checkPermissionStatus(Permission permission) async {
+    return PermissionStatus.granted;
+  }
+}
 
 class TrekkoBuildUtils {
+
+  static String getAddress() {
+    String ip = "localhost";
+    if (Platform.isAndroid) {
+      ip = "10.0.2.2";
+    } else if (Platform.isMacOS) {
+      ip =  "127.0.0.1";
+    } else {
+      ip =  "localhost";
+    }
+    return "http://$ip:8080";
+  }
 
   @GenerateMocks([BackgroundLocator])
   Future<void> init() async {
@@ -39,26 +58,22 @@ class TrekkoBuildUtils {
     PathProviderPlatform.instance = MockPathProvider();
     disablePathProviderPlatformOverride = true;
     LocationBackgroundTracking.debug = true;
+    PermissionHandlerPlatform.instance = CustomPermissionHandlerPlatform();
   }
 
   Future<Trekko> loginOrRegister(String email, String password) async {
     await init();
-    late String ip;
-    if (Platform.isAndroid) {
-      ip = "10.0.2.2";
-    } else {
-      ip = "localhost";
-    }
+    late String ip = getAddress();
     try {
       return await LoginBuilder.withData(
-              projectUrl: "http://$ip:8080", email: email, password: password)
+              projectUrl: ip, email: email, password: password)
           .build();
     } catch (e) {
       if (e is BuildException) {
         if (e.reason == LoginResult.failedNoSuchUser) {
           try {
             return await RegistrationBuilder.withData(
-                    projectUrl: "http://$ip:8080",
+                    projectUrl: ip,
                     email: email,
                     password: password,
                     passwordConfirmation: password,
@@ -74,9 +89,6 @@ class TrekkoBuildUtils {
   }
 
   Future<void> close(Trekko trekko) async {
-    Profile profile = await trekko.getProfile().first;
-    await trekko.terminate();
-    await AuthentificationUtils.deleteProfile(
-        profile.projectUrl, profile.email);
+    await trekko.signOut(delete: true);
   }
 }

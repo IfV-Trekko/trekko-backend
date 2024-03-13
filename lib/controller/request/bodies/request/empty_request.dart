@@ -1,7 +1,7 @@
 class EmptyRequest {
   EmptyRequest();
 
-  dynamic toJson() => {};
+  dynamic toJson() => Map<String, Duration>();
 
   factory EmptyRequest.fromJson(dynamic json) {
     return EmptyRequest();

@@ -2,10 +2,10 @@ import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/position/transport_type_data.dart';
 import 'package:app_backend/controller/wrapper/leg/position/weighted_transport_type_evaluator.dart';
+import 'package:app_backend/model/position.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:geolocator/geolocator.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
   static const Duration _stayDuration = Duration(minutes: 2);
@@ -31,15 +31,21 @@ class AnalyzingLegWrapper implements LegWrapper {
   }
 
   @override
+  Future<bool> hasStartedMoving() {
+    return Future.microtask(() async {
+      if (_startedMoving != null) return true;
+      if (_positions.length < 2) return false;
+      Position? centerStart = cluster(_positions);
+      if (centerStart == null) return false;
+      _startedMoving = centerStart;
+      return true;
+    });
+  }
+
+  @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
-      if (_startedMoving == null) {
-        Position? centerStart = cluster(_positions);
-        if (centerStart == null) return 0;
-        _startedMoving = centerStart;
-      }
-
-      if (_startedMoving == null) return 0;
+      if (!(await hasStartedMoving())) return 0;
       DateTime last = _positions.last.timestamp;
       DateTime from = last.subtract(_stayDuration);
       if (from.isBefore(_startedMoving!.timestamp) ||

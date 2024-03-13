@@ -2,25 +2,25 @@ import 'package:app_backend/controller/utils/position_utils.dart';
 import 'package:app_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:app_backend/model/position.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:geolocator_platform_interface/src/models/position.dart';
 
 class AnalyzingTripWrapper implements TripWrapper {
   final List<Leg> _legs = List.empty(growable: true);
   LegWrapper _legWrapper = AnalyzingLegWrapper();
   DateTime? newestTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime? oldestTimestamp;
-  Duration _minDuration = Duration(minutes: 20);
+  Duration _minDuration = Duration(minutes: 25);
 
   @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
       if (_legs.isEmpty || newestTimestamp == null || oldestTimestamp == null)
         return 0;
-      if (newestTimestamp!.difference(oldestTimestamp!) < _minDuration)
-        return 0;
+      if (newestTimestamp!.difference(oldestTimestamp!) < _minDuration ||
+          await _legWrapper.hasStartedMoving()) return 0;
       List<Position> positionsInOrder = _legs
           .expand((element) => element.trackedPoints)
           .map((e) => e.toPosition())
@@ -39,9 +39,9 @@ class AnalyzingTripWrapper implements TripWrapper {
       oldestTimestamp = position.timestamp;
     }
 
-    if (position.timestamp.isBefore(oldestTimestamp!))
+    if (newestTimestamp != null && position.timestamp.isBefore(newestTimestamp!))
       throw Exception(
-          "The position is older than the oldest position in the trip");
+          "Positions must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${position.timestamp}");
 
     newestTimestamp = position.timestamp;
     double probability = await _legWrapper.calculateEndProbability();
