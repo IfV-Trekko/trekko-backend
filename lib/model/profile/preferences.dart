@@ -55,8 +55,8 @@ class Preferences {
     this.questionAnswers = this.questionAnswers.toList(growable: true);
     this.questionAnswers.removeWhere((element) => element.key == key);
     if (answer != null)
-      this.questionAnswers.add(
-          QuestionAnswer.withData(key, _parseAnswer(key, answer).toString()));
+      this.questionAnswers.add(QuestionAnswer.withData(
+          key, _parseAnswer(key, answer.toString()).toString()));
   }
 
   ServerProfile toServerProfile() {
