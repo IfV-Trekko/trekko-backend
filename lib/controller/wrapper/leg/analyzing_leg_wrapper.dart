@@ -62,11 +62,6 @@ class AnalyzingLegWrapper implements LegWrapper {
   }
 
   @override
-  int collectedDataPoints() {
-    return _positions.length;
-  }
-
-  @override
   Future<Leg> get() async {
     return Future.microtask(() async {
       // Trimming positions

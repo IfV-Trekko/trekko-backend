@@ -5,7 +5,5 @@ abstract class DataWrapper<R> {
 
   Future<void> add(Position position);
 
-  int collectedDataPoints();
-
   Future<R> get();
 }
