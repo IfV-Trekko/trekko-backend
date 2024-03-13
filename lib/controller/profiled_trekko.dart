@@ -269,6 +269,7 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(Query<Trip> trips, Iterable<T> Function(Trip) tripData,
       Calculation<T> calc) {
     return trips.watch(fireImmediately: true).map((trips) {
+      print(trips.length);
       final Iterable<T> toAnalyse =
           trips.where((trip) => // TODO: Fix, this is highly inefficient
               !trip.isModified()).expand(tripData);
