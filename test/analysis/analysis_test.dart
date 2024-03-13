@@ -25,18 +25,18 @@ Future<void> checkTrip(
       .analyze(query, (t) => [t.calculateDuration().inSeconds.toDouble()],
           DoubleReduction.SUM)
       .first);
-  var calculatedSpeed = await trekko
+  double? calculatedSpeed = await trekko
       .analyze(query, (t) => [t.calculateSpeed().as(kilo.meters, hours)],
           AverageCalculation())
       .first;
 
   expect(calculatedDistance!.round(), equals(distance.as(kilo.meters)));
-  expect(calculatedDuration, equals(duration));
+  expect(calculatedDuration, equals(duration.inSeconds));
   expect(
-      calculatedSpeed?.round(),
+      calculatedSpeed!.round(),
       equals(equals(distance
-          .per(duration.inSeconds.seconds)
-          .as(kilo.meters, seconds)
+          .per(duration.inHours.hours)
+          .as(kilo.meters, hours)
           .round())));
 }
 
