@@ -21,6 +21,7 @@ void main() {
     }
   });
 
+
   // test("Reading empty profile data", () async {
   //   server.getProfile().onError((error, stackTrace) => expect(error, isA<Exception>())).then((value) {
   //     expect(value, isA<ServerProfile>());

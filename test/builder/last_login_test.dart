@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../trekko_build_utils.dart';
 
-const String email = "lastLoginTest@web.de";
+const String email = "lastLoginTest2@web.de";
 const String password = "1aA!hklj32r4hkjl324r";
 
 void main() {
