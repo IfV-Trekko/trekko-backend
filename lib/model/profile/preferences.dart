@@ -22,16 +22,21 @@ class Preferences {
   Preferences.withData(
       this.questionAnswers, this.batteryUsageSetting, this.onboardingQuestions);
 
-  dynamic _parseAnswer(String key, String answer) {
+  dynamic _parseAnswer(String key, dynamic answer) {
     OnboardingQuestion question =
         onboardingQuestions.firstWhere((e) => e.key == key);
     if (question.type == QuestionType.number) {
       return double.parse(answer);
     } else if (question.type == QuestionType.boolean) {
       return answer == "true";
-    } else {
+    } else if (question.type == QuestionType.text) {
+      return answer.toString();
+    } else if (question.type == QuestionType.select) {
+      if (!question.options!.any((e) => e.key == answer))
+        throw Exception("Invalid answer");
       return answer;
     }
+    throw Exception("Unknown question type");
   }
 
   dynamic getQuestionAnswer(String key) {
@@ -50,7 +55,8 @@ class Preferences {
     this.questionAnswers = this.questionAnswers.toList(growable: true);
     this.questionAnswers.removeWhere((element) => element.key == key);
     if (answer != null)
-      this.questionAnswers.add(QuestionAnswer.withData(key, answer.toString()));
+      this.questionAnswers.add(
+          QuestionAnswer.withData(key, _parseAnswer(key, answer).toString()));
   }
 
   ServerProfile toServerProfile() {
