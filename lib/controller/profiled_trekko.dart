@@ -117,13 +117,15 @@ class ProfiledTrekko implements Trekko {
     });
   }
 
-  Future<StreamSubscription<Profile?>> _startTrackingListener() async {
+  Future<StreamSubscription<Profile?>> _startTrackingChangeListener() async {
+    TrackingState lastState = (await getProfile().first).trackingState;
     return this
         ._profileDb
         .profiles
         .watchObject(this._profileId)
         .listen((event) async {
       TrackingState state = event!.trackingState;
+      if (state == lastState) return;
       if (state == TrackingState.running) {
         _locationSubscription = await _startTracking();
       } else {
@@ -141,7 +143,7 @@ class ProfiledTrekko implements Trekko {
     if ((await getProfile().first).trackingState == TrackingState.running) {
       _locationSubscription = await _startTracking();
     }
-    _profileSubscription = await _startTrackingListener();
+    _profileSubscription = await _startTrackingChangeListener();
   }
 
   @override
