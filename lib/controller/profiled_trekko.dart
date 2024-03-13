@@ -10,7 +10,7 @@ import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/database_utils.dart';
-import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
+import 'package:app_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
 import 'package:app_backend/model/position.dart';
@@ -91,24 +91,25 @@ class ProfiledTrekko implements Trekko {
           (await this.getProfile().first).preferences.batteryUsageSetting);
     }
 
-    TripWrapper tripWrapper = AnalyzingTripWrapper();
-    List<Position> toProcess = await LocationBackgroundTracking.readCache()
-        .then((value) => value.map(Position.fromLocationDto).toList());
+    TripWrapper tripWrapper = BufferedFilterTripWrapper();
+    // List<Position> toProcess = await LocationBackgroundTracking.readCache()
+    //     .then((value) => value.map(Position.fromLocationDto).toList());
+    List<Position> toProcess = [];
     return LocationBackgroundTracking.hook((LocationDto loc) async {
       Position detected = Position.fromLocationDto(loc);
       if (!_positionController.isClosed) _positionController.add(detected);
 
-      List<Position> positions = toProcess.toList()..add(detected);
+      List<Position> positions = [detected];
       if (!toProcess.isEmpty) {
+        positions = List.of(toProcess, growable: true)..add(detected);
         toProcess.clear();
       }
 
       for (Position position in positions) {
         double endTripProbability = await tripWrapper.calculateEndProbability();
-        if (tripWrapper.collectedDataPoints() > 0 &&
-            endTripProbability > 0.95) {
+        if (endTripProbability > 0.95) {
           await saveTrip(await tripWrapper.get());
-          tripWrapper = AnalyzingTripWrapper();
+          tripWrapper = BufferedFilterTripWrapper();
           await LocationBackgroundTracking.clearCache();
         } else {
           await tripWrapper.add(position);
