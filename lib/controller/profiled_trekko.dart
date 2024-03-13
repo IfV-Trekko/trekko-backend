@@ -92,14 +92,16 @@ class ProfiledTrekko implements Trekko {
     }
 
     TripWrapper tripWrapper = BufferedFilterTripWrapper();
-    List<Position> toProcess = await LocationBackgroundTracking.readCache()
-        .then((value) => value.map(Position.fromLocationDto).toList());
+    // List<Position> toProcess = await LocationBackgroundTracking.readCache()
+    //     .then((value) => value.map(Position.fromLocationDto).toList());
+    List<Position> toProcess = [];
     return LocationBackgroundTracking.hook((LocationDto loc) async {
       Position detected = Position.fromLocationDto(loc);
       if (!_positionController.isClosed) _positionController.add(detected);
 
-      List<Position> positions = toProcess.toList()..add(detected);
+      List<Position> positions = [detected];
       if (!toProcess.isEmpty) {
+        positions = List.of(toProcess, growable: true)..add(detected);
         toProcess.clear();
       }
 

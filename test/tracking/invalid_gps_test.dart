@@ -45,8 +45,8 @@ void main() {
     for (int i = 0; i < walkToShopAndBack.length; i++) {
       if (i % 50 == 0) {
         Position toModify = Position.fromLocationDto(walkToShopAndBack[i]);
-        double lat = toModify.latitude * 2.0001;
-        double lon = toModify.longitude * 2.0001;
+        double lat = toModify.latitude + 0.01;
+        double lon = toModify.longitude * 0.01;
         Position modified = Position(
           latitude: lat,
           longitude: lon,
@@ -77,13 +77,14 @@ void main() {
         .expand((trip) => trip.legs.expand((leg) => leg.trackedPoints))
         .toList();
     for (Position wrongPosition in wrongPositions) {
-      expect(
-        allPositions.any((point) =>
-            point.latitude == wrongPosition.latitude &&
-            point.longitude == wrongPosition.longitude &&
-            point.timestamp == wrongPosition.timestamp),
-        isFalse,
-      );
+      for (TrackedPoint point in allPositions) {
+        expect(
+          point.latitude == wrongPosition.latitude &&
+              point.longitude == wrongPosition.longitude &&
+              point.timestamp == wrongPosition.timestamp,
+          isFalse, reason: "Wrong position found in trip; $point",
+        );
+      }
     }
   });
 

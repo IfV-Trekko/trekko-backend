@@ -11,26 +11,42 @@ double latDegreesPerMeter = 1 / metersPerLatDegree;
 class TripBuilder {
 
   final List<Leg> _legs = List.empty(growable: true);
-  List<TrackedPoint> _leg = List.empty(growable: true);
+  List<TrackedPoint> _leg = [];
   bool skipStayPoints;
   // DateTime start = DateTime.now();
   DateTime time = DateTime.now();
   double latitude = 49.006889;
   double longitude = 8.403653;
+  DateTime last = DateTime.now().subtract(Duration(seconds: 5));
 
-  TripBuilder() : skipStayPoints = true;
+  TripBuilder() : skipStayPoints = false {
+    this.leg();
+  }
 
-  TripBuilder.withData(this.latitude, this.longitude, {this.skipStayPoints = true});
+  TripBuilder.withData(this.latitude, this.longitude, {this.skipStayPoints = false}) {
+    this.leg();
+  }
+
+  TrackedPoint getTrackedPoint(double speed_in_ms) {
+    if (time.isBefore(last) || time.isAtSameMomentAs(last)) {
+      throw Exception("Time must be after last time");
+    }
+    last = time;
+    return TrackedPoint.withData(latitude, longitude, speed_in_ms, time);
+  }
 
   TripBuilder stay(Duration duration) {
     DateTime end = time.add(duration);
     if (!skipStayPoints) {
       while (time.isBefore(end)) {
-        _leg.add(TrackedPoint.withData(latitude, longitude, 0, time));
         time = time.add(Duration(seconds: 5));
+        _leg.add(getTrackedPoint(0));
       }
-    } else {
+    }
+
+    if (time.isBefore(end)) {
       time = end;
+      _leg.add(getTrackedPoint(0));
     }
     return this;
   }
@@ -46,15 +62,16 @@ class TripBuilder {
     double forwardMultiplier = forward ? 1 : -1;
     double latAddPer5Sec = speedAsMetersPerSecond * latDegreesPerMeter * 5 * forwardMultiplier;
     DateTime end = time.add(duration);
-    do {
-      _leg.add(TrackedPoint.withData(
-          latitude, longitude, speed.as(kilo.meters, hours), time));
+    while (time.isBefore(end)) {
       time = time.add(Duration(seconds: 5));
       latitude += latAddPer5Sec;
-    } while (time.isBefore(end));
-    _leg.add(TrackedPoint.withData(
-        latitude, longitude, speed.as(kilo.meters, hours), time));
-    latitude += latAddPer5Sec;
+      _leg.add(getTrackedPoint(speed.as(meters, seconds)));
+    }
+
+    if (time.isBefore(end)) {
+      time = end;
+      _leg.add(getTrackedPoint(speed.as(meters, seconds)));
+    }
     return this;
   }
 
@@ -62,7 +79,8 @@ class TripBuilder {
     if (_leg.isNotEmpty) {
       _legs.add(Leg.withData(type, _leg));
     }
-    _leg = List.empty(growable: true);
+    time = time.add(Duration(milliseconds: 1));
+    _leg = List.of([getTrackedPoint(0)], growable: true);
     return this;
   }
 

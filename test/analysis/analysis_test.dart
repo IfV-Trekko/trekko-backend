@@ -54,7 +54,7 @@ void main() {
         .build();
 
     int tripId = await trekko.saveTrip(trip);
-    await checkTrip(trekko, tripId, 1.kilo.meters, Duration(hours: 2));
+    await checkTrip(trekko, tripId, 1.kilo.meters, Duration(hours: 3));
   });
 
   test("Analyze trip with 2 legs", () async {
@@ -71,7 +71,7 @@ void main() {
         .build();
 
     int tripId = await trekko.saveTrip(trip);
-    await checkTrip(trekko, tripId, 2.kilo.meters, Duration(hours: 5));
+    await checkTrip(trekko, tripId, 2.kilo.meters, Duration(hours: 6));
   });
 
   test("Analyze transport type data with not trip in it", () async {
