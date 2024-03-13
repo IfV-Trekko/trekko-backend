@@ -82,7 +82,7 @@ void main() {
           point.latitude == wrongPosition.latitude &&
               point.longitude == wrongPosition.longitude &&
               point.timestamp == wrongPosition.timestamp,
-          isFalse, reason: "Wrong position found in trip; $point",
+          isFalse, reason: "Wrong position found in trip; ts: " + point.timestamp.toString(),
         );
       }
     }
