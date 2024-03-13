@@ -271,7 +271,9 @@ class ProfiledTrekko implements Trekko {
     return trips.watch(fireImmediately: true).map((trips) {
       final Iterable<Trip> unmodifiedTrips = trips.where((trip) =>
           !trip.isModified()); // TODO: Fix, this is highly inefficient
+      print("CHECK EMPTY" + unmodifiedTrips.isEmpty.toString());
       if (unmodifiedTrips.isEmpty) return null;
+      print("Calculating");
       return calc.calculate(unmodifiedTrips.expand(tripData));
     });
   }
