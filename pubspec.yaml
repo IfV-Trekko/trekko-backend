@@ -47,6 +47,8 @@ dev_dependencies:
   mockito: ^5.4.4
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   isar_generator: ^3.1.0+1
 #  flutter_lints: ^3.0.0
 
