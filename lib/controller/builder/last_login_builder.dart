@@ -43,7 +43,7 @@ class LastLoginBuilder extends TrekkoBuilder {
 
       await value.close();
       return makeTrekko(
-          latestProfile.projectUrl, latestProfile.email, latestProfile.token);
+          latestProfile.projectUrl, latestProfile.email, latestProfile.token!);
     });
   }
 }

@@ -12,7 +12,7 @@ class Profile {
   final String projectUrl;
   @Index(unique: true, composite: [CompositeIndex("projectUrl")])
   final String email;
-  String token;
+  String? token;
   DateTime lastLogin;
   DateTime? lastTimeTracked;
   @enumerated

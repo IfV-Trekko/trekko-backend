@@ -358,7 +358,14 @@ class ProfiledTrekko implements Trekko {
     if (delete) await _server.deleteAccount();
     await _server.close();
 
-    await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+    if (delete) {
+      await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+    } else {
+      Profile profile = await getProfile().first;
+      profile.token = null;
+      await _saveProfile(profile);
+    }
+
     await _profileDb.close();
     await _tripDb.close(deleteFromDisk: delete);
   }
