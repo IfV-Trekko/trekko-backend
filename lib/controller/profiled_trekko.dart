@@ -266,15 +266,13 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Stream<T?> analyze<T>(Query<Trip> trips,
-      Iterable<T> Function(Trip) tripData, Calculation<T> calc) {
+  Stream<T?> analyze<T>(Query<Trip> trips, Iterable<T> Function(Trip) tripData,
+      Calculation<T> calc) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final Iterable<Trip> unmodifiedTrips = trips.where((trip) =>
-          !trip.isModified()); // TODO: Fix, this is highly inefficient
-      print("CHECK EMPTY" + unmodifiedTrips.isEmpty.toString());
-      if (unmodifiedTrips.isEmpty) return null;
-      print("Calculating");
-      return calc.calculate(unmodifiedTrips.expand(tripData));
+      final Iterable<T> toAnalyse =
+          trips.where((trip) => // TODO: Fix, this is highly inefficient
+              !trip.isModified()).expand(tripData);
+      return toAnalyse.isEmpty ? null : calc.calculate(toAnalyse);
     });
   }
 
