@@ -49,7 +49,8 @@ class Preferences {
   void setQuestionAnswer(String key, dynamic answer) {
     this.questionAnswers = this.questionAnswers.toList(growable: true);
     this.questionAnswers.removeWhere((element) => element.key == key);
-    this.questionAnswers.add(QuestionAnswer.withData(key, answer.toString()));
+    if (answer != null)
+      this.questionAnswers.add(QuestionAnswer.withData(key, answer.toString()));
   }
 
   ServerProfile toServerProfile() {
