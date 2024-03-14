@@ -17,10 +17,10 @@ void main() {
     expect(changed, equals(false));
   });
 
-  // test("Setting changed tracking state", () async {
-  //   bool changed = await trekko.setTrackingState(TrackingState.running);
-  //   expect(changed, equals(true));
-  // });
+  test("Setting changed tracking state", () async {
+    bool changed = await trekko.setTrackingState(TrackingState.running);
+    expect(changed, equals(true));
+  });
 
   tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
 }

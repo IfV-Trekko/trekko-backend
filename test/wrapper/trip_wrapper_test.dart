@@ -13,19 +13,18 @@ void main() {
   });
 
   test("Analyze walk to shop and back", () async {
-    List<TrackedPoint> walkToShopAndBack =
-        TripBuilder.withData(0, 0, skipStayPoints: false)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            // walk 500m
-            .move(true, Duration(minutes: 10), 500.meters)
-            // stay for 5min
-            .stay(Duration(minutes: 5))
-            // walk 500m back
-            .move(false, Duration(minutes: 10), 500.meters)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            .collect();
+    List<TrackedPoint> walkToShopAndBack = TripBuilder()
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // walk 500m
+        .move(true, Duration(minutes: 10), 500.meters)
+        // stay for 5min
+        .stay(Duration(minutes: 5))
+        // walk 500m back
+        .move(false, Duration(minutes: 10), 500.meters)
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        .collect();
 
     for (TrackedPoint point in walkToShopAndBack) {
       await tripWrapper.add(point.toPosition());
@@ -42,7 +41,7 @@ void main() {
   });
 
   test("Staying at the same location: no trip", () async {
-    List<TrackedPoint> points = TripBuilder.withData(0, 0, skipStayPoints: false)
+    List<TrackedPoint> points = TripBuilder()
         // stay for 1h
         .stay(Duration(hours: 1))
         // stay for 1h

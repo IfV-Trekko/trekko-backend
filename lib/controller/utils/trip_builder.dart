@@ -17,13 +17,13 @@ class TripBuilder {
   DateTime time = DateTime.now();
   double latitude = 49.006889;
   double longitude = 8.403653;
-  DateTime last = DateTime.now().subtract(Duration(seconds: 5));
+  late DateTime last = time.subtract(Duration(seconds: 5));
 
   TripBuilder() : skipStayPoints = false {
     this.leg();
   }
 
-  TripBuilder.withData(this.latitude, this.longitude, {this.skipStayPoints = false}) {
+  TripBuilder.withData(this.latitude, this.longitude, this.time, {this.skipStayPoints = false}) {
     this.leg();
   }
 
