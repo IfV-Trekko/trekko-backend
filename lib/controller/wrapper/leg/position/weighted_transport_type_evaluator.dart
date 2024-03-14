@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:app_backend/controller/wrapper/leg/position/transport_type_data_provider.dart';
 import 'package:app_backend/controller/wrapper/leg/position/transport_type_evaluator.dart';
 import 'package:app_backend/model/trip/leg.dart';
-import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
 
 class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
@@ -22,10 +21,5 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
       double calculated = -pow(distanceBetweenSpeeds, 2) * pow(10, -6) + 1;
       return max(calculated, 0);
     });
-  }
-
-  @override
-  TransportType getTransportType() {
-    return this.dataProvider.getTransportType();
   }
 }
