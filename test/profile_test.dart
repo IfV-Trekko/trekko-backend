@@ -1,5 +1,6 @@
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/model/profile/battery_usage_setting.dart';
+import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
 import 'package:test/test.dart';
 
@@ -44,4 +45,43 @@ void main() {
   });
 
   tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
+
+  group('Preferences', () {
+    late Preferences preferences;
+
+    setUp(() {
+      preferences = Preferences();
+    });
+
+    test('setQuestionAnswer adds new answer if key does not exist', () {
+      preferences.setQuestionAnswer('testKey', 'testAnswer');
+
+      expect(preferences.getQuestionAnswer('testKey'), 'testAnswer');
+    });
+
+    test('setQuestionAnswer updates existing answer if key exists', () {
+      preferences.setQuestionAnswer('testKey', 'testAnswer');
+      preferences.setQuestionAnswer('testKey', 'updatedAnswer');
+
+      expect(preferences.getQuestionAnswer('testKey'), 'updatedAnswer');
+    });
+
+    test('getQuestionAnswer returns null if key does not exist', () {
+      expect(preferences.getQuestionAnswer('nonExistentKey'), null);
+    });
+
+    test('getQuestionAnswer returns correct answer if key exists', () {
+      preferences.setQuestionAnswer('testKey', 'testAnswer');
+
+      expect(preferences.getQuestionAnswer('testKey'), 'testAnswer');
+    });
+
+    test('toServerProfile returns correct server profile', () {
+      preferences.setQuestionAnswer('testKey', 'testAnswer');
+
+      var serverProfile = preferences.toServerProfile();
+
+      expect(serverProfile.data['testKey'], 'testAnswer');
+    });
+  });
 }

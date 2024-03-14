@@ -1,3 +1,4 @@
+import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:test/test.dart';
 import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
 
@@ -22,6 +23,30 @@ void main() {
       expect(deserializedAuthRequest, isA<AuthRequest>());
       expect(deserializedAuthRequest.email, 'test@example.com');
       expect(deserializedAuthRequest.password, 'password123');
+    });
+  });
+
+  // Grouping tests related to AuthResponse
+  group('AuthResponse', () {
+    // Test to check if fromJson returns AuthResponse when valid json is provided
+    test('fromJson should return AuthResponse when valid json is provided', () {
+      final json = {"token": "validToken"};
+      final result = AuthResponse.fromJson(json);
+      expect(result, isA<AuthResponse>());
+      expect(result.token, equals("validToken"));
+    });
+
+    // Test to check if fromJson throws an error when invalid json is provided
+    test('fromJson should throw when invalid json is provided', () {
+      final json = {"invalidKey": "invalidValue"};
+      expect(() => AuthResponse.fromJson(json), throwsA(isA<TypeError>()));
+    });
+
+    // Test to check if toJson returns valid json from AuthResponse
+    test('toJson should return valid json from AuthResponse', () {
+      final authResponse = AuthResponse("validToken");
+      final result = authResponse.toJson();
+      expect(result, equals({"token": "validToken"}));
     });
   });
 }

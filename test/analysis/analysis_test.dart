@@ -42,8 +42,11 @@ Future<void> checkTrip(
 
 void main() {
   late Trekko trekko;
-  setUpAll(() async =>
-      trekko = await TrekkoBuildUtils().loginOrRegister(email, password));
+
+
+  setUpAll(() async {
+    trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+  });
 
   test("Analyze trip with one leg", () async {
     Trip trip = TripBuilder()

@@ -1,4 +1,5 @@
 import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
+import 'package:app_backend/controller/request/bodies/response/trips_response.dart';
 import 'package:app_backend/controller/request/bodies/server_trip.dart';
 import 'package:app_backend/model/trip/leg.dart';
 import 'package:app_backend/model/trip/tracked_point.dart';
