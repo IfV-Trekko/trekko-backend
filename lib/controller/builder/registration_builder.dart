@@ -12,8 +12,6 @@ class RegistrationBuilder extends AuthBuilder {
   String? passwordConfirmation;
   String? code;
 
-  RegistrationBuilder();
-
   RegistrationBuilder.withData(
       {String? projectUrl,
       String? email,

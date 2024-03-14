@@ -112,16 +112,9 @@ class LocationBackgroundTracking {
     });
   }
 
-//Optional
-  @pragma('vm:entry-point')
-  static void initCallback(dynamic _) {
-    print('Plugin initialization');
-  }
-
   static void startLocationService(BatteryUsageSetting setting) {
     BackgroundLocator.registerLocationUpdate(
         LocationBackgroundTracking.callback,
-        initCallback: LocationBackgroundTracking.initCallback,
         autoStop: false,
         iosSettings: IOSSettings(
             accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),

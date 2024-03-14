@@ -9,8 +9,6 @@ import 'package:app_backend/controller/trekko.dart';
 class LoginBuilder extends AuthBuilder {
   String? password;
 
-  LoginBuilder();
-
   LoginBuilder.withData({String? projectUrl, String? email, this.password})
       : super.withData(projectUrl: projectUrl, email: email);
 
