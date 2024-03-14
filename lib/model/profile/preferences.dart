@@ -23,6 +23,10 @@ class Preferences {
       this.questionAnswers, this.batteryUsageSetting, this.onboardingQuestions);
 
   dynamic _parseAnswer(String key, dynamic answer) {
+    if (!onboardingQuestions.any((element) => element.key == key)) {
+      throw Exception("Invalid question key");
+    }
+
     OnboardingQuestion question =
         onboardingQuestions.firstWhere((e) => e.key == key);
     if (question.type == QuestionType.number) {
