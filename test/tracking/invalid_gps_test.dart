@@ -25,7 +25,7 @@ void main() {
 
   test("Analyze walk to shop and back with gps errors", () async {
     List<LocationDto> walkToShopAndBack =
-        TripBuilder.withData(0, 0, skipStayPoints: false)
+        TripBuilder()
             // stay for 1h
             .stay(Duration(hours: 1))
             // walk 500m
@@ -86,6 +86,28 @@ void main() {
         );
       }
     }
+  });
+
+  test("Analyze small jump in coordinates", () async {
+    List<LocationDto> walkToShopAndBack =
+    TripBuilder()
+        .stay(Duration(hours: 1))
+        .move(true, Duration(seconds: 10), 40.meters)
+        .move(false, Duration(seconds: 10), 40.meters)
+        .stay(Duration(hours: 1))
+        .collect()
+        .map((e) => e.toPosition().toLocationDto())
+        .toList();
+
+    for (LocationDto locationDto in walkToShopAndBack) {
+      await LocationBackgroundTracking.callback(locationDto);
+    }
+
+    // Wait for the trip to be analyzed
+    await Future.delayed(Duration(seconds: 3));
+
+    // Check if the wrong positions are in the trips
+    expect(await trekko.getTripQuery().isEmpty(), true);
   });
 
   tearDown(() async {
