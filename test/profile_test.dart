@@ -1,7 +1,9 @@
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/model/profile/battery_usage_setting.dart';
+import 'package:app_backend/model/profile/onboarding_question.dart';
 import 'package:app_backend/model/profile/preferences.dart';
 import 'package:app_backend/model/profile/profile.dart';
+import 'package:app_backend/model/profile/question_type.dart';
 import 'package:test/test.dart';
 
 import 'trekko_build_utils.dart';
@@ -11,7 +13,8 @@ const String email = "profile_test113@profile_test.com";
 
 void main() {
   late Trekko trekko;
-  setUpAll(() async => trekko = await TrekkoBuildUtils().loginOrRegister(email, password));
+  setUpAll(() async =>
+      trekko = await TrekkoBuildUtils().loginOrRegister(email, password));
 
   test("Profile data correct", () async {
     Profile profile = await trekko.getProfile().first;
@@ -37,51 +40,49 @@ void main() {
     Profile profile = await trekko.getProfile().first;
     profile.preferences.batteryUsageSetting = BatteryUsageSetting.low;
 
-    expect(profile.preferences.batteryUsageSetting, equals(BatteryUsageSetting.low));
+    expect(profile.preferences.batteryUsageSetting,
+        equals(BatteryUsageSetting.low));
 
     await trekko.savePreferences(profile.preferences);
     profile = await trekko.getProfile().first;
-    expect(profile.preferences.batteryUsageSetting, equals(BatteryUsageSetting.low));
+    expect(profile.preferences.batteryUsageSetting,
+        equals(BatteryUsageSetting.low));
   });
 
   tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
 
-  group('Preferences', () {
+  group('preferences test', () {
     late Preferences preferences;
 
     setUp(() {
-      preferences = Preferences();
+      preferences = Preferences.withData(
+          [],
+          BatteryUsageSetting.medium,
+          [
+            OnboardingQuestion.withData(
+                "existingKey", "test", QuestionType.text, false, "*", [])
+          ]);
     });
 
-    test('setQuestionAnswer adds new answer if key does not exist', () {
-      preferences.setQuestionAnswer('testKey', 'testAnswer');
-
-      expect(preferences.getQuestionAnswer('testKey'), 'testAnswer');
+    test('setQuestionAnswer fails if key does not exist', () {
+      expect(() => preferences.setQuestionAnswer("nonExistingKey", "test"),
+          throwsException);
     });
 
-    test('setQuestionAnswer updates existing answer if key exists', () {
-      preferences.setQuestionAnswer('testKey', 'testAnswer');
-      preferences.setQuestionAnswer('testKey', 'updatedAnswer');
-
-      expect(preferences.getQuestionAnswer('testKey'), 'updatedAnswer');
+    test('setQuestionAnswer works if key exists', () {
+      preferences.setQuestionAnswer("existingKey", "test");
+      expect(preferences.getQuestionAnswer("existingKey"), equals("test"));
     });
 
-    test('getQuestionAnswer returns null if key does not exist', () {
-      expect(preferences.getQuestionAnswer('nonExistentKey'), null);
+    test('override question answer', () {
+      preferences.setQuestionAnswer("existingKey", "test");
+      preferences.setQuestionAnswer("existingKey", "test2");
+      expect(preferences.getQuestionAnswer("existingKey"), equals("test2"));
     });
 
-    test('getQuestionAnswer returns correct answer if key exists', () {
-      preferences.setQuestionAnswer('testKey', 'testAnswer');
-
-      expect(preferences.getQuestionAnswer('testKey'), 'testAnswer');
-    });
-
-    test('toServerProfile returns correct server profile', () {
-      preferences.setQuestionAnswer('testKey', 'testAnswer');
-
-      var serverProfile = preferences.toServerProfile();
-
-      expect(serverProfile.data['testKey'], 'testAnswer');
+    test('remove question answer', () {
+      preferences.setQuestionAnswer("existingKey", null);
+      expect(preferences.getQuestionAnswer("existingKey"), equals(null));
     });
   });
 }
