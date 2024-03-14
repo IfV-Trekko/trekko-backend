@@ -1,7 +1,9 @@
 import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/last_login_builder.dart';
 import 'package:app_backend/controller/trekko.dart';
+import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isar/isar.dart';
 
 import '../trekko_build_utils.dart';
 
@@ -12,6 +14,8 @@ void main() {
   setUp(() async {
     // Register new account
     await TrekkoBuildUtils().init();
+    Isar db = await DatabaseUtils.openProfiles();
+    db.close(deleteFromDisk: true);
   });
 
   test("Last login fails if no user has been logged in before", () async {
