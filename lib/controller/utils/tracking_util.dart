@@ -113,6 +113,9 @@ class LocationBackgroundTracking {
   }
 
   static void startLocationService(BatteryUsageSetting setting) {
+    if (debug) {
+      return;
+    }
     BackgroundLocator.registerLocationUpdate(
         LocationBackgroundTracking.callback,
         autoStop: false,
