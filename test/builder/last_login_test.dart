@@ -1,3 +1,4 @@
+import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/last_login_builder.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,14 +12,20 @@ void main() {
   setUp(() async {
     // Register new account
     await TrekkoBuildUtils().init();
-    Trekko trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
-    await trekko.terminate();
+  });
+
+  test("Last login fails if no user has been logged in before", () async {
+    LastLoginBuilder lastLoginBuilder = LastLoginBuilder();
+    expect(lastLoginBuilder.build(), throwsA(isA<BuildException>()));
   });
 
   test("Last login works", () async {
     // Last login
+    Trekko trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    await trekko.terminate();
+
     LastLoginBuilder lastLoginBuilder = LastLoginBuilder();
-    Trekko? trekko = await lastLoginBuilder.build();
+    trekko = await lastLoginBuilder.build();
     expect(trekko, isNotNull);
     await trekko.signOut(delete: true);
   });
