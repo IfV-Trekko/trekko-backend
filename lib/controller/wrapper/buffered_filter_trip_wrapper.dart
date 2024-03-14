@@ -26,7 +26,7 @@ class BufferedFilterTripWrapper implements TripWrapper {
   }
 
   bool isValidNewPosition(Position newPosition) {
-    if (_buffer.length < buffer_size) {
+    if (_buffer.length < 2) {
       return true;
     }
 
@@ -34,9 +34,10 @@ class BufferedFilterTripWrapper implements TripWrapper {
 
     double distance = PositionUtils.distanceBetween(lastPosition, newPosition);
     double averageDistance = this.averageDistance();
+    double sub = (distance - averageDistance).abs();
 
     // If distance is more than tolerance meters off, we assume the GPS failed
-    return distance <= averageDistance + tolerance;
+    return sub < tolerance;
   }
 
   @override
@@ -46,8 +47,7 @@ class BufferedFilterTripWrapper implements TripWrapper {
       // Throw away positions if they are off pattern, so the gps probably failed
 
       if (_rejected.length > max_rejected) {
-        // Apparently the first position is off pattern, so we throw away the whole buffer and add the rejected positions
-        _buffer.forEach((element) => _tripWrapper.add(element));
+        // Apparently the buffered positions are off pattern, so we throw away the whole buffer and add the rejected positions
         _buffer.clear();
         _rejected.forEach((element) => _tripWrapper.add(element));
         _rejected.clear();

@@ -45,8 +45,8 @@ void main() {
     for (int i = 0; i < walkToShopAndBack.length; i++) {
       if (i % 50 == 0) {
         Position toModify = Position.fromLocationDto(walkToShopAndBack[i]);
-        double lat = toModify.latitude + 0.01;
-        double lon = toModify.longitude * 0.01;
+        double lat = toModify.latitude + 0.001;
+        double lon = toModify.longitude + 0.001;
         Position modified = Position(
           latitude: lat,
           longitude: lon,
