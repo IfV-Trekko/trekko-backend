@@ -1,8 +1,6 @@
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/query_util.dart';
 import 'package:app_backend/controller/utils/trip_builder.dart';
-import 'package:app_backend/model/trip/tracked_point.dart';
-import 'package:app_backend/model/trip/transport_type.dart';
 import 'package:app_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,7 +38,8 @@ void main() {
     int trip1Id = await trekko.saveTrip(trip1);
     int trip2Id = await trekko.saveTrip(trip2);
 
-    Trip merge = await trekko.mergeTrips(QueryUtil(trekko).buildIdsOr([trip1Id, trip2Id]));
+    Trip merge = await trekko
+        .mergeTrips(QueryUtil(trekko).buildIdsOr([trip1Id, trip2Id]));
 
     // Check start, end time and distance
     expect(merge.getStartTime(), trip1.getStartTime());
