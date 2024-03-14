@@ -10,7 +10,7 @@ part 'profile.g.dart';
 class Profile {
   Id id = Isar.autoIncrement;
   final String projectUrl;
-  @Index(unique: true, composite: [CompositeIndex("projectUrl")])
+  @Index(unique: true, composite: [CompositeIndex("projectUrl")], replace: true)
   final String email;
   String? token;
   DateTime lastLogin;

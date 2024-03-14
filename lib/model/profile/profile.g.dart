@@ -65,7 +65,7 @@ const ProfileSchema = CollectionSchema(
       id: 796860516669971778,
       name: r'email_projectUrl',
       unique: true,
-      replace: false,
+      replace: true,
       properties: [
         IndexPropertySchema(
           name: r'email',
