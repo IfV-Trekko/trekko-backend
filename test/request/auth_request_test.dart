@@ -1,6 +1,6 @@
-import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
+import 'package:trekko_backend/controller/request/bodies/response/auth_response.dart';
 import 'package:test/test.dart';
-import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
+import 'package:trekko_backend/controller/request/bodies/request/auth_request.dart';
 
 void main() {
   group('AuthRequest Tests', () {

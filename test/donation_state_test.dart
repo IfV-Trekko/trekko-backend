@@ -1,5 +1,5 @@
-import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/model/tracking_state.dart';
+import 'package:trekko_backend/controller/trekko.dart';
+import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:test/test.dart';
 
 import 'trekko_build_utils.dart';

@@ -1,7 +1,7 @@
-import 'package:app_backend/model/profile/onboarding_question.dart';
-import 'package:app_backend/model/profile/preferences.dart';
-import 'package:app_backend/model/profile/question_answer.dart';
-import 'package:app_backend/model/tracking_state.dart';
+import 'package:trekko_backend/model/profile/onboarding_question.dart';
+import 'package:trekko_backend/model/profile/preferences.dart';
+import 'package:trekko_backend/model/profile/question_answer.dart';
+import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:isar/isar.dart';
 
 part 'profile.g.dart';

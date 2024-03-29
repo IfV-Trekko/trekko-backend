@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/request/bodies/form_entry_option.dart';
+import 'package:trekko_backend/controller/request/bodies/form_entry_option.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'server_form_entry.g.dart';

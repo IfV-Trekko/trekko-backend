@@ -1,4 +1,4 @@
-name: app_backend
+name: trekko_backend
 description: "The backend logic for the trekko app."
 
 # The following defines the version and build number for your application.

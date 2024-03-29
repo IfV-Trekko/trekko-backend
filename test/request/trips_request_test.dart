@@ -1,9 +1,9 @@
-import 'package:app_backend/controller/request/bodies/request/trips_request.dart';
-import 'package:app_backend/controller/request/bodies/server_trip.dart';
-import 'package:app_backend/model/trip/leg.dart';
-import 'package:app_backend/model/trip/tracked_point.dart';
-import 'package:app_backend/model/trip/transport_type.dart';
-import 'package:app_backend/model/trip/trip.dart';
+import 'package:trekko_backend/controller/request/bodies/request/trips_request.dart';
+import 'package:trekko_backend/controller/request/bodies/server_trip.dart';
+import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/trip/tracked_point.dart';
+import 'package:trekko_backend/model/trip/transport_type.dart';
+import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

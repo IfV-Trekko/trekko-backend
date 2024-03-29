@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/builder/build_exception.dart';
+import 'package:trekko_backend/controller/builder/build_exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

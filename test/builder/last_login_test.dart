@@ -1,7 +1,7 @@
-import 'package:app_backend/controller/builder/build_exception.dart';
-import 'package:app_backend/controller/builder/last_login_builder.dart';
-import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/controller/utils/database_utils.dart';
+import 'package:trekko_backend/controller/builder/build_exception.dart';
+import 'package:trekko_backend/controller/builder/last_login_builder.dart';
+import 'package:trekko_backend/controller/trekko.dart';
+import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 

@@ -1,4 +1,4 @@
-import 'package:app_backend/model/position.dart';
+import 'package:trekko_backend/model/position.dart';
 
 abstract class DataWrapper<R> {
   Future<double> calculateEndProbability();

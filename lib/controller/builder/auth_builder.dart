@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/builder/trekko_builder.dart';
+import 'package:trekko_backend/controller/builder/trekko_builder.dart';
 
 abstract class AuthBuilder extends TrekkoBuilder {
 

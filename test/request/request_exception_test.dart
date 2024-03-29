@@ -1,5 +1,5 @@
-import 'package:app_backend/controller/request/bodies/response/error_response.dart';
-import 'package:app_backend/controller/request/request_exception.dart';
+import 'package:trekko_backend/controller/request/bodies/response/error_response.dart';
+import 'package:trekko_backend/controller/request/request_exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

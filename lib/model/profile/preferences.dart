@@ -1,8 +1,8 @@
-import 'package:app_backend/controller/request/bodies/server_profile.dart';
-import 'package:app_backend/model/profile/battery_usage_setting.dart';
-import 'package:app_backend/model/profile/onboarding_question.dart';
-import 'package:app_backend/model/profile/question_answer.dart';
-import 'package:app_backend/model/profile/question_type.dart';
+import 'package:trekko_backend/controller/request/bodies/server_profile.dart';
+import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
+import 'package:trekko_backend/model/profile/onboarding_question.dart';
+import 'package:trekko_backend/model/profile/question_answer.dart';
+import 'package:trekko_backend/model/profile/question_type.dart';
 import 'package:isar/isar.dart';
 
 part 'preferences.g.dart';

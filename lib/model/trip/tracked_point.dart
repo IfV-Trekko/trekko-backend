@@ -1,4 +1,4 @@
-import 'package:app_backend/model/position.dart';
+import 'package:trekko_backend/model/position.dart';
 import 'package:isar/isar.dart';
 
 part 'tracked_point.g.dart';

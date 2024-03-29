@@ -1,7 +1,7 @@
-import 'package:app_backend/controller/builder/last_login_builder.dart';
-import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/controller/utils/trip_builder.dart';
-import 'package:app_backend/model/trip/trip.dart';
+import 'package:trekko_backend/controller/builder/last_login_builder.dart';
+import 'package:trekko_backend/controller/trekko.dart';
+import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';

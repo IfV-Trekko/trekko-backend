@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/analysis/calculation.dart';
+import 'package:trekko_backend/controller/analysis/calculation.dart';
 
 mixin Reduction<T> implements Calculation<T> {
 

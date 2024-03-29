@@ -1,8 +1,8 @@
-import 'package:app_backend/controller/request/bodies/request/auth_request.dart';
-import 'package:app_backend/controller/request/bodies/response/auth_response.dart';
-import 'package:app_backend/controller/request/request_exception.dart';
-import 'package:app_backend/controller/request/trekko_server.dart';
-import 'package:app_backend/controller/request/url_trekko_server.dart';
+import 'package:trekko_backend/controller/request/bodies/request/auth_request.dart';
+import 'package:trekko_backend/controller/request/bodies/response/auth_response.dart';
+import 'package:trekko_backend/controller/request/request_exception.dart';
+import 'package:trekko_backend/controller/request/trekko_server.dart';
+import 'package:trekko_backend/controller/request/url_trekko_server.dart';
 import 'package:test/test.dart';
 
 const String baseUrl = "http://localhost:8080";

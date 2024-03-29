@@ -1,8 +1,8 @@
-import 'package:app_backend/controller/utils/position_utils.dart';
-import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
-import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
-import 'package:app_backend/model/position.dart';
-import 'package:app_backend/model/trip/trip.dart';
+import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/controller/wrapper/analyzing_trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/trip/trip.dart';
 
 class BufferedFilterTripWrapper implements TripWrapper {
   static const buffer_size = 2;
