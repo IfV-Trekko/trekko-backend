@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/request/bodies/response/project_metadata_response.dart';
+import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

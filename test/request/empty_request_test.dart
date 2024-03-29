@@ -1,5 +1,5 @@
-import 'package:app_backend/controller/request/bodies/request/empty_request.dart';
-import 'package:app_backend/controller/request/bodies/response/empty_response.dart';
+import 'package:trekko_backend/controller/request/bodies/request/empty_request.dart';
+import 'package:trekko_backend/controller/request/bodies/response/empty_response.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 

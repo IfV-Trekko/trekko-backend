@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app_backend/controller/request/bodies/request/send_code_request.dart';
+import 'package:trekko_backend/controller/request/bodies/request/send_code_request.dart';
 
 void main() {
   group('SendCodeRequest Tests', () {

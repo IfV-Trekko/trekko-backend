@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/analysis/reduction.dart';
+import 'package:trekko_backend/controller/analysis/reduction.dart';
 enum DoubleReduction with Reduction<double> implements Reduction<double> {
   SUM,
   MAX,

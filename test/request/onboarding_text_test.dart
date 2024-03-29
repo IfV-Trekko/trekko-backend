@@ -1,5 +1,5 @@
-import 'package:app_backend/controller/request/url_trekko_server.dart';
-import 'package:app_backend/model/onboarding_text_type.dart';
+import 'package:trekko_backend/controller/request/url_trekko_server.dart';
+import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'request_test.dart';

@@ -1,9 +1,9 @@
-import 'package:app_backend/controller/utils/trip_builder.dart';
-import 'package:app_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
-import 'package:app_backend/controller/wrapper/leg/leg_wrapper.dart';
-import 'package:app_backend/model/trip/leg.dart';
-import 'package:app_backend/model/trip/tracked_point.dart';
-import 'package:app_backend/model/trip/transport_type.dart';
+import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/leg/leg_wrapper.dart';
+import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/trip/tracked_point.dart';
+import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 

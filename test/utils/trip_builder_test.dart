@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:app_backend/model/position.dart';
+import 'package:trekko_backend/model/position.dart';
 import 'package:fling_units/fling_units.dart';
 
 final class PositionUtils {

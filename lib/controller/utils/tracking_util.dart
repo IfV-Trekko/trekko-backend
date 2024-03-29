@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:app_backend/controller/utils/database_utils.dart';
-import 'package:app_backend/model/cache_object.dart';
-import 'package:app_backend/model/profile/battery_usage_setting.dart';
+import 'package:trekko_backend/controller/utils/database_utils.dart';
+import 'package:trekko_backend/model/cache_object.dart';
+import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:background_locator_2/background_locator.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:background_locator_2/settings/android_settings.dart';

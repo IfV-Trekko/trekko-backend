@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/request/bodies/request/change_password_request.dart';
+import 'package:trekko_backend/controller/request/bodies/request/change_password_request.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 

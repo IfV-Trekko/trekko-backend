@@ -1,6 +1,6 @@
-import 'package:app_backend/controller/request/bodies/request/send_code_request.dart';
-import 'package:app_backend/controller/request/endpoint.dart';
-import 'package:app_backend/controller/request/url_trekko_server.dart';
+import 'package:trekko_backend/controller/request/bodies/request/send_code_request.dart';
+import 'package:trekko_backend/controller/request/endpoint.dart';
+import 'package:trekko_backend/controller/request/url_trekko_server.dart';
 
 class AuthentificationUtils {
   static Future<void> sendCode(String projectUrl, String email) {

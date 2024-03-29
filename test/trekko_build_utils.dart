@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:app_backend/controller/builder/build_exception.dart';
-import 'package:app_backend/controller/builder/login_builder.dart';
-import 'package:app_backend/controller/builder/login_result.dart';
-import 'package:app_backend/controller/builder/registration_builder.dart';
-import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/controller/utils/tracking_util.dart';
+import 'package:trekko_backend/controller/builder/build_exception.dart';
+import 'package:trekko_backend/controller/builder/login_builder.dart';
+import 'package:trekko_backend/controller/builder/login_result.dart';
+import 'package:trekko_backend/controller/builder/registration_builder.dart';
+import 'package:trekko_backend/controller/trekko.dart';
+import 'package:trekko_backend/controller/utils/tracking_util.dart';
 import 'package:background_locator_2/background_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';

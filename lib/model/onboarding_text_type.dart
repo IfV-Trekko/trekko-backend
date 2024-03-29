@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/request/endpoint.dart';
+import 'package:trekko_backend/controller/request/endpoint.dart';
 
 enum OnboardingTextType {
   whoText(Endpoint.onboardingTextAbout),

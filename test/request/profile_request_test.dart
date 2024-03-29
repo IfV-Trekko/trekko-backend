@@ -1,6 +1,6 @@
-import 'package:app_backend/controller/request/bodies/server_profile.dart';
-import 'package:app_backend/controller/request/request_exception.dart';
-import 'package:app_backend/controller/request/trekko_server.dart';
+import 'package:trekko_backend/controller/request/bodies/server_profile.dart';
+import 'package:trekko_backend/controller/request/request_exception.dart';
+import 'package:trekko_backend/controller/request/trekko_server.dart';
 import 'package:test/test.dart';
 
 import 'request_utils.dart';

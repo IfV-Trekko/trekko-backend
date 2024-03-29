@@ -1,4 +1,4 @@
-import 'package:app_backend/controller/request/bodies/response/error_response.dart';
+import 'package:trekko_backend/controller/request/bodies/response/error_response.dart';
 
 class RequestException implements Exception {
   final int code;

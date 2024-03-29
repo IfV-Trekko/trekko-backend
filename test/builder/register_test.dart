@@ -1,6 +1,6 @@
-import 'package:app_backend/controller/builder/build_exception.dart';
-import 'package:app_backend/controller/builder/registration_builder.dart';
-import 'package:app_backend/controller/builder/registration_result.dart';
+import 'package:trekko_backend/controller/builder/build_exception.dart';
+import 'package:trekko_backend/controller/builder/registration_builder.dart';
+import 'package:trekko_backend/controller/builder/registration_result.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,6 +1,6 @@
-import 'package:app_backend/controller/request/bodies/server_form_entry.dart';
-import 'package:app_backend/model/profile/question_answer.dart';
-import 'package:app_backend/model/profile/question_type.dart';
+import 'package:trekko_backend/controller/request/bodies/server_form_entry.dart';
+import 'package:trekko_backend/model/profile/question_answer.dart';
+import 'package:trekko_backend/model/profile/question_type.dart';
 import 'package:isar/isar.dart';
 
 part 'onboarding_question.g.dart';

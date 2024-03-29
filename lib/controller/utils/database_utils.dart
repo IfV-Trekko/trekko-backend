@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:app_backend/model/cache_object.dart';
-import 'package:app_backend/model/profile/profile.dart';
-import 'package:app_backend/model/trip/trip.dart';
+import 'package:trekko_backend/model/cache_object.dart';
+import 'package:trekko_backend/model/profile/profile.dart';
+import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;

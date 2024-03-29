@@ -1,9 +1,9 @@
-import 'package:app_backend/controller/trekko.dart';
-import 'package:app_backend/controller/utils/tracking_util.dart';
-import 'package:app_backend/controller/utils/trip_builder.dart';
-import 'package:app_backend/model/tracking_state.dart';
-import 'package:app_backend/model/trip/transport_type.dart';
-import 'package:app_backend/model/trip/trip.dart';
+import 'package:trekko_backend/controller/trekko.dart';
+import 'package:trekko_backend/controller/utils/tracking_util.dart';
+import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/model/tracking_state.dart';
+import 'package:trekko_backend/model/trip/transport_type.dart';
+import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:background_locator_2/location_dto.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';

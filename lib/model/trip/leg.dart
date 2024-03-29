@@ -1,6 +1,6 @@
-import 'package:app_backend/controller/utils/position_utils.dart';
-import 'package:app_backend/model/trip/tracked_point.dart';
-import 'package:app_backend/model/trip/transport_type.dart';
+import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/model/trip/tracked_point.dart';
+import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 

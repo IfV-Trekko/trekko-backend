@@ -1,4 +1,4 @@
-import 'package:app_backend/model/trip/trip.dart';
+import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:json_annotation/json_annotation.dart';
 
