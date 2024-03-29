@@ -1,17 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:background_location/background_location.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
+import 'package:trekko_backend/controller/utils/tracking_service.dart';
 import 'package:trekko_backend/model/cache_object.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 
 class CachedTracking implements Tracking {
   static const String _dbName = "location";
-  static const String isolateName = "LocatorIsolate";
   static bool debug = false;
 
   late final Isar _cache;
@@ -19,8 +18,7 @@ class CachedTracking implements Tracking {
       StreamController<Position>();
   bool _trackingRunning = false;
 
-  Future<void> _locationCallback(Location location) async {
-    Position position = Position.fromLocation(location);
+  Future<void> locationCallback(Position position) async {
     _positionStream.add(position);
 
     String locationJson = jsonEncode(position.toJson());
@@ -35,10 +33,10 @@ class CachedTracking implements Tracking {
     if (Isar.getInstance(_dbName) != null) {
       _cache = Isar.getInstance(_dbName)!;
     } else {
-      _cache = await DatabaseUtils.openCache(_dbName);
+      _cache = await DatabaseUtils.openCache();
     }
 
-    BackgroundLocation.getLocationUpdates(_locationCallback);
+    if (!debug) TrackingService.getLocationUpdates(locationCallback);
   }
 
   @override
@@ -50,8 +48,7 @@ class CachedTracking implements Tracking {
   Stream<Position> track(BatteryUsageSetting setting) {
     if (_trackingRunning) return _positionStream.stream;
 
-    BackgroundLocation.setAndroidConfiguration(1000);
-    BackgroundLocation.startLocationService();
+    if (!debug) TrackingService.startLocationService(setting.interval);
     return _positionStream.stream;
   }
 
@@ -59,7 +56,7 @@ class CachedTracking implements Tracking {
   Future<bool> stop() async {
     if (!_trackingRunning) return false;
 
-    BackgroundLocation.stopLocationService();
+    if (!debug) TrackingService.stopLocationService();
     await _positionStream.close();
     await _cache.close();
     _trackingRunning = false;

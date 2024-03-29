@@ -39,11 +39,11 @@ class DatabaseUtils {
     );
   }
 
-  static Future<Isar> openCache(String name) async {
+  static Future<Isar> openCache() async {
     return Isar.open(
       [CacheObjectSchema],
       directory: await _getDatabasePath("cache"),
-      name: name,
+      name: "location",
     );
   }
 }

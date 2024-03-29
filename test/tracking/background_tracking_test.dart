@@ -1,10 +1,10 @@
+import 'package:background_location/background_location.dart';
 import 'package:trekko_backend/controller/trekko.dart';
-import 'package:trekko_backend/controller/utils/tracking_util.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
-import 'package:background_locator_2/location_dto.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
@@ -23,7 +23,7 @@ void main() {
   });
 
   test("Analyze walk to shop and back", () async {
-    List<LocationDto> walkToShopAndBack = TripBuilder()
+    List<Position> walkToShopAndBack = TripBuilder()
         // stay for 1h
         .stay(Duration(hours: 1))
         // walk 500m
@@ -35,11 +35,11 @@ void main() {
         // stay for 1h
         .stay(Duration(hours: 1))
         .collect()
-        .map((e) => e.toPosition().toLocationDto())
+        .map((e) => e.toPosition())
         .toList();
 
-    for (LocationDto locationDto in walkToShopAndBack) {
-      await LocationBackgroundTracking.callback(locationDto);
+    for (Position Position in walkToShopAndBack) {
+      await LocationBackgroundTracking.callback(Position);
     }
 
     // Wait for the trip to be analyzed
@@ -54,7 +54,7 @@ void main() {
   });
 
   test("Analyze walk to shop and back and only stay for 90 sec", () async {
-    List<LocationDto> walkToShopAndBack = TripBuilder()
+    List<Position> walkToShopAndBack = TripBuilder()
         // stay for 1h
         .stay(Duration(hours: 1))
         // walk 500m
@@ -66,11 +66,11 @@ void main() {
         // stay for 1h
         .stay(Duration(minutes: 20))
         .collect()
-        .map((e) => e.toPosition().toLocationDto())
+        .map((e) => e.toPosition())
         .toList();
 
-    for (LocationDto locationDto in walkToShopAndBack) {
-      await LocationBackgroundTracking.callback(locationDto);
+    for (Position Position in walkToShopAndBack) {
+      await LocationBackgroundTracking.callback(Position);
     }
 
     // Wait for the trip to be analyzed
@@ -82,7 +82,7 @@ void main() {
 
   test("Analyze walk to shop and back and only stay 15 min at the end",
       () async {
-    List<LocationDto> walkToShopAndBack = TripBuilder()
+    List<Position> walkToShopAndBack = TripBuilder()
         // stay for 1h
         .stay(Duration(hours: 1))
         // walk 500m
@@ -94,11 +94,11 @@ void main() {
         // stay for 15m
         .stay(Duration(minutes: 15))
         .collect()
-        .map((e) => e.toPosition().toLocationDto())
+        .map((e) => e.toPosition())
         .toList();
 
-    for (LocationDto locationDto in walkToShopAndBack) {
-      await LocationBackgroundTracking.callback(locationDto);
+    for (Position Position in walkToShopAndBack) {
+      await LocationBackgroundTracking.callback(Position);
     }
 
     // Wait for the trip to be analyzed
