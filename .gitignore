@@ -8,8 +8,7 @@
 .sconsign.dblite
 .svn/
 isar.dll
-app_backend.iml
-app_backend_android.iml
+*.iml
 
 /coverage/
 libisar.so
