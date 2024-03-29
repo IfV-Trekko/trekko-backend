@@ -8,42 +8,38 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 enum Databases {
-  profile([ProfileSchema]),
-  trip([TripSchema]);
+  profile("profile", [ProfileSchema]),
+  trip("trip", [TripSchema], needsExtraParams: true),
+  cache("location_cache", [CacheObjectSchema]);
 
+  final String name;
   final List<CollectionSchema<dynamic>> schemas;
+  final bool needsExtraParams;
 
-  const Databases(this.schemas);
-}
+  const Databases(this.name, this.schemas, {this.needsExtraParams = false});
 
-class DatabaseUtils {
-  static Future<String> _getDatabasePath(String name) async {
+  Future<String> _getDatabasePath(String name) async {
     String dir = p.join((await getApplicationDocumentsDirectory()).path, name);
     await Directory(dir).create(recursive: true);
     return dir;
   }
 
-  static Future<Isar> openProfiles() async {
+  Future<Isar> open({String? path = null}) async {
+    if (needsExtraParams && path == null) {
+      throw Exception("This database needs extra parameters");
+    }
     return Isar.open(
-      [ProfileSchema],
-      directory: await _getDatabasePath("profiles"),
-      name: "profile",
+      schemas,
+      directory: await _getDatabasePath(path ?? name),
+      name: this.name,
     );
   }
 
-  static Future<Isar> openTrips(int profileId) async {
-    return Isar.open(
-      [TripSchema],
-      directory: await _getDatabasePath("$profileId"),
-      name: "trip",
-    );
-  }
-
-  static Future<Isar> openCache() async {
-    return Isar.open(
-      [CacheObjectSchema],
-      directory: await _getDatabasePath("cache"),
-      name: "location",
-    );
+  Future<Isar?> getInstance({openIfFalse = false, String? path}) async {
+    Isar? isar = Isar.getInstance(name);
+    if (isar == null && openIfFalse) {
+      isar = await open(path: path);
+    }
+    return isar;
   }
 }

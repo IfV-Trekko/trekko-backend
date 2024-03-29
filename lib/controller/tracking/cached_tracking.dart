@@ -33,7 +33,7 @@ class CachedTracking implements Tracking {
     if (Isar.getInstance(_dbName) != null) {
       _cache = Isar.getInstance(_dbName)!;
     } else {
-      _cache = await DatabaseUtils.openCache();
+      _cache = await Databases.cache.open();
     }
 
     if (!debug) TrackingService.getLocationUpdates(locationCallback);

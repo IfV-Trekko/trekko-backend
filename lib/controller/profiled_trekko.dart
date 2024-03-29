@@ -122,9 +122,9 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> init() async {
-    _profileDb = await DatabaseUtils.openProfiles();
+    _profileDb = await Databases.profile.open();
     await _initProfile();
-    _tripDb = await DatabaseUtils.openTrips(this._profileId);
+    _tripDb = await Databases.trip.open(path: this._profileId.toString());
     await _tracking.init();
     if ((await getProfile().first).trackingState == TrackingState.running) {
       _locationSubscription = await _startTracking();
