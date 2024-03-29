@@ -9,6 +9,8 @@ abstract class Tracking {
 
   Stream<Position> track(BatteryUsageSetting setting);
 
+  Future<void> clearCache();
+
   Future<List<Position>> clearAndReadCache();
 
   Future<void> stop();

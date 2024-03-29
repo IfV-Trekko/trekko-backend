@@ -19,7 +19,7 @@ class CachedTracking implements Tracking {
       StreamController<Position>();
   bool _trackingRunning = false;
 
-  Future<void> locationCallback(Location location) async {
+  Future<void> _locationCallback(Location location) async {
     Position position = Position.fromLocation(location);
     _positionStream.add(position);
 
@@ -38,7 +38,7 @@ class CachedTracking implements Tracking {
       _cache = await DatabaseUtils.openCache(_dbName);
     }
 
-    BackgroundLocation.getLocationUpdates(locationCallback);
+    BackgroundLocation.getLocationUpdates(_locationCallback);
   }
 
   @override
@@ -49,8 +49,6 @@ class CachedTracking implements Tracking {
   @override
   Stream<Position> track(BatteryUsageSetting setting) {
     if (_trackingRunning) return _positionStream.stream;
-
-    // If
 
     BackgroundLocation.setAndroidConfiguration(1000);
     BackgroundLocation.startLocationService();
@@ -69,6 +67,11 @@ class CachedTracking implements Tracking {
   }
 
   @override
+  Future<void> clearCache() async {
+    await _cache.writeTxn(() => _cache.cacheObjects.where().deleteAll());
+  }
+
+  @override
   Future<List<Position>> clearAndReadCache() {
     Future<List<Position>> result = _cache.cacheObjects
         .where()
@@ -76,8 +79,8 @@ class CachedTracking implements Tracking {
         .findAll()
         .then((value) =>
             value.map((e) => Position.fromJson(jsonDecode(e.value))).toList());
-    return result.then((value) {
-      _cache.writeTxn(() => _cache.cacheObjects.where().deleteAll());
+    return result.then((value) async {
+      await clearCache();
       return value;
     });
   }
