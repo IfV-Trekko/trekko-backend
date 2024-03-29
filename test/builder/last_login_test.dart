@@ -1,31 +1,35 @@
+import 'package:app_backend/controller/builder/build_exception.dart';
 import 'package:app_backend/controller/builder/last_login_builder.dart';
-import 'package:app_backend/controller/builder/registration_builder.dart';
 import 'package:app_backend/controller/trekko.dart';
+import 'package:app_backend/controller/utils/database_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isar/isar.dart';
 
 import '../trekko_build_utils.dart';
 
-const String email = "lastLoginTest@web.de";
+const String email = "lastLoginTest2@web.de";
 const String password = "1aA!hklj32r4hkjl324r";
 
 void main() {
   setUp(() async {
     // Register new account
     await TrekkoBuildUtils().init();
-    Trekko trekko = await RegistrationBuilder.withData(
-            projectUrl: TrekkoBuildUtils.getAddress(),
-            email: email,
-            password: password,
-            passwordConfirmation: password,
-            code: "12345")
-        .build();
-    await trekko.terminate();
+    Isar db = await DatabaseUtils.openProfiles();
+    db.close(deleteFromDisk: true);
+  });
+
+  test("Last login fails if no user has been logged in before", () async {
+    LastLoginBuilder lastLoginBuilder = LastLoginBuilder();
+    expect(lastLoginBuilder.build(), throwsA(isA<BuildException>()));
   });
 
   test("Last login works", () async {
     // Last login
+    Trekko trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    await trekko.terminate();
+
     LastLoginBuilder lastLoginBuilder = LastLoginBuilder();
-    Trekko? trekko = await lastLoginBuilder.build();
+    trekko = await lastLoginBuilder.build();
     expect(trekko, isNotNull);
     await trekko.signOut(delete: true);
   });

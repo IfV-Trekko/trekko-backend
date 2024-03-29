@@ -22,16 +22,25 @@ class Preferences {
   Preferences.withData(
       this.questionAnswers, this.batteryUsageSetting, this.onboardingQuestions);
 
-  dynamic _parseAnswer(String key, String answer) {
+  dynamic _parseAnswer(String key, dynamic answer) {
+    if (!onboardingQuestions.any((element) => element.key == key)) {
+      throw Exception("Invalid question key");
+    }
+
     OnboardingQuestion question =
         onboardingQuestions.firstWhere((e) => e.key == key);
     if (question.type == QuestionType.number) {
       return double.parse(answer);
     } else if (question.type == QuestionType.boolean) {
       return answer == "true";
-    } else {
+    } else if (question.type == QuestionType.text) {
+      return answer.toString();
+    } else if (question.type == QuestionType.select) {
+      if (!question.options!.any((e) => e.key == answer))
+        throw Exception("Invalid answer");
       return answer;
     }
+    throw Exception("Unknown question type");
   }
 
   dynamic getQuestionAnswer(String key) {
@@ -48,8 +57,16 @@ class Preferences {
 
   void setQuestionAnswer(String key, dynamic answer) {
     this.questionAnswers = this.questionAnswers.toList(growable: true);
+    if (answer == null) {
+      this.questionAnswers.removeWhere((element) => element.key == key);
+      return;
+    }
+
+    dynamic answerValue = _parseAnswer(key, answer.toString());
     this.questionAnswers.removeWhere((element) => element.key == key);
-    this.questionAnswers.add(QuestionAnswer.withData(key, answer.toString()));
+    this
+        .questionAnswers
+        .add(QuestionAnswer.withData(key, answerValue.toString()));
   }
 
   ServerProfile toServerProfile() {

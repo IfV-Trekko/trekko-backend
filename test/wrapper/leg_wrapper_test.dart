@@ -14,15 +14,14 @@ void main() {
   });
 
   test("Analyze walk to shop", () async {
-    List<TrackedPoint> walkToShop =
-        TripBuilder.withData(0, 0, skipStayPoints: false)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            // walk 500m
-            .move(true, Duration(minutes: 10), 500.meters)
-            // stay for 5min
-            .stay(Duration(hours: 1))
-            .collect();
+    List<TrackedPoint> walkToShop = TripBuilder()
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // walk 500m
+        .move(true, Duration(minutes: 10), 500.meters)
+        // stay for 5min
+        .stay(Duration(hours: 1))
+        .collect();
 
     for (TrackedPoint point in walkToShop) {
       await legWrapper.add(point.toPosition());
@@ -38,15 +37,14 @@ void main() {
   });
 
   test("Staying at the same location: no leg", () async {
-    List<TrackedPoint> points =
-        TripBuilder.withData(0, 0, skipStayPoints: false)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            .collect();
+    List<TrackedPoint> points = TripBuilder()
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        .collect();
     for (TrackedPoint point in points) {
       await legWrapper.add(point.toPosition());
     }

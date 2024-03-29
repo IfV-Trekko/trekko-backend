@@ -9,7 +9,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
-import 'trekko_build_utils.dart';
+import '../trekko_build_utils.dart';
 
 const String password = "1aA!hklj32r4hkjl324r";
 const String email = "background_tracking_test@profile_test.com";
@@ -23,21 +23,20 @@ void main() {
   });
 
   test("Analyze walk to shop and back", () async {
-    List<LocationDto> walkToShopAndBack =
-        TripBuilder.withData(0, 0, skipStayPoints: false)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            // walk 500m
-            .move(true, Duration(minutes: 10), 500.meters)
-            // stay for 5min
-            .stay(Duration(minutes: 5))
-            // walk 500m back
-            .move(false, Duration(minutes: 10), 500.meters)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            .collect()
-            .map((e) => e.toPosition().toLocationDto())
-            .toList();
+    List<LocationDto> walkToShopAndBack = TripBuilder()
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // walk 500m
+        .move(true, Duration(minutes: 10), 500.meters)
+        // stay for 5min
+        .stay(Duration(minutes: 5))
+        // walk 500m back
+        .move(false, Duration(minutes: 10), 500.meters)
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        .collect()
+        .map((e) => e.toPosition().toLocationDto())
+        .toList();
 
     for (LocationDto locationDto in walkToShopAndBack) {
       await LocationBackgroundTracking.callback(locationDto);
@@ -55,21 +54,20 @@ void main() {
   });
 
   test("Analyze walk to shop and back and only stay for 90 sec", () async {
-    List<LocationDto> walkToShopAndBack =
-        TripBuilder.withData(0, 0, skipStayPoints: false)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            // walk 500m
-            .move(true, Duration(minutes: 10), 500.meters)
-            // stay for 1min
-            .stay(Duration(seconds: 90))
-            // walk 500m back
-            .move(false, Duration(minutes: 10), 500.meters)
-            // stay for 1h
-            .stay(Duration(minutes: 20))
-            .collect()
-            .map((e) => e.toPosition().toLocationDto())
-            .toList();
+    List<LocationDto> walkToShopAndBack = TripBuilder()
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // walk 500m
+        .move(true, Duration(minutes: 10), 500.meters)
+        // stay for 1min
+        .stay(Duration(seconds: 90))
+        // walk 500m back
+        .move(false, Duration(minutes: 10), 500.meters)
+        // stay for 1h
+        .stay(Duration(minutes: 20))
+        .collect()
+        .map((e) => e.toPosition().toLocationDto())
+        .toList();
 
     for (LocationDto locationDto in walkToShopAndBack) {
       await LocationBackgroundTracking.callback(locationDto);
@@ -84,21 +82,20 @@ void main() {
 
   test("Analyze walk to shop and back and only stay 15 min at the end",
       () async {
-    List<LocationDto> walkToShopAndBack =
-        TripBuilder.withData(0, 0, skipStayPoints: false)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            // walk 500m
-            .move(true, Duration(minutes: 10), 500.meters)
-            // stay for 2min
-            .stay(Duration(minutes: 2))
-            // walk 500m back
-            .move(false, Duration(minutes: 10), 500.meters)
-            // stay for 15m
-            .stay(Duration(minutes: 15))
-            .collect()
-            .map((e) => e.toPosition().toLocationDto())
-            .toList();
+    List<LocationDto> walkToShopAndBack = TripBuilder()
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // walk 500m
+        .move(true, Duration(minutes: 10), 500.meters)
+        // stay for 2min
+        .stay(Duration(minutes: 2))
+        // walk 500m back
+        .move(false, Duration(minutes: 10), 500.meters)
+        // stay for 15m
+        .stay(Duration(minutes: 15))
+        .collect()
+        .map((e) => e.toPosition().toLocationDto())
+        .toList();
 
     for (LocationDto locationDto in walkToShopAndBack) {
       await LocationBackgroundTracking.callback(locationDto);

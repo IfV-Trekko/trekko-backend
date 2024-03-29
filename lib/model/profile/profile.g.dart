@@ -65,7 +65,7 @@ const ProfileSchema = CollectionSchema(
       id: 796860516669971778,
       name: r'email_projectUrl',
       unique: true,
-      replace: false,
+      replace: true,
       properties: [
         IndexPropertySchema(
           name: r'email',
@@ -103,7 +103,12 @@ int _profileEstimateSize(
       PreferencesSchema.estimateSize(
           object.preferences, allOffsets[Preferences]!, allOffsets);
   bytesCount += 3 + object.projectUrl.length * 3;
-  bytesCount += 3 + object.token.length * 3;
+  {
+    final value = object.token;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -136,7 +141,7 @@ Profile _profileDeserialize(
   final object = Profile(
     reader.readString(offsets[4]),
     reader.readString(offsets[0]),
-    reader.readString(offsets[5]),
+    reader.readStringOrNull(offsets[5]),
     reader.readDateTime(offsets[1]),
     reader.readDateTimeOrNull(offsets[2]),
     _ProfiletrackingStateValueEnumMap[reader.readByteOrNull(offsets[6])] ??
@@ -175,7 +180,7 @@ P _profileDeserializeProp<P>(
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (_ProfiletrackingStateValueEnumMap[
               reader.readByteOrNull(offset)] ??
@@ -898,8 +903,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> tokenIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'token',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> tokenIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'token',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> tokenEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -912,7 +933,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> tokenGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -927,7 +948,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> tokenLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -942,8 +963,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> tokenBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1337,7 +1358,7 @@ extension ProfileQueryProperty
     });
   }
 
-  QueryBuilder<Profile, String, QQueryOperations> tokenProperty() {
+  QueryBuilder<Profile, String?, QQueryOperations> tokenProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'token');
     });

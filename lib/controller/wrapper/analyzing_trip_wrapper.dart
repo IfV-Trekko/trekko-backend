@@ -11,8 +11,8 @@ class AnalyzingTripWrapper implements TripWrapper {
   final List<Leg> _legs = List.empty(growable: true);
   LegWrapper _legWrapper = AnalyzingLegWrapper();
   DateTime? newestTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
-  DateTime? oldestTimestamp;
   Duration _minDuration = Duration(minutes: 25);
+  DateTime? oldestTimestamp;
 
   @override
   Future<double> calculateEndProbability() {
@@ -45,17 +45,12 @@ class AnalyzingTripWrapper implements TripWrapper {
 
     newestTimestamp = position.timestamp;
     double probability = await _legWrapper.calculateEndProbability();
-    if (_legWrapper.collectedDataPoints() > 0 && probability > 0.95) {
+    if (probability > 0.95) {
       _legs.add(await _legWrapper.get());
       _legWrapper = AnalyzingLegWrapper();
     } else {
       _legWrapper.add(position);
     }
-  }
-
-  @override
-  int collectedDataPoints() {
-    return _legs.length;
   }
 
   @override

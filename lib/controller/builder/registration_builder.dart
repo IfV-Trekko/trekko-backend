@@ -12,8 +12,6 @@ class RegistrationBuilder extends AuthBuilder {
   String? passwordConfirmation;
   String? code;
 
-  RegistrationBuilder();
-
   RegistrationBuilder.withData(
       {String? projectUrl,
       String? email,
@@ -42,7 +40,7 @@ class RegistrationBuilder extends AuthBuilder {
         .signUp(AuthRequest(email!, password!))
         .catchError(onError<AuthResponse>)
         .then((value) async {
-      // await _server.confirmEmail(CodeRequest(_code)); // TODO: exc handling
+      // await _server.confirmEmail(CodeRequest(_code));
       return makeTrekko(projectUrl!, email!, value.token);
     });
   }

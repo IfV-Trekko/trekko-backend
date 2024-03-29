@@ -22,19 +22,25 @@ void main() {
         DateTime(2021, 1, 1, 10, 5), // 5 Minuten später
       );
 
-      final leg = Leg.withData(TransportType.by_foot, [trackedPoint1, trackedPoint2]);
+      final leg =
+          Leg.withData(TransportType.by_foot, [trackedPoint1, trackedPoint2]);
 
       final trip = Trip.withData([leg])
         ..startTime = DateTime(2021, 1, 1)
         ..endTime = DateTime(2021, 1, 2)
         ..distanceInMeters = 1000.0
-        ..transportTypes = [TransportType.by_foot.name, TransportType.bicycle.name]
+        ..transportTypes = [
+          TransportType.by_foot.name,
+          TransportType.bicycle.name
+        ]
         ..comment = "Test trip"
         ..purpose = "Commuting";
       final serverTrip = ServerTrip.fromTrip(trip);
 
-      expect(serverTrip.startTimestamp, equals(trip.getStartTime().millisecondsSinceEpoch));
-      expect(serverTrip.endTimestamp, equals(trip.getEndTime().millisecondsSinceEpoch));
+      expect(serverTrip.startTimestamp,
+          equals(trip.getStartTime().millisecondsSinceEpoch));
+      expect(serverTrip.endTimestamp,
+          equals(trip.getEndTime().millisecondsSinceEpoch));
       expect(serverTrip.distance, equals(trip.distanceInMeters));
       expect(serverTrip.transportTypes, containsAll(['BY_FOOT', 'BICYCLE']));
       expect(serverTrip.comment, equals(trip.comment));
@@ -86,7 +92,5 @@ void main() {
       expect(serverTrip.uid, 'uid123');
       expect(serverTrip.distance, 100.0);
     });
-
   });
 }
-

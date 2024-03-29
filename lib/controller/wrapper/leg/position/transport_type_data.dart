@@ -19,12 +19,6 @@ enum TransportTypeData implements TransportTypeDataProvider {
 
   @override
   Future<DerivedMeasurement<Measurement<Distance>, Measurement<Time>>>
-      getMaximumSpeed() {
-    return Future.value(maximumSpeed.kilo.meters.per(1.hours));
-  }
-
-  @override
-  Future<DerivedMeasurement<Measurement<Distance>, Measurement<Time>>>
       getAverageSpeed() {
     return Future.value(averageSpeed.kilo.meters.per(1.hours));
   }

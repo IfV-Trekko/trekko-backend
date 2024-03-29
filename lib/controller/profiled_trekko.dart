@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app_backend/controller/analysis/reductions.dart';
+import 'package:app_backend/controller/analysis/calculation.dart';
 import 'package:app_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:app_backend/controller/utils/query_util.dart';
 import 'package:app_backend/controller/utils/tracking_util.dart';
@@ -10,7 +10,7 @@ import 'package:app_backend/controller/request/trekko_server.dart';
 import 'package:app_backend/controller/request/url_trekko_server.dart';
 import 'package:app_backend/controller/trekko.dart';
 import 'package:app_backend/controller/utils/database_utils.dart';
-import 'package:app_backend/controller/wrapper/analyzing_trip_wrapper.dart';
+import 'package:app_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
 import 'package:app_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:app_backend/model/onboarding_text_type.dart';
 import 'package:app_backend/model/position.dart';
@@ -91,24 +91,25 @@ class ProfiledTrekko implements Trekko {
           (await this.getProfile().first).preferences.batteryUsageSetting);
     }
 
-    TripWrapper tripWrapper = AnalyzingTripWrapper();
+    TripWrapper tripWrapper = BufferedFilterTripWrapper();
     List<Position> toProcess = await LocationBackgroundTracking.readCache()
         .then((value) => value.map(Position.fromLocationDto).toList());
     return LocationBackgroundTracking.hook((LocationDto loc) async {
       Position detected = Position.fromLocationDto(loc);
       if (!_positionController.isClosed) _positionController.add(detected);
 
-      List<Position> positions = toProcess.toList()..add(detected);
+      List<Position> positions = [detected];
       if (!toProcess.isEmpty) {
+        positions = List.of(toProcess, growable: true)..add(detected);
+        positions.sort((a, b) => a.timestamp.compareTo(b.timestamp));
         toProcess.clear();
       }
 
       for (Position position in positions) {
         double endTripProbability = await tripWrapper.calculateEndProbability();
-        if (tripWrapper.collectedDataPoints() > 0 &&
-            endTripProbability > 0.95) {
+        if (endTripProbability > 0.95) {
           await saveTrip(await tripWrapper.get());
-          tripWrapper = AnalyzingTripWrapper();
+          tripWrapper = BufferedFilterTripWrapper();
           await LocationBackgroundTracking.clearCache();
         } else {
           await tripWrapper.add(position);
@@ -117,13 +118,15 @@ class ProfiledTrekko implements Trekko {
     });
   }
 
-  Future<StreamSubscription<Profile?>> _startTrackingListener() async {
+  Future<StreamSubscription<Profile?>> _startTrackingChangeListener() async {
+    TrackingState lastState = (await getProfile().first).trackingState;
     return this
         ._profileDb
         .profiles
         .watchObject(this._profileId)
         .listen((event) async {
       TrackingState state = event!.trackingState;
+      if (state == lastState) return;
       if (state == TrackingState.running) {
         _locationSubscription = await _startTracking();
       } else {
@@ -141,7 +144,7 @@ class ProfiledTrekko implements Trekko {
     if ((await getProfile().first).trackingState == TrackingState.running) {
       _locationSubscription = await _startTracking();
     }
-    _profileSubscription = await _startTrackingListener();
+    _profileSubscription = await _startTrackingChangeListener();
   }
 
   @override
@@ -215,9 +218,8 @@ class ProfiledTrekko implements Trekko {
           .where((t) => t.donationState == DonationState.donated)
           .toList();
       if (!toRevoke.isEmpty) {
-        await revoke(QueryUtil(this)
-            .idsOr(foundTrips.map((e) => e.id).toList())
-            .build());
+        await revoke(
+            QueryUtil(this).buildIdsOr(foundTrips.map((e) => e.id).toList()));
       }
       return _tripDb.writeTxn(() => trips.deleteAll());
     });
@@ -264,16 +266,13 @@ class ProfiledTrekko implements Trekko {
   }
 
   @override
-  Stream<T?> analyze<T>(
-      Query<Trip> trips, T Function(Trip) tripData, Reduction<T> reduction) {
+  Stream<T?> analyze<T>(Query<Trip> trips, Iterable<T> Function(Trip) tripData,
+      Calculation<T> calc) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final List<Trip> unmodifiedTrips = trips
-          .where((trip) => !trip.isModified())
-          .toList(); // TODO: Fix, this is highly inefficient
-      if (unmodifiedTrips.isEmpty) return null;
-      return unmodifiedTrips
-          .map(tripData)
-          .reduce((t0, t1) => reduction.reduce(t0, t1));
+      final Iterable<T> toAnalyse =
+          trips.where((trip) => // TODO: Fix, this is highly inefficient
+              !trip.isModified()).expand(tripData);
+      return toAnalyse.isEmpty ? null : calc.calculate(toAnalyse);
     });
   }
 
@@ -358,7 +357,14 @@ class ProfiledTrekko implements Trekko {
     if (delete) await _server.deleteAccount();
     await _server.close();
 
-    await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+    if (delete) {
+      await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
+    } else {
+      Profile profile = await getProfile().first;
+      profile.token = null;
+      await _saveProfile(profile);
+    }
+
     await _profileDb.close();
     await _tripDb.close(deleteFromDisk: delete);
   }
