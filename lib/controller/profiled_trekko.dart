@@ -1,16 +1,19 @@
 import 'dart:async';
 
+import 'package:fling_units/fling_units.dart';
+import 'package:isar/isar.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/analysis/calculation.dart';
-import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
-import 'package:trekko_backend/controller/tracking/cached_tracking.dart';
-import 'package:trekko_backend/controller/tracking/tracking.dart';
-import 'package:trekko_backend/controller/utils/query_util.dart';
 import 'package:trekko_backend/controller/request/bodies/request/trips_request.dart';
+import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:trekko_backend/controller/request/bodies/server_trip.dart';
 import 'package:trekko_backend/controller/request/trekko_server.dart';
 import 'package:trekko_backend/controller/request/url_trekko_server.dart';
+import 'package:trekko_backend/controller/tracking/cached_tracking.dart';
+import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
+import 'package:trekko_backend/controller/utils/query_util.dart';
 import 'package:trekko_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
@@ -24,9 +27,6 @@ import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/donation_state.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
-import 'package:fling_units/fling_units.dart';
-import 'package:isar/isar.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ProfiledTrekko implements Trekko {
   final String _projectUrl;
@@ -36,9 +36,10 @@ class ProfiledTrekko implements Trekko {
   late int _profileId;
   late Isar _profileDb;
   late Isar _tripDb;
-  late StreamController<Position> _positionController;
   late TrekkoServer _server;
   late StreamSubscription<Profile?> _profileSubscription;
+  late StreamController<Position> _positionController;
+  late WrapperStream<Trip> _tripStream;
   StreamSubscription<dynamic>? _locationSubscription;
 
   ProfiledTrekko(
@@ -48,7 +49,8 @@ class ProfiledTrekko implements Trekko {
       : _projectUrl = projectUrl,
         _email = email,
         _token = token,
-        _tracking = CachedTracking() {
+        _tracking = CachedTracking(),
+  _tripStream = QueuedWrapperStream(() => BufferedFilterTripWrapper()) {
     _positionController = StreamController.broadcast();
     _server = UrlTrekkoServer.withToken(projectUrl, token);
   }
@@ -88,18 +90,23 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<StreamSubscription<dynamic>> _startTracking() async {
-    BatteryUsageSetting setting = (await this.getProfile().first).preferences.batteryUsageSetting;
-    WrapperStream<Trip> tripWrapper = QueuedWrapperStream(() => BufferedFilterTripWrapper());
+    BatteryUsageSetting setting =
+        (await this.getProfile().first).preferences.batteryUsageSetting;
 
-    tripWrapper.getStream().listen((event) async {
+    _tripStream.getStream().listen((event) async {
       await saveTrip(event);
       await _tracking.clearCache();
     });
 
     return _tracking.track(setting).listen((event) {
       if (!_positionController.isClosed) _positionController.add(event);
-      tripWrapper.add(event);
+      _tripStream.add(event);
     });
+  }
+
+  @override
+  bool isProcessingLocationData() {
+    return _tracking.isProcessing() || _tripStream.isProcessing();
   }
 
   Future<StreamSubscription<Profile?>> _startTrackingChangeListener() async {

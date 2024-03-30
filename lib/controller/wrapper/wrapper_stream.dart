@@ -6,4 +6,6 @@ abstract class WrapperStream<R> {
 
   add(Position data);
 
+  bool isProcessing();
+
 }
