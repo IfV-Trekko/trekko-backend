@@ -1,13 +1,13 @@
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
-import 'package:background_locator_2/location_dto.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
+import 'package:trekko_backend/model/position.dart';
 
 void main() {
   setUp(() async {});
 
   test("Check if tripbuilder trips are in right order date wise", () async {
-    List<LocationDto> walkToShopAndBack = TripBuilder()
+    List<Position> walkToShopAndBack = TripBuilder()
         // stay for 1h
         .stay(Duration(hours: 1))
         // walk 500m
@@ -19,16 +19,16 @@ void main() {
         // stay for 1h
         .stay(Duration(hours: 1))
         .collect()
-        .map((e) => e.toPosition().toLocationDto())
+        .map((e) => e.toPosition())
         .toList();
 
-    double newestTime = 0;
-    for (LocationDto locationDto in walkToShopAndBack) {
-      if (newestTime > locationDto.time) {
+    int newestTime = 0;
+    for (Position position in walkToShopAndBack) {
+      if (newestTime > position.timestamp.millisecondsSinceEpoch) {
         fail(
-            "Newest time is not in right order, expected: $newestTime, got: ${locationDto.time}");
+            "Newest time is not in right order, expected: $newestTime, got: ${position.timestamp.toString()}");
       }
-      newestTime = locationDto.time;
+      newestTime = position.timestamp.millisecondsSinceEpoch;
     }
   });
 }

@@ -14,7 +14,7 @@ void main() {
   setUp(() async {
     // Register new account
     await TrekkoBuildUtils().init();
-    Isar db = await DatabaseUtils.openProfiles();
+    Isar db = await Databases.profile.open();
     db.close(deleteFromDisk: true);
   });
 

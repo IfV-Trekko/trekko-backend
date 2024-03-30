@@ -1,4 +1,3 @@
-import 'package:background_location/background_location.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/model/position.dart';
@@ -10,6 +9,7 @@ import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
 import '../trekko_build_utils.dart';
+import 'tracking_test_util.dart';
 
 const String password = "1aA!hklj32r4hkjl324r";
 const String email = "background_tracking_test@profile_test.com";
@@ -18,7 +18,6 @@ void main() {
   late Trekko trekko;
   setUp(() async {
     trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
-    await LocationBackgroundTracking.clearCache();
     await trekko.setTrackingState(TrackingState.running);
   });
 
@@ -38,13 +37,7 @@ void main() {
         .map((e) => e.toPosition())
         .toList();
 
-    for (Position Position in walkToShopAndBack) {
-      await LocationBackgroundTracking.callback(Position);
-    }
-
-    // Wait for the trip to be analyzed
-    await Future.delayed(Duration(seconds: 3));
-
+    await TrackingTestUtil.sendPositions(trekko, walkToShopAndBack);
     List<Trip> trips = await trekko.getTripQuery().findAll();
     expect(trips.length, 1);
     Trip trip = trips.first;
@@ -69,13 +62,7 @@ void main() {
         .map((e) => e.toPosition())
         .toList();
 
-    for (Position Position in walkToShopAndBack) {
-      await LocationBackgroundTracking.callback(Position);
-    }
-
-    // Wait for the trip to be analyzed
-    await Future.delayed(Duration(seconds: 3));
-
+    await TrackingTestUtil.sendPositions(trekko, walkToShopAndBack);
     List<Trip> trips = await trekko.getTripQuery().findAll();
     expect(trips.length, 0);
   });
@@ -97,19 +84,12 @@ void main() {
         .map((e) => e.toPosition())
         .toList();
 
-    for (Position Position in walkToShopAndBack) {
-      await LocationBackgroundTracking.callback(Position);
-    }
-
-    // Wait for the trip to be analyzed
-    await Future.delayed(Duration(seconds: 3));
-
+    await TrackingTestUtil.sendPositions(trekko, walkToShopAndBack);
     List<Trip> trips = await trekko.getTripQuery().findAll();
     expect(trips.length, 0);
   });
 
   tearDown(() async {
-    await LocationBackgroundTracking.clearCache();
     await TrekkoBuildUtils().close(trekko);
   });
 }
