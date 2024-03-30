@@ -4,7 +4,7 @@ abstract class WrapperStream<R> {
 
   Stream<R> getStream();
 
-  add(Position data);
+  Future<void> add(Position data);
 
   bool isProcessing();
 

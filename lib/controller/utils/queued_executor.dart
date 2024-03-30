@@ -5,7 +5,7 @@ class QueuedExecutor {
   final Queue<Function> _dataQueue = Queue<Function>();
   bool _isProcessing = false;
 
-  void _processNextData() async {
+  Future<void> _processNextData() async {
     if (_dataQueue.isEmpty) {
       _isProcessing = false;
       return;
@@ -13,13 +13,13 @@ class QueuedExecutor {
 
     _isProcessing = true;
     await _dataQueue.removeFirst().call();
-    _processNextData();
+    await _processNextData();
   }
 
-  add(Function data) {
+  Future<void> add(Function data) async {
     _dataQueue.add(data);
     if (!_isProcessing) {
-      _processNextData();
+      await _processNextData();
     }
   }
 
