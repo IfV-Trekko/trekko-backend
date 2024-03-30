@@ -2,7 +2,7 @@ import 'dart:collection';
 
 class QueuedExecutor {
 
-  final Queue<Function> _dataQueue = Queue<Function>();
+  final Queue<Future Function()> _dataQueue = Queue<Future Function()>();
   bool _isProcessing = false;
 
   Future<void> _processNextData() async {
@@ -12,14 +12,15 @@ class QueuedExecutor {
     }
 
     _isProcessing = true;
-    await _dataQueue.removeFirst().call();
-    await _processNextData();
+    var function = _dataQueue.removeFirst();
+    await function.call();
+    _processNextData();
   }
 
-  Future<void> add(Function data) async {
+  void add(Future Function() data) {
     _dataQueue.add(data);
     if (!_isProcessing) {
-      await _processNextData();
+      _processNextData();
     }
   }
 

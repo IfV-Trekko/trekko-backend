@@ -30,7 +30,7 @@ class QueuedWrapperStream<R> implements WrapperStream<R> {
 
   @override
   add(Position data) async {
-    await _dataProcessor.add(() async => await _process(data));
+    _dataProcessor.add(() async => await _process(data));
   }
 
   @override

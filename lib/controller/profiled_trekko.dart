@@ -37,7 +37,6 @@ class ProfiledTrekko implements Trekko {
   late Isar _profileDb;
   late Isar _tripDb;
   late TrekkoServer _server;
-  late StreamSubscription<Profile?> _profileSubscription;
   late StreamController<Position> _positionController;
   late WrapperStream<Trip> _tripStream;
   StreamSubscription<dynamic>? _locationSubscription;
@@ -109,24 +108,6 @@ class ProfiledTrekko implements Trekko {
     return _tracking.isProcessing() || _tripStream.isProcessing();
   }
 
-  Future<StreamSubscription<Profile?>> _startTrackingChangeListener() async {
-    TrackingState lastState = (await getProfile().first).trackingState;
-    return this
-        ._profileDb
-        .profiles
-        .watchObject(this._profileId)
-        .listen((event) async {
-      TrackingState state = event!.trackingState;
-      if (state == lastState) return;
-      if (state == TrackingState.running) {
-        _locationSubscription = await _startTracking();
-      } else {
-        await _locationSubscription?.cancel();
-        _tracking.stop();
-      }
-    });
-  }
-
   @override
   Future<void> init() async {
     _profileDb = await Databases.profile.open();
@@ -136,7 +117,6 @@ class ProfiledTrekko implements Trekko {
     if ((await getProfile().first).trackingState == TrackingState.running) {
       _locationSubscription = await _startTracking();
     }
-    _profileSubscription = await _startTrackingChangeListener();
   }
 
   @override
@@ -313,6 +293,13 @@ class ProfiledTrekko implements Trekko {
     profile.lastTimeTracked = DateTime.now();
     profile.trackingState = state;
     _saveProfile(profile);
+
+    if (state == TrackingState.running) {
+      _locationSubscription = await _startTracking();
+    } else if (state == TrackingState.paused) {
+      await _locationSubscription?.cancel();
+      _tracking.stop();
+    }
     return true;
   }
 
@@ -328,7 +315,6 @@ class ProfiledTrekko implements Trekko {
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
     await _positionController.close();
-    await _profileSubscription.cancel();
     await _locationSubscription?.cancel();
     await _tracking.clearCache();
     if (await _tracking.isRunning()) {

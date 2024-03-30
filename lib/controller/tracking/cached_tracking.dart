@@ -31,19 +31,20 @@ class CachedTracking implements Tracking {
   }
 
   Future<void> _processLocation(Position position) async {
+    if (!_cache.isOpen) throw Exception("Cache is not open");
     String locationJson = jsonEncode(position.toJson());
     await _cache.writeTxn(() => _cache.cacheObjects.put(
         CacheObject(locationJson, position.timestamp.millisecondsSinceEpoch)));
     _positionStream.add(position);
   }
 
-  void _locationCallback(Position position) {
-    _dataProcessor.add(() async => await _processLocation(position));
+  void _locationCallback(Position position) async {
+    _dataProcessor.add(() => _processLocation(position));
   }
 
   @override
   Future<void> init() async {
-    _cache = (await Databases.cache.getInstance(openIfFalse: true))!;
+    _cache = (await Databases.cache.getInstance(openIfNone: true))!;
     _positionStream.onListen = () async {
       List<Position> positions = await _clearAndReadCache();
       for (Position position in positions) {
@@ -71,6 +72,7 @@ class CachedTracking implements Tracking {
   @override
   Future<bool> stop() async {
     if (!_trackingRunning) return false;
+    if (_dataProcessor.isProcessing) throw Exception("Data processing is still running");
 
     TrackingService.stopLocationService();
     await _positionStream.close();
