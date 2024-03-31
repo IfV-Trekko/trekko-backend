@@ -37,7 +37,7 @@ enum Databases {
 
   Future<Isar?> getInstance({openIfNone = false, String? path}) async {
     Isar? isar = Isar.getInstance(name);
-    if (isar == null && openIfNone) {
+    if (isar == null && openIfNone || isar != null && !isar.isOpen) {
       isar = await open(path: path);
     }
     return isar;

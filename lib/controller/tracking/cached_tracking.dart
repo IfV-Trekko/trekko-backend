@@ -31,7 +31,6 @@ class CachedTracking implements Tracking {
   }
 
   Future<void> _processLocation(Position position) async {
-    if (!_cache.isOpen) throw Exception("Cache is not open");
     String locationJson = jsonEncode(position.toJson());
     await _cache.writeTxn(() => _cache.cacheObjects.put(
         CacheObject(locationJson, position.timestamp.millisecondsSinceEpoch)));
@@ -39,7 +38,7 @@ class CachedTracking implements Tracking {
   }
 
   void _locationCallback(Position position) async {
-    _dataProcessor.add(() => _processLocation(position));
+    _dataProcessor.add(() async => await _processLocation(position));
   }
 
   @override
