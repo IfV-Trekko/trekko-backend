@@ -34,7 +34,7 @@ class QueuedWrapperStream<R> implements WrapperStream<R> {
   }
 
   @override
-  Stream<R> getStream() {
+  Stream<R> getResults() {
     return _controller.stream;
   }
 

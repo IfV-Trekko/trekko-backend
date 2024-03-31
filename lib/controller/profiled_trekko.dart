@@ -86,9 +86,9 @@ class ProfiledTrekko implements Trekko {
   }
 
   Future<void> _initTrackingListener() async {
-    _tracking.track().listen((event) => _tripStream.add(event));
-    _tripStream.getStream().listen((event) async {
-      await saveTrip(event);
+    _tracking.track().listen((pos) => _tripStream.add(pos));
+    _tripStream.getResults().listen((trip) async {
+      await saveTrip(trip);
       await _tracking.clearCache();
     });
   }
