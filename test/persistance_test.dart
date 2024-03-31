@@ -6,10 +6,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
-import 'trekko_build_utils.dart';
-
-const String password = "1aA!hklj32r4hkjl324r";
-const String email = "persistance_test@profile_test.com";
+import 'trekko_test_utils.dart';
 
 void main() {
   // A test, where a trekko will be used to test the persistance of the trips
@@ -19,7 +16,7 @@ void main() {
   late Trekko trekko;
   late Trip trip;
   setUpAll(() async {
-    trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    trekko = await TrekkoTestUtils.initTrekko();
     trip = TripBuilder()
         .move_r(Duration(minutes: 10), 200.meters)
         .move_r(Duration(minutes: 10), 200.meters)
@@ -45,6 +42,6 @@ void main() {
   });
 
   tearDownAll(() async {
-    await TrekkoBuildUtils().close(trekko);
+    await TrekkoTestUtils.close(trekko);
   });
 }

@@ -6,19 +6,16 @@ import 'package:trekko_backend/model/profile/profile.dart';
 import 'package:trekko_backend/model/profile/question_type.dart';
 import 'package:test/test.dart';
 
-import 'trekko_build_utils.dart';
-
-const String password = "1aA!hklj32r4hkjl324r";
-const String email = "profile_test113@profile_test.com";
+import 'trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
   setUpAll(() async =>
-      trekko = await TrekkoBuildUtils().loginOrRegister(email, password));
+      trekko = await TrekkoTestUtils.initTrekko());
 
   test("Profile data correct", () async {
     Profile profile = await trekko.getProfile().first;
-    expect(profile.email, equals(email));
+    expect(profile.email, equals(TrekkoTestUtils.email));
   });
 
   test("Set and get question answer", () async {
@@ -49,7 +46,7 @@ void main() {
         equals(BatteryUsageSetting.low));
   });
 
-  tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
+  tearDownAll(() async => await TrekkoTestUtils.close(trekko));
 
   group('preferences test', () {
     late Preferences preferences;

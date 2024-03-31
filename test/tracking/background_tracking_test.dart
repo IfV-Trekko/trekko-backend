@@ -8,16 +8,13 @@ import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
-import '../trekko_build_utils.dart';
+import '../trekko_test_utils.dart';
 import 'tracking_test_util.dart';
-
-const String password = "1aA!hklj32r4hkjl324r";
-const String email = "background_tracking_test@profile_test.com";
 
 void main() {
   late Trekko trekko;
   setUp(() async {
-    trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    trekko = await TrekkoTestUtils.initTrekko();
     await trekko.setTrackingState(TrackingState.running);
   });
 
@@ -90,6 +87,6 @@ void main() {
   });
 
   tearDown(() async {
-    await TrekkoBuildUtils().close(trekko);
+    await TrekkoTestUtils.close(trekko);
   });
 }
