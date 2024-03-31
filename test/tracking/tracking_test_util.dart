@@ -9,6 +9,7 @@ class TrackingTestUtil {
   static List<Function(Position)> position_receiver = [];
 
   static Future<void> init() async {
+    position_receiver = [];
     TrackingService.debug = true;
     TrackingService.debugCallback = onLocationSubscribe;
     print("Initialized tracking test util");
