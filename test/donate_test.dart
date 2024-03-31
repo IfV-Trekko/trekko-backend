@@ -6,16 +6,13 @@ import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
-import 'trekko_build_utils.dart';
-
-const String password = "1aA!hklj32r4hkjl324r";
-const String email = "donate_test2@profile_test.com";
+import 'trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
 
   setUpAll(() async {
-    trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    trekko = await TrekkoTestUtils.initTrekko();
   });
 
   test("Donate empty query", () async {
@@ -112,6 +109,6 @@ void main() {
   });
 
   tearDownAll(() async {
-    await TrekkoBuildUtils().close(trekko);
+    await TrekkoTestUtils.close(trekko);
   });
 }

@@ -9,10 +9,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
-import '../trekko_build_utils.dart';
-
-const String password = "1aA!hklj32r4hkjl324r";
-const String email = "profile_test113@profile_test.com";
+import '../trekko_test_utils.dart';
 
 Future<void> checkTrip(
     Trekko trekko, int tripId, Distance distance, Duration duration) async {
@@ -45,7 +42,7 @@ void main() {
 
 
   setUpAll(() async {
-    trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    trekko = await TrekkoTestUtils.initTrekko();
   });
 
   test("Analyze trip with one leg", () async {
@@ -89,5 +86,5 @@ void main() {
     expect(transportTypeData, equals(null));
   });
 
-  tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
+  tearDownAll(() async => await TrekkoTestUtils.close(trekko));
 }

@@ -34,21 +34,33 @@ class CustomPermissionHandlerPlatform extends Mock
   }
 }
 
-class TrekkoBuildUtils {
+class TrekkoTestUtils {
+  static const String email = "temp_test_account@web.de";
+  static const String password = "1aA!hklj32r4hkjl324r";
 
   static String getAddress() {
     String ip = "localhost";
     if (Platform.isAndroid) {
       ip = "10.0.2.2";
     } else if (Platform.isMacOS) {
-      ip =  "127.0.0.1";
+      ip = "127.0.0.1";
     } else {
-      ip =  "localhost";
+      ip = "localhost";
     }
     return "http://$ip:8080";
   }
 
-  Future<void> init() async {
+  static Future<Trekko> register(String ip) async {
+    return await RegistrationBuilder.withData(
+            projectUrl: ip,
+            email: email,
+            password: password,
+            passwordConfirmation: password,
+            code: "12345")
+        .build();
+  }
+
+  static Future<void> init() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     HttpOverrides.global = MyHttpOverrides();
     await Isar.initializeIsarCore(download: true);
@@ -56,35 +68,27 @@ class TrekkoBuildUtils {
     PermissionHandlerPlatform.instance = CustomPermissionHandlerPlatform();
   }
 
-  Future<Trekko> loginOrRegister(String email, String password) async {
+  static Future<Trekko> initTrekko() async {
     await init();
     await TrackingTestUtil.init();
     late String ip = getAddress();
     try {
-      return await LoginBuilder.withData(
+      Trekko loggedIn = await LoginBuilder.withData(
               projectUrl: ip, email: email, password: password)
           .build();
+      await loggedIn.signOut(delete: true);
+      return register(ip);
     } catch (e) {
       if (e is BuildException) {
         if (e.reason == LoginResult.failedNoSuchUser) {
-          try {
-            return await RegistrationBuilder.withData(
-                    projectUrl: ip,
-                    email: email,
-                    password: password,
-                    passwordConfirmation: password,
-                    code: "12345")
-                .build();
-          } catch (e) {
-            print((e as BuildException).reason);
-          }
+          register(ip);
         }
       }
       rethrow;
     }
   }
 
-  Future<void> close(Trekko trekko) async {
+  static Future<void> close(Trekko trekko) async {
     await trekko.signOut(delete: true);
   }
 }

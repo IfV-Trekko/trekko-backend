@@ -2,14 +2,11 @@ import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:test/test.dart';
 
-import 'trekko_build_utils.dart';
-
-const String password = "1aA!hklj32r4hkjl324r";
-const String email = "tracking_test@profile_test.com";
+import 'trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
-  setUpAll(() async => trekko = await TrekkoBuildUtils().loginOrRegister(email, password));
+  setUpAll(() async => trekko = await TrekkoTestUtils.initTrekko());
 
   test("Setting unchanged tracking state", () async {
     // Paused by default
@@ -22,5 +19,5 @@ void main() {
     expect(changed, equals(true));
   });
 
-  tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
+  tearDownAll(() async => await TrekkoTestUtils.close(trekko));
 }

@@ -6,15 +6,12 @@ import 'package:fling_units/fling_units.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 
-import 'trekko_build_utils.dart';
-
-const String password = "1aA!hklj32r4hkjl324r";
-const String email = "merge_test@profile_test.com";
+import 'trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
   setUp(() async {
-    trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    trekko = await TrekkoTestUtils.initTrekko();
   });
 
   // Create 2 ways which are after each other
@@ -51,5 +48,5 @@ void main() {
     expect(trips.length, 1);
   });
 
-  tearDownAll(() async => await TrekkoBuildUtils().close(trekko));
+  tearDownAll(() async => await TrekkoTestUtils.close(trekko));
 }
