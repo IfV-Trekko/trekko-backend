@@ -7,7 +7,9 @@ abstract class Tracking {
 
   Future<bool> isRunning();
 
-  Stream<Position> track(BatteryUsageSetting setting);
+  Stream<Position> track();
+
+  Future<void> start(BatteryUsageSetting setting);
 
   Future<void> stop();
 

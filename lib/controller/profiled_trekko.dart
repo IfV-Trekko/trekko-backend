@@ -37,9 +37,7 @@ class ProfiledTrekko implements Trekko {
   late Isar _profileDb;
   late Isar _tripDb;
   late TrekkoServer _server;
-  late StreamController<Position> _positionController;
   late WrapperStream<Trip> _tripStream;
-  StreamSubscription<dynamic>? _locationSubscription;
 
   ProfiledTrekko(
       {required String projectUrl,
@@ -49,8 +47,7 @@ class ProfiledTrekko implements Trekko {
         _email = email,
         _token = token,
         _tracking = CachedTracking(),
-  _tripStream = QueuedWrapperStream(() => BufferedFilterTripWrapper()) {
-    _positionController = StreamController.broadcast();
+        _tripStream = QueuedWrapperStream(() => BufferedFilterTripWrapper()) {
     _server = UrlTrekkoServer.withToken(projectUrl, token);
   }
 
@@ -88,18 +85,11 @@ class ProfiledTrekko implements Trekko {
     }
   }
 
-  Future<StreamSubscription<dynamic>> _startTracking() async {
-    BatteryUsageSetting setting =
-        (await this.getProfile().first).preferences.batteryUsageSetting;
-
+  Future<void> _initTrackingListener() async {
+    _tracking.track().listen((event) => _tripStream.add(event));
     _tripStream.getStream().listen((event) async {
       await saveTrip(event);
       await _tracking.clearCache();
-    });
-
-    return _tracking.track(setting).listen((event) {
-      if (!_positionController.isClosed) _positionController.add(event);
-      _tripStream.add(event);
     });
   }
 
@@ -114,8 +104,11 @@ class ProfiledTrekko implements Trekko {
     await _initProfile();
     _tripDb = await Databases.trip.open(path: this._profileId.toString());
     await _tracking.init();
-    if ((await getProfile().first).trackingState == TrackingState.running) {
-      _locationSubscription = await _startTracking();
+    await _initTrackingListener();
+
+    Profile profile = (await getProfile().first);
+    if (profile.trackingState == TrackingState.running) {
+      await _tracking.start(profile.preferences.batteryUsageSetting);
     }
   }
 
@@ -292,30 +285,24 @@ class ProfiledTrekko implements Trekko {
     Profile profile = await getProfile().first;
     profile.lastTimeTracked = DateTime.now();
     profile.trackingState = state;
-    _saveProfile(profile);
+    await _saveProfile(profile);
 
     if (state == TrackingState.running) {
-      _locationSubscription = await _startTracking();
+      await _tracking.start(profile.preferences.batteryUsageSetting);
     } else if (state == TrackingState.paused) {
-      await _locationSubscription?.cancel();
-      _tracking.stop();
+      await _tracking.stop();
     }
     return true;
   }
 
   @override
   Stream<Position> getPosition() {
-    // A stream that returns the current position. The stream will not send any data when the tracking state is paused.
-    // The moment the tracking state is changed to running, the stream will start sending data.
-    // If the tracking state is running, returns the positionstream from the geolocator package.
-
-    return _positionController.stream;
+    return _tracking.track();
   }
 
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
-    await _positionController.close();
-    await _locationSubscription?.cancel();
+    // await _positionController.close();
     await _tracking.clearCache();
     if (await _tracking.isRunning()) {
       await _tracking.stop();
