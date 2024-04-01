@@ -28,8 +28,7 @@ class TrackingService {
 
     if (!debug) {
       await BackgroundLocator.initialize();
-      BackgroundLocator.registerLocationUpdate(
-              (pos) => locationCallback(pos, cache),
+      BackgroundLocator.registerLocationUpdate(locationCallback,
           autoStop: false,
           iosSettings: IOSSettings(
               accuracy: LocationAccuracy.NAVIGATION, distanceFilter: 0),
@@ -43,21 +42,20 @@ class TrackingService {
                   notificationTitle: 'Trekko',
                   notificationMsg: 'Sammeln von Standortdaten...',
                   notificationBigMsg:
-                  'Um die Wegeerkennung zu nutzen, sammeln wir Standortdaten. Diese werden nur lokal gespeichert und auch nur nach Wahl gespendet.',
+                      'Um die Wegeerkennung zu nutzen, sammeln wir Standortdaten. Diese werden nur lokal gespeichert und auch nur nach Wahl gespendet.',
                   notificationIcon: '',
                   notificationIconColor: Colors.grey)));
     }
   }
 
-  static void locationCallback(LocationDto loc, Databases databases) {
+  static void locationCallback(LocationDto loc) {
     Map<String, dynamic> data = Position.fromLocationDto(loc).toJson();
-    databases.getInstance(openIfNone: true).then((cache) {
+    Databases.cache.getInstance(openIfNone: true).then((cache) {
       cache?.writeTxn(() => cache.cacheObjects
           .put(CacheObject(jsonEncode(data), loc.time.toInt())));
     });
     final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
     send?.send(data);
-    print("$data in callback");
   }
 
   static void stopLocationService() {
