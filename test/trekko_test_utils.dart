@@ -81,7 +81,7 @@ class TrekkoTestUtils {
     } catch (e) {
       if (e is BuildException) {
         if (e.reason == LoginResult.failedNoSuchUser) {
-          register(ip);
+          return register(ip);
         }
       }
       rethrow;
