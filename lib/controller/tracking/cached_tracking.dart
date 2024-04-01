@@ -23,22 +23,19 @@ class CachedTracking implements Tracking {
         .sortByTimestamp()
         .findAll()
         .then((value) =>
-        value.map((e) => Position.fromJson(jsonDecode(e.value))).toList());
+            value.map((e) => Position.fromJson(jsonDecode(e.value))).toList());
     return result.then((value) async {
       await clearCache();
       return value;
     });
   }
 
-  Future<void> _processLocation(Position position) async {
-    String locationJson = jsonEncode(position.toJson());
-    await _cache.writeTxn(() => _cache.cacheObjects.put(
-        CacheObject(locationJson, position.timestamp.millisecondsSinceEpoch)));
+  void _processLocation(Position position) {
     _positionStream.add(position);
   }
 
   void _locationCallback(Position position) async {
-    _dataProcessor.add(() async => await _processLocation(position));
+    _dataProcessor.add(() async => _processLocation(position));
   }
 
   @override
@@ -64,7 +61,7 @@ class CachedTracking implements Tracking {
 
   @override
   Future<void> start(BatteryUsageSetting setting) async {
-    TrackingService.startLocationService(setting.interval);
+    TrackingService.startLocationService(setting.interval, Databases.cache);
     TrackingService.getLocationUpdates(_locationCallback);
     _trackingRunning = true;
   }
@@ -72,7 +69,8 @@ class CachedTracking implements Tracking {
   @override
   Future<bool> stop() async {
     if (!_trackingRunning) return false;
-    if (_dataProcessor.isProcessing) throw Exception("Data processing is still running");
+    if (_dataProcessor.isProcessing)
+      throw Exception("Data processing is still running");
 
     TrackingService.stopLocationService();
     await _positionStream.close();
@@ -85,7 +83,6 @@ class CachedTracking implements Tracking {
   Future<void> clearCache() async {
     await _cache.writeTxn(() => _cache.cacheObjects.where().deleteAll());
   }
-
 
   @override
   bool isProcessing() {
