@@ -15,6 +15,7 @@ class CachedTracking implements Tracking {
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   final StreamController<Position> _positionStream =
       StreamController<Position>.broadcast();
+  int _trackingId = 0;
   bool _trackingRunning = false;
 
   Future<List<Position>> _clearAndReadCache() {
@@ -61,7 +62,7 @@ class CachedTracking implements Tracking {
 
   @override
   Future<void> start(BatteryUsageSetting setting) async {
-    TrackingService.startLocationService(setting.interval, Databases.cache);
+    _trackingId = await TrackingService.startLocationService(setting.interval, Databases.cache);
     TrackingService.getLocationUpdates(_locationCallback);
     _trackingRunning = true;
   }
@@ -72,7 +73,7 @@ class CachedTracking implements Tracking {
     if (_dataProcessor.isProcessing)
       throw Exception("Data processing is still running");
 
-    TrackingService.stopLocationService();
+    TrackingService.stopLocationService(_trackingId);
     await _positionStream.close();
     await _cache.close();
     _trackingRunning = false;

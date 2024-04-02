@@ -1,4 +1,4 @@
-import 'package:background_locator_2/location_dto.dart';
+import 'package:huawei_location/huawei_location.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'position.g.dart';
@@ -39,12 +39,34 @@ class Position {
     required this.speedAccuracy,
   });
 
-  factory Position.fromLocationDto(LocationDto locationDto) {
-    return _$PositionFromJson(locationDto.toJson());
+  factory Position.fromLocation(Location locationDto) {
+    return Position(
+      latitude: locationDto.latitude!,
+      longitude: locationDto.longitude!,
+      timestamp: DateTime.fromMillisecondsSinceEpoch(locationDto.time!),
+      accuracy: locationDto.horizontalAccuracyMeters ?? 0,
+      altitude: locationDto.altitude!,
+      altitudeAccuracy: locationDto.verticalAccuracyMeters ?? 0,
+      heading: locationDto.bearing ?? 0,
+      headingAccuracy: locationDto.bearingAccuracyDegrees ?? 0,
+      speed: locationDto.speed!,
+      speedAccuracy: locationDto.speedAccuracyMetersPerSecond ?? 0,
+    );
   }
 
-  LocationDto toLocationDto() {
-    return LocationDto.fromJson(_$PositionToJson(this));
+  Location toLocationDto() {
+    return Location(
+      latitude: latitude,
+      longitude: longitude,
+      time: timestamp.millisecondsSinceEpoch,
+      horizontalAccuracyMeters: accuracy,
+      altitude: altitude,
+      verticalAccuracyMeters: altitudeAccuracy,
+      bearing: heading,
+      bearingAccuracyDegrees: headingAccuracy,
+      speed: speed,
+      speedAccuracyMetersPerSecond: speedAccuracy,
+    );
   }
 
   factory Position.fromJson(dynamic json) => _$PositionFromJson(json);
