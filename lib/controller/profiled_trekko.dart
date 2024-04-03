@@ -13,7 +13,7 @@ import 'package:trekko_backend/controller/tracking/cached_tracking.dart';
 import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
-import 'package:trekko_backend/controller/utils/query_util.dart';
+import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
@@ -184,7 +184,7 @@ class ProfiledTrekko implements Trekko {
           .toList();
       if (!toRevoke.isEmpty) {
         await revoke(
-            QueryUtil(this).buildIdsOr(foundTrips.map((e) => e.id).toList()));
+            TripQuery(this).andAnyId(foundTrips.map((e) => e.id)).build());
       }
       return _tripDb.writeTxn(() => trips.deleteAll());
     });

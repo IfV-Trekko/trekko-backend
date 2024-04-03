@@ -1,5 +1,5 @@
 import 'package:trekko_backend/controller/trekko.dart';
-import 'package:trekko_backend/controller/utils/query_util.dart';
+import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
@@ -36,7 +36,7 @@ void main() {
     int trip2Id = await trekko.saveTrip(trip2);
 
     Trip merge = await trekko
-        .mergeTrips(QueryUtil(trekko).buildIdsOr([trip1Id, trip2Id]));
+        .mergeTrips(TripQuery(trekko).andAnyId([trip1Id, trip2Id]).build());
 
     // Check start, end time and distance
     expect(merge.getStartTime(), trip1.getStartTime());
