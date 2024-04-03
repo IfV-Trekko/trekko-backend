@@ -3,13 +3,13 @@ import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 
 abstract class Tracking {
 
-  Future<void> init();
+  Future<void> init(BatteryUsageSetting setting);
 
   Future<bool> isRunning();
 
   Stream<Position> track();
 
-  Future<void> start(BatteryUsageSetting setting);
+  Future<void> start();
 
   Future<void> stop();
 

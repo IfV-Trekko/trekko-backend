@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -21,7 +20,7 @@ class TrackingTestUtil {
   static Future<void> sendPositions(
       Trekko trekko, List<Position> positions) async {
     final SendPort? send =
-        IsolateNameServer.lookupPortByName(TrackingService.isolateName);
+        IsolateNameServer.lookupPortByName(TrackingService.debugIsolateName);
     if (send == null) throw Exception("No send port");
     for (Position pos in positions) {
       send.send(pos.toJson());

@@ -1,5 +1,5 @@
-import 'package:huawei_location/huawei_location.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 
 part 'position.g.dart';
 
@@ -39,33 +39,18 @@ class Position {
     required this.speedAccuracy,
   });
 
-  factory Position.fromLocation(Location locationDto) {
+  factory Position.fromGeoPosition(geo.Position position) {
     return Position(
-      latitude: locationDto.latitude!,
-      longitude: locationDto.longitude!,
-      timestamp: DateTime.fromMillisecondsSinceEpoch(locationDto.time!),
-      accuracy: locationDto.horizontalAccuracyMeters ?? 0,
-      altitude: locationDto.altitude!,
-      altitudeAccuracy: locationDto.verticalAccuracyMeters ?? 0,
-      heading: locationDto.bearing ?? 0,
-      headingAccuracy: locationDto.bearingAccuracyDegrees ?? 0,
-      speed: locationDto.speed!,
-      speedAccuracy: locationDto.speedAccuracyMetersPerSecond ?? 0,
-    );
-  }
-
-  Location toLocationDto() {
-    return Location(
-      latitude: latitude,
-      longitude: longitude,
-      time: timestamp.millisecondsSinceEpoch,
-      horizontalAccuracyMeters: accuracy,
-      altitude: altitude,
-      verticalAccuracyMeters: altitudeAccuracy,
-      bearing: heading,
-      bearingAccuracyDegrees: headingAccuracy,
-      speed: speed,
-      speedAccuracyMetersPerSecond: speedAccuracy,
+      latitude: position.latitude,
+      longitude: position.longitude,
+      timestamp: position.timestamp,
+      accuracy: position.accuracy,
+      altitude: position.altitude,
+      altitudeAccuracy: position.altitudeAccuracy,
+      heading: position.heading,
+      headingAccuracy: position.headingAccuracy,
+      speed: position.speed,
+      speedAccuracy: position.speedAccuracy,
     );
   }
 
@@ -73,11 +58,11 @@ class Position {
 
   Map<String, dynamic> toJson() => _$PositionToJson(this);
 
-  static DateTime _dateTimeFromJson(double value) {
-    return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+  static DateTime _dateTimeFromJson(int value) {
+    return DateTime.fromMillisecondsSinceEpoch(value);
   }
 
-  static double _dateTimeToJson(DateTime value) {
-    return value.millisecondsSinceEpoch.toDouble();
+  static int _dateTimeToJson(DateTime value) {
+    return value.millisecondsSinceEpoch.toInt();
   }
 }

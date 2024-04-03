@@ -1,83 +1,106 @@
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:huawei_location/huawei_location.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/model/cache_object.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/position.dart' as Trekko;
 
-class TrackingService {
-  static const String isolateName = "LocatorIsolate";
-  static bool debug = false;
-  static List<Function(Position)> callbacks = [];
+class TrackingTask extends TaskHandler {
 
-  static Future<int> startLocationService(
-      int interval, Databases cache) async {
-    IsolateNameServer.removePortNameMapping(isolateName);
-    ReceivePort port = ReceivePort();
-    IsolateNameServer.registerPortWithName(port.sendPort, isolateName);
-    port.listen((dynamic data) {
-      callbacks.forEach((c) => c.call(Position.fromJson(data)));
-    });
-
-    if (!debug) {
-      FusedLocationProviderClient _service = FusedLocationProviderClient();
-      await _service.initFusedLocationService();
-      LocationRequest locationRequest = LocationRequest();
-      locationRequest.interval = interval;
-      locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY;
-      locationRequest.fastestInterval = interval;
-      locationRequest.smallestDisplacement = 0;
-      locationRequest.maxWaitTime = 1440;
-      locationRequest.needAddress = false;
-      locationRequest.language = "de";
-      locationRequest.countryCode = "DE";
-      int id = await _service.requestLocationUpdatesCb(
-          locationRequest,
-          LocationCallback(onLocationResult: (LocationResult locationResult) {
-            locationCallback(locationResult.locations!
-                .where((element) => element != null)
-                .map((e) => Position.fromLocation(e!))
-                .toList());
-          }, onLocationAvailability:
-              (LocationAvailability locationAvailability) {
-            print("Location availability: " +
-                locationAvailability.isLocationAvailable.toString());
-          }));
-      BackgroundNotification notification = BackgroundNotification(
-        category: 'service',
-        priority: 2,
-        channelName: 'Trekko',
-        contentTitle: 'Position',
-        contentText: 'Position Notification',
-      );
-      await _service.enableBackgroundLocation(1, notification);
-      return id;
-    }
-    return 0;
-  }
-
-  static void locationCallback(List<Position> loc) async {
+  Future<void> _sendData(SendPort? sendPort, List<Trekko.Position> loc) async {
     Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
     List<Map<String, dynamic>> data = loc.map((e) => e.toJson()).toList();
-    await cache.writeTxn(() async => await
-        cache.cacheObjects.putAll(data.map(CacheObject.fromJson).toList()));
-    final SendPort? send = IsolateNameServer.lookupPortByName(isolateName);
-    data.forEach((element) => send?.send(element));
+    await cache.writeTxn(() async => await cache.cacheObjects
+        .putAll(data.map(CacheObject.fromJson).toList()));
+    data.forEach((element) => sendPort?.send(element));
+  }
+
+  @override
+  void onDestroy(DateTime timestamp, SendPort? sendPort) {}
+
+  @override
+  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
+    Position pos = await Geolocator.getCurrentPosition();
+    _sendData(sendPort, [Trekko.Position.fromGeoPosition(pos)]);
+  }
+
+  @override
+  void onStart(DateTime timestamp, SendPort? sendPort) {}
+}
+
+@pragma('vm:entry-point')
+void startCallback() {
+  FlutterForegroundTask.setTaskHandler(TrackingTask());
+}
+
+class TrackingService {
+  static String debugIsolateName = "tracking_service";
+  static bool debug = false;
+  static List<Function(Trekko.Position)> callbacks = [];
+
+  static void init(Duration interval) {
+    if (debug) return;
+    FlutterForegroundTask.init(
+      androidNotificationOptions: AndroidNotificationOptions(
+        channelId: 'trekko_tracking_service',
+        channelName: 'Trekko Tracking Service',
+        channelDescription: 'Trekko Tracking Service',
+        channelImportance: NotificationChannelImportance.LOW,
+        priority: NotificationPriority.LOW,
+        visibility: NotificationVisibility.VISIBILITY_SECRET,
+        iconData: const NotificationIconData(
+          resType: ResourceType.mipmap,
+          resPrefix: ResourcePrefix.ic,
+          name: 'launcher',
+        ),
+      ),
+      iosNotificationOptions: const IOSNotificationOptions(
+        showNotification: true,
+        playSound: false,
+      ),
+      foregroundTaskOptions: ForegroundTaskOptions(
+        interval: interval.inMilliseconds,
+        isOnceEvent: false,
+        autoRunOnBoot: true,
+        allowWakeLock: true,
+        allowWifiLock: true,
+      ),
+    );
+  }
+
+  static Future<int> startLocationService() async {
+    ReceivePort receivePort = ReceivePort();
+
+    if (!debug) {
+      FlutterForegroundTask.startService(
+          notificationTitle: "Trekko",
+          notificationText: "Trekko verfolgt dich... Gib acht!",
+          callback: startCallback);
+      receivePort = FlutterForegroundTask.receivePort!;
+    } else {
+      receivePort = ReceivePort();
+      IsolateNameServer.registerPortWithName(
+          receivePort.sendPort, debugIsolateName);
+    }
+
+    receivePort.listen((dynamic data) {
+      callbacks.forEach((c) => c.call(Trekko.Position.fromJson(data)));
+    });
+    return 0;
   }
 
   static void stopLocationService(int id) {
     if (!debug) {
-      FusedLocationProviderClient _service = FusedLocationProviderClient();
-      _service.removeLocationUpdates(id);
-      _service.disableBackgroundLocation();
+      FlutterForegroundTask.stopService();
     }
-    IsolateNameServer.removePortNameMapping(isolateName);
     callbacks.clear();
   }
 
-  static void getLocationUpdates(Function(Position) locationCallback) {
+  static void getLocationUpdates(Function(Trekko.Position) locationCallback) {
     callbacks.add(locationCallback);
   }
 }
