@@ -297,7 +297,9 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Stream<Position> getPosition() {
-    return _tracking.track();
+    return _tracking.track().where((event) =>
+        event.timestamp.difference(DateTime.now()).abs() <
+        Duration(seconds: 5));
   }
 
   @override
