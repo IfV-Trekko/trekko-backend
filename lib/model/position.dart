@@ -1,5 +1,5 @@
-import 'package:background_locator_2/location_dto.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:geolocator/geolocator.dart' as geo;
 
 part 'position.g.dart';
 
@@ -39,19 +39,30 @@ class Position {
     required this.speedAccuracy,
   });
 
-  factory Position.fromLocationDto(LocationDto locationDto) {
-    return _$PositionFromJson(locationDto.toJson());
+  factory Position.fromGeoPosition(geo.Position position) {
+    return Position(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      timestamp: position.timestamp,
+      accuracy: position.accuracy,
+      altitude: position.altitude,
+      altitudeAccuracy: position.altitudeAccuracy,
+      heading: position.heading,
+      headingAccuracy: position.headingAccuracy,
+      speed: position.speed,
+      speedAccuracy: position.speedAccuracy,
+    );
   }
 
-  LocationDto toLocationDto() {
-    return LocationDto.fromJson(_$PositionToJson(this));
+  factory Position.fromJson(dynamic json) => _$PositionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PositionToJson(this);
+
+  static DateTime _dateTimeFromJson(int value) {
+    return DateTime.fromMillisecondsSinceEpoch(value);
   }
 
-  static DateTime _dateTimeFromJson(double value) {
-    return DateTime.fromMillisecondsSinceEpoch(value.toInt());
-  }
-
-  static double _dateTimeToJson(DateTime value) {
-    return value.millisecondsSinceEpoch.toDouble();
+  static int _dateTimeToJson(DateTime value) {
+    return value.millisecondsSinceEpoch.toInt();
   }
 }

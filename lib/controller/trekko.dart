@@ -50,6 +50,9 @@ abstract class Trekko {
   /// Returns a stream of the current position.
   Stream<Position> getPosition();
 
+  /// Returns whether the tracking is currently processing data.
+  bool isProcessingLocationData();
+
   /// Returns a stream of the current tracking state.
   Stream<TrackingState> getTrackingState();
 

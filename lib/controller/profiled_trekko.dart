@@ -1,17 +1,22 @@
 import 'dart:async';
 
+import 'package:fling_units/fling_units.dart';
+import 'package:isar/isar.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/analysis/calculation.dart';
-import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
-import 'package:trekko_backend/controller/utils/query_util.dart';
-import 'package:trekko_backend/controller/utils/tracking_util.dart';
 import 'package:trekko_backend/controller/request/bodies/request/trips_request.dart';
+import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:trekko_backend/controller/request/bodies/server_trip.dart';
 import 'package:trekko_backend/controller/request/trekko_server.dart';
 import 'package:trekko_backend/controller/request/url_trekko_server.dart';
+import 'package:trekko_backend/controller/tracking/cached_tracking.dart';
+import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
+import 'package:trekko_backend/controller/utils/query_util.dart';
 import 'package:trekko_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
@@ -22,22 +27,17 @@ import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/donation_state.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
-import 'package:background_locator_2/location_dto.dart';
-import 'package:fling_units/fling_units.dart';
-import 'package:isar/isar.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ProfiledTrekko implements Trekko {
   final String _projectUrl;
   final String _email;
   final String _token;
+  final Tracking _tracking;
   late int _profileId;
   late Isar _profileDb;
   late Isar _tripDb;
-  late StreamController<Position> _positionController;
   late TrekkoServer _server;
-  late StreamSubscription<Profile?> _profileSubscription;
-  StreamSubscription<dynamic>? _locationSubscription;
+  late WrapperStream<Trip> _tripStream;
 
   ProfiledTrekko(
       {required String projectUrl,
@@ -45,8 +45,9 @@ class ProfiledTrekko implements Trekko {
       required String token})
       : _projectUrl = projectUrl,
         _email = email,
-        _token = token {
-    _positionController = StreamController.broadcast();
+        _token = token,
+        _tracking = CachedTracking(),
+        _tripStream = QueuedWrapperStream(() => BufferedFilterTripWrapper()) {
     _server = UrlTrekkoServer.withToken(projectUrl, token);
   }
 
@@ -84,67 +85,31 @@ class ProfiledTrekko implements Trekko {
     }
   }
 
-  Future<StreamSubscription<dynamic>> _startTracking() async {
-    if (!(await LocationBackgroundTracking.isRunning())) {
-      await LocationBackgroundTracking.init(
-          // Wont update on preferences change
-          (await this.getProfile().first).preferences.batteryUsageSetting);
-    }
-
-    TripWrapper tripWrapper = BufferedFilterTripWrapper();
-    List<Position> toProcess = await LocationBackgroundTracking.readCache()
-        .then((value) => value.map(Position.fromLocationDto).toList());
-    return LocationBackgroundTracking.hook((LocationDto loc) async {
-      Position detected = Position.fromLocationDto(loc);
-      if (!_positionController.isClosed) _positionController.add(detected);
-
-      List<Position> positions = [detected];
-      if (!toProcess.isEmpty) {
-        positions = List.of(toProcess, growable: true)..add(detected);
-        positions.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-        toProcess.clear();
-      }
-
-      for (Position position in positions) {
-        double endTripProbability = await tripWrapper.calculateEndProbability();
-        if (endTripProbability > 0.95) {
-          await saveTrip(await tripWrapper.get());
-          tripWrapper = BufferedFilterTripWrapper();
-          await LocationBackgroundTracking.clearCache();
-        } else {
-          await tripWrapper.add(position);
-        }
-      }
-    });
-  }
-
-  Future<StreamSubscription<Profile?>> _startTrackingChangeListener() async {
-    TrackingState lastState = (await getProfile().first).trackingState;
-    return this
-        ._profileDb
-        .profiles
-        .watchObject(this._profileId)
-        .listen((event) async {
-      TrackingState state = event!.trackingState;
-      if (state == lastState) return;
-      if (state == TrackingState.running) {
-        _locationSubscription = await _startTracking();
-      } else {
-        await _locationSubscription?.cancel();
-        LocationBackgroundTracking.shutdown();
-      }
+  Future<void> _initTrackingListener() async {
+    _tracking.track().listen((pos) => _tripStream.add(pos));
+    _tripStream.getResults().listen((trip) async {
+      await saveTrip(trip);
+      await _tracking.clearCache();
     });
   }
 
   @override
+  bool isProcessingLocationData() {
+    return _tracking.isProcessing() || _tripStream.isProcessing();
+  }
+
+  @override
   Future<void> init() async {
-    _profileDb = await DatabaseUtils.openProfiles();
+    _profileDb = await Databases.profile.open();
     await _initProfile();
-    _tripDb = await DatabaseUtils.openTrips(this._profileId);
-    if ((await getProfile().first).trackingState == TrackingState.running) {
-      _locationSubscription = await _startTracking();
+    _tripDb = await Databases.trip.open(path: this._profileId.toString());
+
+    Profile profile = (await getProfile().first);
+    await _tracking.init(profile.preferences.batteryUsageSetting);
+    await _initTrackingListener();
+    if (profile.trackingState == TrackingState.running) {
+      await _tracking.start();
     }
-    _profileSubscription = await _startTrackingChangeListener();
   }
 
   @override
@@ -320,27 +285,29 @@ class ProfiledTrekko implements Trekko {
     Profile profile = await getProfile().first;
     profile.lastTimeTracked = DateTime.now();
     profile.trackingState = state;
-    _saveProfile(profile);
+    await _saveProfile(profile);
+
+    if (state == TrackingState.running) {
+      await _tracking.start();
+    } else if (state == TrackingState.paused) {
+      await _tracking.stop();
+    }
     return true;
   }
 
   @override
   Stream<Position> getPosition() {
-    // A stream that returns the current position. The stream will not send any data when the tracking state is paused.
-    // The moment the tracking state is changed to running, the stream will start sending data.
-    // If the tracking state is running, returns the positionstream from the geolocator package.
-
-    return _positionController.stream;
+    return _tracking.track().where((event) =>
+        event.timestamp.difference(DateTime.now()).abs() <
+        Duration(seconds: 5));
   }
 
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
-    await _positionController.close();
-    await _profileSubscription.cancel();
-    await _locationSubscription?.cancel();
-    if (await LocationBackgroundTracking.isRunning()) {
-      await LocationBackgroundTracking.clearCache();
-      await LocationBackgroundTracking.shutdown();
+    // await _positionController.close();
+    await _tracking.clearCache();
+    if (await _tracking.isRunning()) {
+      await _tracking.stop();
     }
 
     // If no deletion is planned, we can just close the databases and the server

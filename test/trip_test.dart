@@ -7,10 +7,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
-import 'trekko_build_utils.dart';
-
-const String password = "1aA!hklj32r4hkjl324r";
-const String email = "trip_test@profile_test.com";
+import 'trekko_test_utils.dart';
 
 Trip trip1 = Trip.withData([
       Leg.withData(TransportType.bicycle, [
@@ -34,7 +31,7 @@ void main() {
   late Trip trip1Read;
   late Trip trip2Read;
   setUpAll(() async {
-    trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    trekko = await TrekkoTestUtils.initTrekko();
     int trip1Id = await trekko.saveTrip(trip1);
     trip1Read =
         (await trekko.getTripQuery().filter().idEqualTo(trip1Id).findFirst())!;
@@ -98,6 +95,6 @@ void main() {
   });
 
   tearDownAll(() async {
-    await TrekkoBuildUtils().close(trekko);
+    await TrekkoTestUtils.close(trekko);
   });
 }

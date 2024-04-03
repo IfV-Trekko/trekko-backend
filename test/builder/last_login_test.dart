@@ -5,16 +5,13 @@ import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 
-import '../trekko_build_utils.dart';
-
-const String email = "lastLoginTest2@web.de";
-const String password = "1aA!hklj32r4hkjl324r";
+import '../trekko_test_utils.dart';
 
 void main() {
   setUp(() async {
     // Register new account
-    await TrekkoBuildUtils().init();
-    Isar db = await DatabaseUtils.openProfiles();
+    await TrekkoTestUtils.init();
+    Isar db = await Databases.profile.open();
     db.close(deleteFromDisk: true);
   });
 
@@ -25,7 +22,7 @@ void main() {
 
   test("Last login works", () async {
     // Last login
-    Trekko trekko = await TrekkoBuildUtils().loginOrRegister(email, password);
+    Trekko trekko = await TrekkoTestUtils.initTrekko();
     await trekko.terminate();
 
     LastLoginBuilder lastLoginBuilder = LastLoginBuilder();
