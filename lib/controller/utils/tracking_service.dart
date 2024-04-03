@@ -66,8 +66,7 @@ class TrackingService {
         interval: interval.inMilliseconds,
         isOnceEvent: false,
         autoRunOnBoot: true,
-        allowWakeLock: true,
-        allowWifiLock: true,
+        allowWakeLock: true, // TODO: This may drain the battery, check if necessary
       ),
     );
   }
