@@ -9,7 +9,7 @@ class TripQuery {
   late QueryBuilder<Trip, Trip, QAfterFilterCondition> filter;
 
   TripQuery(this.trekko) {
-    filter = trekko.getTripQuery().filter().idGreaterThan(0);
+    filter = trekko.getTripQuery().filter().idGreaterThan(-1);
   }
 
   TripQuery andTransportType(TransportType type) {
@@ -18,20 +18,21 @@ class TripQuery {
   }
 
   TripQuery andAnyId(Iterable<int> ids) {
-    if (ids.isEmpty) {
-      filter = filter.and().idEqualTo(-1);
-    } else {
-      this.filter.and().anyOf(ids, (q, element) => q.idEqualTo(element));
-    }
+    filter = filter.and().anyOf(ids, (q, element) => q.idEqualTo(element));
     return this;
   }
 
   TripQuery andTimeBetween(DateTime start, DateTime end) {
-    filter = filter.group((q) => q
+    filter = filter
+        .and()
         .startTimeGreaterThan(start, include: true)
         .and()
-        .endTimeLessThan(end, include: true));
+        .endTimeLessThan(end, include: true);
     return this;
+  }
+
+  Stream<List<Trip>> stream() {
+    return build().watch(fireImmediately: true);
   }
 
   Query<Trip> build() {
