@@ -1,4 +1,5 @@
 import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/model/trip/position_collection.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
@@ -7,7 +8,7 @@ import 'package:isar/isar.dart';
 part 'leg.g.dart';
 
 @embedded
-class Leg {
+class Leg implements PositionCollection {
   @enumerated
   TransportType transportType; // TODO: final
   List<TrackedPoint> trackedPoints;
@@ -33,33 +34,33 @@ class Leg {
     }
   }
 
-  /// Returns the start time of the leg
+  @override
   DateTime calculateStartTime() {
     return this.trackedPoints.first.timestamp;
   }
 
-  /// Returns the end time of the leg
+  @override
   DateTime calculateEndTime() {
     return this.trackedPoints.last.timestamp;
   }
 
-  /// Returns the duration of the leg
-  Duration getDuration() {
+  @override
+  Duration calculateDuration() {
     return this.calculateEndTime().difference(this.calculateStartTime());
   }
 
-  /// Returns the average speed of the leg
-  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> getSpeed() {
-    return ((this.getDistance().as(meters) /
-                this.getDuration().inSeconds.toDouble()) *
+  @override
+  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> calculateSpeed() {
+    return ((this.calculateDistance().as(meters) /
+                this.calculateDuration().inSeconds.toDouble()) *
             3.6)
         .kilo
         .meters
         .per(1.hours);
   }
 
-  /// Returns the distance of the leg
-  Distance getDistance() {
+  @override
+  Distance calculateDistance() {
     double distanceInMeters = 0;
     for (int i = 1; i < trackedPoints.length; i++) {
       TrackedPoint p0 = trackedPoints[i - 1];
@@ -68,5 +69,15 @@ class Leg {
           p0.latitude, p0.longitude, p1.latitude, p1.longitude);
     }
     return distanceInMeters.meters;
+  }
+
+  @override
+  List<TransportType> calculateTransportTypes() {
+    return [this.transportType];
+  }
+
+  @override
+  List<Leg> getLegs() {
+    return [this];
   }
 }

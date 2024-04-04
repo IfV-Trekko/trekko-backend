@@ -23,10 +23,19 @@ class TripQuery {
     return this;
   }
 
+  TripQuery andId(int id) {
+    filter = filter.and().idEqualTo(id);
+    return this;
+  }
+
   TripQuery andTimeBetween(DateTime start, DateTime end) {
     filter = filter.and().group((q) => q.legsElement((l) =>
         l.trackedPointsElement((tp) => tp.timestampBetween(start, end))));
     return this;
+  }
+
+  QueryBuilder<Trip, Trip, QAfterFilterCondition> get() {
+    return filter;
   }
 
   Stream<List<Trip>> stream() {

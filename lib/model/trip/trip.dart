@@ -1,5 +1,6 @@
 import 'package:trekko_backend/model/trip/donation_state.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/trip/position_collection.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
@@ -8,7 +9,7 @@ import 'package:isar/isar.dart';
 part 'trip.g.dart';
 
 @collection
-class Trip {
+class Trip implements PositionCollection {
   Id id = Isar.autoIncrement;
   @enumerated
   DonationState donationState = DonationState.undefined;
@@ -35,19 +36,22 @@ class Trip {
     this.legs = legs;
   }
 
+  @override
   DateTime calculateStartTime() {
     return this.legs.first.calculateStartTime();
   }
 
+  @override
   DateTime calculateEndTime() {
     return this.legs.last.calculateEndTime();
   }
 
+  @override
   Distance calculateDistance() {
-    return Distance.sum(legs.map((e) => e.getDistance()));
+    return Distance.sum(legs.map((e) => e.calculateDistance()));
   }
 
-  /// Returns the average speed of the trip
+  @override
   DerivedMeasurement<Measurement<Distance>, Measurement<Time>>
       calculateSpeed() => ((this.calculateDistance().as(meters) /
                   this.calculateDuration().inSeconds.toDouble()) *
@@ -56,11 +60,17 @@ class Trip {
           .meters
           .per(1.hours);
 
-  /// Returns the duration of the trip
+  @override
   Duration calculateDuration() =>
       this.calculateEndTime().difference(this.calculateStartTime());
 
+  @override
   List<TransportType> calculateTransportTypes() {
-    return this.legs.map((e) => e.transportType).toSet().toList();
+    return this.legs.expand((e) => e.calculateTransportTypes()).toSet().toList();
+  }
+
+  @override
+  List<Leg> getLegs() {
+    return List.from(this.legs);
   }
 }
