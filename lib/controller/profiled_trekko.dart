@@ -195,28 +195,28 @@ class ProfiledTrekko implements Trekko {
     final List<Trip> trips = await tripsQuery.findAll();
     if (trips.isEmpty) throw Exception("No trips to merge");
 
-    final List<TransportType> transportTypes = trips
-        .map((t) => t.getTransportTypes())
-        .expand((e) => e)
-        .toSet()
-        .toList();
-    final Distance totalDistance = trips
-        .map((t) => t.getDistance())
-        .reduce((value, element) => value + element);
-    final DateTime startTime = trips
-        .map((t) => t.getStartTime())
-        .reduce((value, element) => value.isBefore(element) ? value : element);
-    final DateTime endTime = trips
-        .map((t) => t.getEndTime())
-        .reduce((value, element) => value.isAfter(element) ? value : element);
-
+    // final List<TransportType> transportTypes = trips
+    //     .map((t) => t.calculateTransportTypes())
+    //     .expand((e) => e)
+    //     .toSet()
+    //     .toList();
+    // final Distance totalDistance = trips
+    //     .map((t) => t.getDistance())
+    //     .reduce((value, element) => value + element);
+    // final DateTime startTime = trips
+    //     .map((t) => t.getStartTime())
+    //     .reduce((value, element) => value.isBefore(element) ? value : element);
+    // final DateTime endTime = trips
+    //     .map((t) => t.getEndTime())
+    //     .reduce((value, element) => value.isAfter(element) ? value : element);
+    //
     final Trip mergedTrip = new Trip();
-
-    mergedTrip.startTime = startTime;
-    mergedTrip.endTime = endTime;
-    mergedTrip.setTransportTypes(transportTypes);
-    mergedTrip.setDistance(totalDistance);
-    mergedTrip.legs = trips.first.legs;
+    //
+    // mergedTrip.startTime = startTime;
+    // mergedTrip.endTime = endTime;
+    // mergedTrip.setTransportTypes(transportTypes);
+    // mergedTrip.setDistance(totalDistance);
+    // mergedTrip.legs = trips.first.legs;
 
     final int mergedTripId = await saveTrip(mergedTrip);
 
@@ -234,9 +234,7 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(Query<Trip> trips, Iterable<T> Function(Trip) tripData,
       Calculation<T> calc) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final Iterable<T> toAnalyse =
-          trips.where((trip) => // TODO: Fix, this is highly inefficient
-              !trip.isModified()).expand(tripData);
+      final Iterable<T> toAnalyse = trips.expand(tripData);
       return toAnalyse.isEmpty ? null : calc.calculate(toAnalyse);
     });
   }

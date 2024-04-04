@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/builder/build_exception.dart';
 import 'package:trekko_backend/controller/builder/login_builder.dart';
 import 'package:trekko_backend/controller/builder/login_result.dart';
@@ -11,6 +12,8 @@ import 'package:mockito/mockito.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/model/trip/trip.dart';
 
 import 'tracking/tracking_test_util.dart';
 
@@ -37,6 +40,13 @@ class CustomPermissionHandlerPlatform extends Mock
 class TrekkoTestUtils {
   static const String email = "temp_test_account@web.de";
   static const String password = "1aA!hklj32r4hkjl324r";
+  static final Trip default_trip = TripBuilder()
+      .stay(Duration(hours: 1))
+      .move(true, Duration(minutes: 10), 500.meters)
+      .stay(Duration(minutes: 5))
+      .move(false, Duration(minutes: 10), 500.meters)
+      .stay(Duration(hours: 1))
+      .build();
 
   static String getAddress() {
     String ip = "localhost";

@@ -1,5 +1,6 @@
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
@@ -23,11 +24,8 @@ class TripQuery {
   }
 
   TripQuery andTimeBetween(DateTime start, DateTime end) {
-    filter = filter
-        .and()
-        .startTimeGreaterThan(start, include: true)
-        .and()
-        .endTimeLessThan(end, include: true);
+    filter = filter.and().group((q) => q.legsElement((l) =>
+        l.trackedPointsElement((tp) => tp.timestampBetween(start, end))));
     return this;
   }
 
