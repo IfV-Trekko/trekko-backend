@@ -48,7 +48,13 @@ class AnalyzingLegWrapper implements LegWrapper {
   Future<bool> hasStartedMoving() {
     return Future.microtask(() async {
       if (_startedMoving != null) return true;
-      if (_positions.length < 2) return false;
+      // Check if first and last position are at least _stayDuration apart
+      if (_positions.isEmpty) return false;
+      if (_positions.last.timestamp
+          .isBefore(_positions.first.timestamp.add(_stayDuration)))
+        return false;
+      if (PositionUtils.maxDistance(_positions) < _stayDistance.as(meters))
+        return false;
       Position? centerStart = cluster(_positions);
       if (centerStart == null) return false;
       _startedMoving = centerStart;
@@ -62,10 +68,8 @@ class AnalyzingLegWrapper implements LegWrapper {
       if (!(await hasStartedMoving())) return 0;
       DateTime last = _positions.last.timestamp;
       DateTime from = last.subtract(_stayDuration);
-      if (from.isBefore(_startedMoving!.timestamp) ||
-          last.difference(_startedMoving!.timestamp).abs() < _stayDuration) {
-        return 0;
-      }
+      // Check if last point is longer than _stayDuration away from _startdMoving
+      if (last.difference(_startedMoving!.timestamp) < _stayDuration) return 0;
       double holdAgainProb = await PositionUtils.calculateSingleHoldProbability(
           from, _stayDuration, _stayDistance, _positions);
       return holdAgainProb;

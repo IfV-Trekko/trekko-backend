@@ -29,8 +29,8 @@ class TripQuery {
   }
 
   TripQuery andTimeBetween(DateTime start, DateTime end) {
-    filter = filter.and().group((q) => q.legsElement((l) =>
-        l.trackedPointsElement((tp) => tp.timestampBetween(start, end))));
+    filter = filter.and().legsElement(
+        (q) => q.trackedPointsElement((q) => q.timestampBetween(start, end)));
     return this;
   }
 
