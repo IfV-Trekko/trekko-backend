@@ -24,7 +24,7 @@ void main() {
         .build();
 
     Trip trip2 =
-        TripBuilder.withData(0, 0, trip1.getEndTime(), skipStayPoints: false)
+        TripBuilder.withData(0, 0, trip1.calculateEndTime(), skipStayPoints: false)
             // stay for 1h
             .stay(Duration(hours: 1))
             // walk 500m
@@ -39,9 +39,9 @@ void main() {
         .mergeTrips(TripQuery(trekko).andAnyId([trip1Id, trip2Id]).build());
 
     // Check start, end time and distance
-    expect(merge.getStartTime(), trip1.getStartTime());
-    expect(merge.getEndTime(), trip2.getEndTime());
-    expect(merge.getDistance().as(meters).round(), 1000);
+    expect(merge.calculateStartTime(), trip1.calculateStartTime());
+    expect(merge.calculateEndTime(), trip2.calculateEndTime());
+    expect(merge.calculateDistance().as(meters).round(), 1000);
 
     // Check if there is no other trip
     List<Trip> trips = await trekko.getTripQuery().findAll();

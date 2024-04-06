@@ -16,7 +16,7 @@ Future<void> checkTrip(
   var query = trekko.getTripQuery().idEqualTo(tripId).build();
   double? calculatedDistance = await trekko
       .analyze(
-          query, (t) => [t.getDistance().as(kilo.meters)], DoubleReduction.SUM)
+          query, (t) => [t.calculateDistance().as(kilo.meters)], DoubleReduction.SUM)
       .first;
   double? calculatedDuration = (await trekko
       .analyze(query, (t) => [t.calculateDuration().inSeconds.toDouble()],
@@ -80,7 +80,7 @@ void main() {
         .filter()
         .legsElement((q) => q.transportTypeEqualTo(TransportType.other));
     var transportTypeData = await trekko
-        .analyze(query.build(), (t) => [t.getDistance().as(kilo.meters)],
+        .analyze(query.build(), (t) => [t.calculateDistance().as(kilo.meters)],
             DoubleReduction.SUM)
         .first;
     expect(transportTypeData, equals(null));

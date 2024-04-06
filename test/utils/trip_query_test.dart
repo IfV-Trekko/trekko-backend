@@ -13,12 +13,13 @@ void main() {
   test('Create trip in today and check if exists with trip query', () {
     trekko.saveTrip(TrekkoTestUtils.default_trip);
 
-    DateTime now = TrekkoTestUtils.default_trip.startTime;
+    DateTime now = TrekkoTestUtils.default_trip.calculateStartTime();
     DateTime start = DateTime(now.year, now.month, now.day);
     DateTime end = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-    expect(true,
-        TripQuery(trekko).andTimeBetween(start, end).build().isNotEmptySync());
+    expect(
+        TripQuery(trekko).andTimeBetween(start, end).build().isNotEmptySync(),
+        true);
   });
 
   tearDown(() async {
