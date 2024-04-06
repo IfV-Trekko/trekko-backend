@@ -9,7 +9,7 @@ abstract class Tracking {
 
   Stream<Position> track();
 
-  Future<void> start();
+  Future<bool> start();
 
   Future<void> stop();
 

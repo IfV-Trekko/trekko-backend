@@ -194,6 +194,7 @@ class ProfiledTrekko implements Trekko {
   Future<Trip> mergeTrips(Query<Trip> tripsQuery) async {
     final List<Trip> trips = await tripsQuery.findAll();
     if (trips.isEmpty) throw Exception("No trips to merge");
+    // TODO: Fix
 
     // final List<TransportType> transportTypes = trips
     //     .map((t) => t.calculateTransportTypes())
@@ -264,32 +265,15 @@ class ProfiledTrekko implements Trekko {
     }
 
     if (state == TrackingState.running) {
-      PermissionStatus permission = await Permission.locationWhenInUse.status;
-      if (permission != PermissionStatus.granted) {
-        permission = await Permission.locationWhenInUse.request();
-        if (permission != PermissionStatus.granted) {
-          return false;
-        }
-      }
-      permission = await Permission.locationAlways.status;
-      if (permission != PermissionStatus.granted) {
-        permission = await Permission.locationAlways.request();
-        if (permission != PermissionStatus.granted) {
-          return false;
-        }
-      }
+      if (!await _tracking.start()) return false;
+    } else if (state == TrackingState.paused) {
+      await _tracking.stop();
     }
 
     Profile profile = await getProfile().first;
     profile.lastTimeTracked = DateTime.now();
     profile.trackingState = state;
     await _saveProfile(profile);
-
-    if (state == TrackingState.running) {
-      await _tracking.start();
-    } else if (state == TrackingState.paused) {
-      await _tracking.stop();
-    }
     return true;
   }
 
@@ -302,7 +286,6 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
-    // await _positionController.close();
     await _tracking.clearCache();
     if (await _tracking.isRunning()) {
       await _tracking.stop();
