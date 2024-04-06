@@ -10,16 +10,21 @@ void main() {
     trekko = await TrekkoTestUtils.initTrekko();
   });
 
-  test('Create trip in today and check if exists with trip query', () {
-    trekko.saveTrip(TrekkoTestUtils.default_trip);
+  test('Create trip in today and check if exists with trip query', () async {
+    await trekko.saveTrip(TrekkoTestUtils.default_trip);
+    DateTime start = TrekkoTestUtils.default_trip.calculateStartTime();
+    DateTime end = TrekkoTestUtils.default_trip.calculateEndTime();
 
-    DateTime now = TrekkoTestUtils.default_trip.calculateStartTime();
-    DateTime start = DateTime(now.year, now.month, now.day);
-    DateTime end = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
+    expect(TripQuery(trekko).build().countSync(), 1);
+    expect(TripQuery(trekko).andTimeBetween(start, end).build().countSync(), 1);
+    expect(TripQuery(trekko).andTimeBetween(end, end).build().countSync(), 1);
     expect(
-        TripQuery(trekko).andTimeBetween(start, end).build().isNotEmptySync(),
-        true);
+        TripQuery(trekko).andTimeBetween(start, start).build().countSync(), 1);
+    end = end.add(const Duration(milliseconds: 1));
+    start = start.subtract(const Duration(milliseconds: 1));
+    expect(TripQuery(trekko).andTimeBetween(end, end).build().countSync(), 0);
+    expect(
+        TripQuery(trekko).andTimeBetween(start, start).build().countSync(), 0);
   });
 
   tearDown(() async {
