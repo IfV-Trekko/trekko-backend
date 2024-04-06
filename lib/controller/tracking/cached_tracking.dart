@@ -20,8 +20,7 @@ class CachedTracking implements Tracking {
 
   late final Isar _cache;
   final QueuedExecutor _dataProcessor = QueuedExecutor();
-  final StreamController<Position> _positionStream =
-      StreamController<Position>.broadcast();
+  late StreamController<Position> _positionStream;
   int _trackingId = 0;
   bool _trackingRunning = false;
 
@@ -48,6 +47,7 @@ class CachedTracking implements Tracking {
 
   @override
   Future<void> init(BatteryUsageSetting setting, {start = false}) async {
+    _positionStream = StreamController<Position>.broadcast();
     _cache = (await Databases.cache.getInstance(openIfNone: true))!;
     _positionStream.onListen = () async {
       List<Position> positions = await _clearAndReadCache();
@@ -94,8 +94,6 @@ class CachedTracking implements Tracking {
       throw Exception("Data processing is still running");
 
     TrackingService.stopLocationService(_trackingId);
-    await _positionStream.close();
-    await _cache.close();
     _trackingRunning = false;
     return true;
   }
