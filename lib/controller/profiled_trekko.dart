@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
@@ -14,8 +12,10 @@ import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
+import 'package:trekko_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
+import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:trekko_backend/model/position.dart';
@@ -25,7 +25,8 @@ import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/donation_state.dart';
-import 'package:trekko_backend/model/trip/transport_type.dart';
+import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
 class ProfiledTrekko implements Trekko {
@@ -194,30 +195,26 @@ class ProfiledTrekko implements Trekko {
   Future<Trip> mergeTrips(Query<Trip> tripsQuery) async {
     final List<Trip> trips = await tripsQuery.findAll();
     if (trips.isEmpty) throw Exception("No trips to merge");
-    // TODO: Fix
 
-    // final List<TransportType> transportTypes = trips
-    //     .map((t) => t.calculateTransportTypes())
-    //     .expand((e) => e)
-    //     .toSet()
-    //     .toList();
-    // final Distance totalDistance = trips
-    //     .map((t) => t.getDistance())
-    //     .reduce((value, element) => value + element);
-    // final DateTime startTime = trips
-    //     .map((t) => t.getStartTime())
-    //     .reduce((value, element) => value.isBefore(element) ? value : element);
-    // final DateTime endTime = trips
-    //     .map((t) => t.getEndTime())
-    //     .reduce((value, element) => value.isAfter(element) ? value : element);
-    //
-    final Trip mergedTrip = new Trip();
-    //
-    // mergedTrip.startTime = startTime;
-    // mergedTrip.endTime = endTime;
-    // mergedTrip.setTransportTypes(transportTypes);
-    // mergedTrip.setDistance(totalDistance);
-    // mergedTrip.legs = trips.first.legs;
+    List<Leg> legsSorted = trips.expand((trip) => trip.legs).toList();
+    legsSorted.sort(
+        (a, b) => a.calculateStartTime().compareTo(b.calculateStartTime()));
+
+    List<TrackedPoint> positionsInOrder =
+        legsSorted.expand((leg) => leg.trackedPoints).toList();
+    positionsInOrder.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    TripWrapper wrapper = AnalyzingTripWrapper();
+    positionsInOrder.forEach((point) => wrapper.add(point.toPosition()));
+
+    Trip? mergedTrip;
+    try {
+      mergedTrip = await wrapper.get();
+    } catch (e) {}
+
+    if (mergedTrip == null) {
+      mergedTrip = Trip.withData(legsSorted);
+    }
 
     final int mergedTripId = await saveTrip(mergedTrip);
 
@@ -227,7 +224,6 @@ class ProfiledTrekko implements Trekko {
     }
 
     await deleteTrip(tripsQuery);
-
     return mergedTrip;
   }
 

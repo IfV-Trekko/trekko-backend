@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/leg/position/transport_type_data.dart';
@@ -6,6 +8,7 @@ import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:fling_units/fling_units.dart';
+import 'package:trekko_backend/model/trip/transport_type.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
   static const Duration _stayDuration = Duration(minutes: 2);
@@ -22,12 +25,23 @@ class AnalyzingLegWrapper implements LegWrapper {
     return evaluator.evaluate(leg);
   }
 
+  Future<TransportType> calculateMaxProbability() async {
+    // Calculating probability
+    double maxProbability = 0;
+    TransportTypeData maxData = TransportTypeData.by_foot;
+    for (TransportTypeData data in TransportTypeData.values) {
+      double probability = await calculateProbability(data);
+      if (probability > maxProbability) {
+        maxProbability = probability;
+        maxData = data;
+      }
+    }
+    return maxData.transportType;
+  }
+
   Position? cluster(List<Position> positions) {
-    List<Position> firstIn =
-        PositionUtils.getFirstIn(_stayDistance, positions);
-    return firstIn.isEmpty || positions.length == firstIn.length
-        ? null
-        : PositionUtils.getCenter(firstIn);
+    List<Position> firstIn = PositionUtils.getFirstIn(_stayDistance, positions);
+    return firstIn.isEmpty ? null : PositionUtils.getCenter(firstIn);
   }
 
   @override
@@ -49,7 +63,9 @@ class AnalyzingLegWrapper implements LegWrapper {
       DateTime last = _positions.last.timestamp;
       DateTime from = last.subtract(_stayDuration);
       if (from.isBefore(_startedMoving!.timestamp) ||
-          last.difference(_startedMoving!.timestamp) < _stayDuration) return 0;
+          last.difference(_startedMoving!.timestamp).abs() < _stayDuration) {
+        return 0;
+      }
       double holdAgainProb = await PositionUtils.calculateSingleHoldProbability(
           from, _stayDuration, _stayDistance, _positions);
       return holdAgainProb;
@@ -66,15 +82,12 @@ class AnalyzingLegWrapper implements LegWrapper {
     return Future.microtask(() async {
       // Trimming positions
       List<Position> trimmedPositions = List.empty(growable: true);
-      DateTime start = _positions.first.timestamp;
-      if (_startedMoving != null) {
-        start = _startedMoving!.timestamp;
-        trimmedPositions.add(_startedMoving!);
-      }
+      if (_startedMoving == null) throw Exception("Not started moving");
+      DateTime start = _startedMoving!.timestamp;
+      trimmedPositions.add(_startedMoving!);
 
-      Position? endCenter = cluster(_positions.reversed.toList());
-      DateTime end =
-          endCenter == null ? _positions.last.timestamp : endCenter.timestamp;
+      Position endCenter = cluster(_positions.reversed.toList())!;
+      DateTime end = endCenter.timestamp;
 
       for (int i = 0; i < _positions.length - 1; i++) {
         if (_positions[i].timestamp.isAfter(start) &&
@@ -82,22 +95,12 @@ class AnalyzingLegWrapper implements LegWrapper {
           trimmedPositions.add(_positions[i]);
         }
       }
-      if (endCenter != null) trimmedPositions.add(endCenter);
+
+      trimmedPositions.add(endCenter);
       _positions = trimmedPositions;
 
-      // Calculating probability
-      double maxProbability = 0;
-      TransportTypeData maxData = TransportTypeData.by_foot;
-      for (TransportTypeData data in TransportTypeData.values) {
-        double probability = await calculateProbability(data);
-        if (probability > maxProbability) {
-          maxProbability = probability;
-          maxData = data;
-        }
-      }
-
       // Wrapping
-      return Leg.withData(maxData.getTransportType(),
+      return Leg.withData(await calculateMaxProbability(),
           _positions.map(TrackedPoint.fromPosition).toList());
     });
   }
