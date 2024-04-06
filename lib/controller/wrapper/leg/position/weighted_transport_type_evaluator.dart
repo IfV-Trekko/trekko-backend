@@ -15,7 +15,7 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
     return Future.microtask(() async {
       double providedSpeed =
           (await dataProvider.getAverageSpeed()).as(kilo.meters, hours);
-      double legSpeed = leg.getSpeed().as(kilo.meters, hours);
+      double legSpeed = leg.calculateSpeed().as(kilo.meters, hours);
       double distanceBetweenSpeeds = (providedSpeed - legSpeed).abs();
       // f(x) = -x^2 * 1 * 10^-6 + 1
       double calculated = -pow(distanceBetweenSpeeds, 2) * pow(10, -6) + 1;

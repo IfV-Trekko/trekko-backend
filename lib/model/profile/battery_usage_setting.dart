@@ -1,9 +1,9 @@
 // Leave order and names as is!
 
 enum BatteryUsageSetting {
-  low(15),
-  medium(10),
-  high(5);
+  low(60),
+  medium(35),
+  high(20);
 
   final int interval;
 

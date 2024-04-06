@@ -1,5 +1,5 @@
 import 'package:trekko_backend/controller/trekko.dart';
-import 'package:trekko_backend/controller/utils/query_util.dart';
+import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
@@ -24,7 +24,7 @@ void main() {
         .build();
 
     Trip trip2 =
-        TripBuilder.withData(0, 0, trip1.getEndTime(), skipStayPoints: false)
+        TripBuilder.withData(0, 0, trip1.calculateEndTime(), skipStayPoints: false)
             // stay for 1h
             .stay(Duration(hours: 1))
             // walk 500m
@@ -36,12 +36,12 @@ void main() {
     int trip2Id = await trekko.saveTrip(trip2);
 
     Trip merge = await trekko
-        .mergeTrips(QueryUtil(trekko).buildIdsOr([trip1Id, trip2Id]));
+        .mergeTrips(TripQuery(trekko).andAnyId([trip1Id, trip2Id]).build());
 
     // Check start, end time and distance
-    expect(merge.getStartTime(), trip1.getStartTime());
-    expect(merge.getEndTime(), trip2.getEndTime());
-    expect(merge.getDistance().as(meters).round(), 1000);
+    expect(merge.calculateStartTime(), trip1.calculateStartTime());
+    expect(merge.calculateEndTime(), trip2.calculateEndTime());
+    expect(merge.calculateDistance().as(meters).round(), 1000);
 
     // Check if there is no other trip
     List<Trip> trips = await trekko.getTripQuery().findAll();

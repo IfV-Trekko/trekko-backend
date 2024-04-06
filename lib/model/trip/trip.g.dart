@@ -22,42 +22,22 @@ const TripSchema = CollectionSchema(
       name: r'comment',
       type: IsarType.string,
     ),
-    r'distanceInMeters': PropertySchema(
-      id: 1,
-      name: r'distanceInMeters',
-      type: IsarType.double,
-    ),
     r'donationState': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'donationState',
       type: IsarType.byte,
       enumMap: _TripdonationStateEnumValueMap,
     ),
-    r'endTime': PropertySchema(
-      id: 3,
-      name: r'endTime',
-      type: IsarType.dateTime,
-    ),
     r'legs': PropertySchema(
-      id: 4,
+      id: 2,
       name: r'legs',
       type: IsarType.objectList,
       target: r'Leg',
     ),
     r'purpose': PropertySchema(
-      id: 5,
+      id: 3,
       name: r'purpose',
       type: IsarType.string,
-    ),
-    r'startTime': PropertySchema(
-      id: 6,
-      name: r'startTime',
-      type: IsarType.dateTime,
-    ),
-    r'transportTypes': PropertySchema(
-      id: 7,
-      name: r'transportTypes',
-      type: IsarType.stringList,
     )
   },
   estimateSize: _tripEstimateSize,
@@ -100,18 +80,6 @@ int _tripEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  {
-    final list = object.transportTypes;
-    if (list != null) {
-      bytesCount += 3 + list.length * 3;
-      {
-        for (var i = 0; i < list.length; i++) {
-          final value = list[i];
-          bytesCount += value.length * 3;
-        }
-      }
-    }
-  }
   return bytesCount;
 }
 
@@ -122,18 +90,14 @@ void _tripSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.comment);
-  writer.writeDouble(offsets[1], object.distanceInMeters);
-  writer.writeByte(offsets[2], object.donationState.index);
-  writer.writeDateTime(offsets[3], object.endTime);
+  writer.writeByte(offsets[1], object.donationState.index);
   writer.writeObjectList<Leg>(
-    offsets[4],
+    offsets[2],
     allOffsets,
     LegSchema.serialize,
     object.legs,
   );
-  writer.writeString(offsets[5], object.purpose);
-  writer.writeDateTime(offsets[6], object.startTime);
-  writer.writeStringList(offsets[7], object.transportTypes);
+  writer.writeString(offsets[3], object.purpose);
 }
 
 Trip _tripDeserialize(
@@ -144,22 +108,18 @@ Trip _tripDeserialize(
 ) {
   final object = Trip();
   object.comment = reader.readStringOrNull(offsets[0]);
-  object.distanceInMeters = reader.readDoubleOrNull(offsets[1]);
   object.donationState =
-      _TripdonationStateValueEnumMap[reader.readByteOrNull(offsets[2])] ??
+      _TripdonationStateValueEnumMap[reader.readByteOrNull(offsets[1])] ??
           DonationState.donated;
-  object.endTime = reader.readDateTimeOrNull(offsets[3]);
   object.id = id;
   object.legs = reader.readObjectList<Leg>(
-        offsets[4],
+        offsets[2],
         LegSchema.deserialize,
         allOffsets,
         Leg(),
       ) ??
       [];
-  object.purpose = reader.readStringOrNull(offsets[5]);
-  object.startTime = reader.readDateTimeOrNull(offsets[6]);
-  object.transportTypes = reader.readStringList(offsets[7]);
+  object.purpose = reader.readStringOrNull(offsets[3]);
   return object;
 }
 
@@ -173,13 +133,9 @@ P _tripDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 2:
       return (_TripdonationStateValueEnumMap[reader.readByteOrNull(offset)] ??
           DonationState.donated) as P;
-    case 3:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 4:
+    case 2:
       return (reader.readObjectList<Leg>(
             offset,
             LegSchema.deserialize,
@@ -187,12 +143,8 @@ P _tripDeserializeProp<P>(
             Leg(),
           ) ??
           []) as P;
-    case 5:
+    case 3:
       return (reader.readStringOrNull(offset)) as P;
-    case 6:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 7:
-      return (reader.readStringList(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -441,84 +393,6 @@ extension TripQueryFilter on QueryBuilder<Trip, Trip, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> distanceInMetersIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'distanceInMeters',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> distanceInMetersIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'distanceInMeters',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> distanceInMetersEqualTo(
-    double? value, {
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'distanceInMeters',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> distanceInMetersGreaterThan(
-    double? value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'distanceInMeters',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> distanceInMetersLessThan(
-    double? value, {
-    bool include = false,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'distanceInMeters',
-        value: value,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> distanceInMetersBetween(
-    double? lower,
-    double? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    double epsilon = Query.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'distanceInMeters',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
-    });
-  }
-
   QueryBuilder<Trip, Trip, QAfterFilterCondition> donationStateEqualTo(
       DonationState value) {
     return QueryBuilder.apply(this, (query) {
@@ -564,75 +438,6 @@ extension TripQueryFilter on QueryBuilder<Trip, Trip, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'donationState',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> endTimeIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'endTime',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> endTimeIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'endTime',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> endTimeEqualTo(
-      DateTime? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'endTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> endTimeGreaterThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'endTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> endTimeLessThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'endTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> endTimeBetween(
-    DateTime? lower,
-    DateTime? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'endTime',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -920,310 +725,6 @@ extension TripQueryFilter on QueryBuilder<Trip, Trip, QFilterCondition> {
       ));
     });
   }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> startTimeIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'startTime',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> startTimeIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'startTime',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> startTimeEqualTo(
-      DateTime? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'startTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> startTimeGreaterThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'startTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> startTimeLessThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'startTime',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> startTimeBetween(
-    DateTime? lower,
-    DateTime? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'startTime',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'transportTypes',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'transportTypes',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'transportTypes',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition>
-      transportTypesElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'transportTypes',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesElementLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'transportTypes',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesElementBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'transportTypes',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition>
-      transportTypesElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'transportTypes',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'transportTypes',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesElementContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'transportTypes',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesElementMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'transportTypes',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition>
-      transportTypesElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'transportTypes',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition>
-      transportTypesElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'transportTypes',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'transportTypes',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'transportTypes',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'transportTypes',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'transportTypes',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition>
-      transportTypesLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'transportTypes',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterFilterCondition> transportTypesLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'transportTypes',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
 }
 
 extension TripQueryObject on QueryBuilder<Trip, Trip, QFilterCondition> {
@@ -1250,18 +751,6 @@ extension TripQuerySortBy on QueryBuilder<Trip, Trip, QSortBy> {
     });
   }
 
-  QueryBuilder<Trip, Trip, QAfterSortBy> sortByDistanceInMeters() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'distanceInMeters', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> sortByDistanceInMetersDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'distanceInMeters', Sort.desc);
-    });
-  }
-
   QueryBuilder<Trip, Trip, QAfterSortBy> sortByDonationState() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'donationState', Sort.asc);
@@ -1274,18 +763,6 @@ extension TripQuerySortBy on QueryBuilder<Trip, Trip, QSortBy> {
     });
   }
 
-  QueryBuilder<Trip, Trip, QAfterSortBy> sortByEndTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'endTime', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> sortByEndTimeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'endTime', Sort.desc);
-    });
-  }
-
   QueryBuilder<Trip, Trip, QAfterSortBy> sortByPurpose() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'purpose', Sort.asc);
@@ -1295,18 +772,6 @@ extension TripQuerySortBy on QueryBuilder<Trip, Trip, QSortBy> {
   QueryBuilder<Trip, Trip, QAfterSortBy> sortByPurposeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'purpose', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> sortByStartTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startTime', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> sortByStartTimeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startTime', Sort.desc);
     });
   }
 }
@@ -1324,18 +789,6 @@ extension TripQuerySortThenBy on QueryBuilder<Trip, Trip, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Trip, Trip, QAfterSortBy> thenByDistanceInMeters() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'distanceInMeters', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> thenByDistanceInMetersDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'distanceInMeters', Sort.desc);
-    });
-  }
-
   QueryBuilder<Trip, Trip, QAfterSortBy> thenByDonationState() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'donationState', Sort.asc);
@@ -1345,18 +798,6 @@ extension TripQuerySortThenBy on QueryBuilder<Trip, Trip, QSortThenBy> {
   QueryBuilder<Trip, Trip, QAfterSortBy> thenByDonationStateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'donationState', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> thenByEndTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'endTime', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> thenByEndTimeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'endTime', Sort.desc);
     });
   }
 
@@ -1383,18 +824,6 @@ extension TripQuerySortThenBy on QueryBuilder<Trip, Trip, QSortThenBy> {
       return query.addSortBy(r'purpose', Sort.desc);
     });
   }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> thenByStartTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startTime', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QAfterSortBy> thenByStartTimeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startTime', Sort.desc);
-    });
-  }
 }
 
 extension TripQueryWhereDistinct on QueryBuilder<Trip, Trip, QDistinct> {
@@ -1405,21 +834,9 @@ extension TripQueryWhereDistinct on QueryBuilder<Trip, Trip, QDistinct> {
     });
   }
 
-  QueryBuilder<Trip, Trip, QDistinct> distinctByDistanceInMeters() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'distanceInMeters');
-    });
-  }
-
   QueryBuilder<Trip, Trip, QDistinct> distinctByDonationState() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'donationState');
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QDistinct> distinctByEndTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'endTime');
     });
   }
 
@@ -1427,18 +844,6 @@ extension TripQueryWhereDistinct on QueryBuilder<Trip, Trip, QDistinct> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'purpose', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QDistinct> distinctByStartTime() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'startTime');
-    });
-  }
-
-  QueryBuilder<Trip, Trip, QDistinct> distinctByTransportTypes() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'transportTypes');
     });
   }
 }
@@ -1456,21 +861,9 @@ extension TripQueryProperty on QueryBuilder<Trip, Trip, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Trip, double?, QQueryOperations> distanceInMetersProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'distanceInMeters');
-    });
-  }
-
   QueryBuilder<Trip, DonationState, QQueryOperations> donationStateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'donationState');
-    });
-  }
-
-  QueryBuilder<Trip, DateTime?, QQueryOperations> endTimeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'endTime');
     });
   }
 
@@ -1483,18 +876,6 @@ extension TripQueryProperty on QueryBuilder<Trip, Trip, QQueryProperty> {
   QueryBuilder<Trip, String?, QQueryOperations> purposeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'purpose');
-    });
-  }
-
-  QueryBuilder<Trip, DateTime?, QQueryOperations> startTimeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'startTime');
-    });
-  }
-
-  QueryBuilder<Trip, List<String>?, QQueryOperations> transportTypesProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'transportTypes');
     });
   }
 }

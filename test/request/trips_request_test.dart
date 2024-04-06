@@ -1,3 +1,4 @@
+import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:trekko_backend/controller/request/bodies/server_trip.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
@@ -12,13 +13,11 @@ void main() {
       final trackedPoint1 = TrackedPoint.withData(
         52.5200,
         13.4050,
-        10.0,
         DateTime(2021, 1, 1, 10, 0), // Beispielsdaten
       );
       final trackedPoint2 = TrackedPoint.withData(
         52.5200,
         13.4060,
-        12.0,
         DateTime(2021, 1, 1, 10, 5), // 5 Minuten später
       );
 
@@ -26,23 +25,16 @@ void main() {
           Leg.withData(TransportType.by_foot, [trackedPoint1, trackedPoint2]);
 
       final trip = Trip.withData([leg])
-        ..startTime = DateTime(2021, 1, 1)
-        ..endTime = DateTime(2021, 1, 2)
-        ..distanceInMeters = 1000.0
-        ..transportTypes = [
-          TransportType.by_foot.name,
-          TransportType.bicycle.name
-        ]
         ..comment = "Test trip"
         ..purpose = "Commuting";
       final serverTrip = ServerTrip.fromTrip(trip);
 
       expect(serverTrip.startTimestamp,
-          equals(trip.getStartTime().millisecondsSinceEpoch));
+          equals(trip.calculateStartTime().millisecondsSinceEpoch));
       expect(serverTrip.endTimestamp,
-          equals(trip.getEndTime().millisecondsSinceEpoch));
-      expect(serverTrip.distance, equals(trip.distanceInMeters));
-      expect(serverTrip.transportTypes, containsAll(['BY_FOOT', 'BICYCLE']));
+          equals(trip.calculateEndTime().millisecondsSinceEpoch));
+      expect(serverTrip.distance, equals(trip.calculateDistance().as(meters)));
+      expect(serverTrip.transportTypes, containsAll(['BY_FOOT']));
       expect(serverTrip.comment, equals(trip.comment));
       expect(serverTrip.purpose, equals(trip.purpose));
     });

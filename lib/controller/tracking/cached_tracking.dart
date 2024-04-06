@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
@@ -11,6 +12,12 @@ import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 
 class CachedTracking implements Tracking {
+  static final List<Permission> perms = [
+    Permission.locationAlways,
+    Permission.locationWhenInUse,
+    Permission.notification
+  ];
+
   late final Isar _cache;
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   final StreamController<Position> _positionStream =
@@ -63,10 +70,21 @@ class CachedTracking implements Tracking {
   }
 
   @override
-  Future<void> start() async {
+  Future<bool> start() async {
+    for (Permission perm in perms) {
+      PermissionStatus status = await perm.status;
+      if (status != PermissionStatus.granted) {
+        status = await perm.request();
+        if (status != PermissionStatus.granted) {
+          return false;
+        }
+      }
+    }
+
     TrackingService.getLocationUpdates(_locationCallback);
     _trackingId = await TrackingService.startLocationService();
     _trackingRunning = true;
+    return true;
   }
 
   @override

@@ -33,12 +33,12 @@ void main() {
     trekko = await LastLoginBuilder().build();
     Trip tripRead =
         (await trekko.getTripQuery().filter().idEqualTo(tripId).findFirst())!;
-    expect(tripRead.getStartTime(), equals(trip.getStartTime()));
-    expect(tripRead.getEndTime(), equals(trip.getEndTime()));
-    expect(tripRead.getDistance(), equals(trip.getDistance()));
+    expect(tripRead.calculateStartTime(), equals(trip.calculateStartTime()));
+    expect(tripRead.calculateEndTime(), equals(trip.calculateEndTime()));
+    expect(tripRead.calculateDistance(), equals(trip.calculateDistance()));
     expect(tripRead.calculateDuration(), equals(trip.calculateDuration()));
     expect(tripRead.calculateSpeed(), equals(trip.calculateSpeed()));
-    expect(tripRead.getTransportTypes(), equals(trip.getTransportTypes()));
+    expect(tripRead.calculateTransportTypes(), equals(trip.calculateTransportTypes()));
   });
 
   tearDownAll(() async {

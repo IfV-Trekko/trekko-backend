@@ -10,7 +10,6 @@ import 'package:trekko_backend/model/cache_object.dart';
 import 'package:trekko_backend/model/position.dart' as Trekko;
 
 class TrackingTask extends TaskHandler {
-
   Future<void> _sendData(SendPort? sendPort, List<Trekko.Position> loc) async {
     Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
     List<Map<String, dynamic>> data = loc.map((e) => e.toJson()).toList();
@@ -49,8 +48,9 @@ class TrackingService {
         channelId: 'trekko_tracking_service',
         channelName: 'Trekko Tracking Service',
         channelDescription: 'Trekko Tracking Service',
-        channelImportance: NotificationChannelImportance.LOW,
-        priority: NotificationPriority.LOW,
+        channelImportance: NotificationChannelImportance.MIN,
+        priority: NotificationPriority.MIN,
+        isSticky: true,
         visibility: NotificationVisibility.VISIBILITY_SECRET,
         iconData: const NotificationIconData(
           resType: ResourceType.mipmap,
@@ -66,7 +66,8 @@ class TrackingService {
         interval: interval.inMilliseconds,
         isOnceEvent: false,
         autoRunOnBoot: true,
-        allowWakeLock: true, // TODO: This may drain the battery, check if necessary
+        allowWakeLock:
+            false, // TODO: This may drain the battery, check if necessary
       ),
     );
   }

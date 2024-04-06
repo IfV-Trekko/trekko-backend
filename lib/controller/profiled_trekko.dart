@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
@@ -13,9 +11,11 @@ import 'package:trekko_backend/controller/tracking/cached_tracking.dart';
 import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
-import 'package:trekko_backend/controller/utils/query_util.dart';
+import 'package:trekko_backend/controller/utils/trip_query.dart';
+import 'package:trekko_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
+import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:trekko_backend/model/position.dart';
@@ -25,7 +25,8 @@ import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/donation_state.dart';
-import 'package:trekko_backend/model/trip/transport_type.dart';
+import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
 class ProfiledTrekko implements Trekko {
@@ -184,7 +185,7 @@ class ProfiledTrekko implements Trekko {
           .toList();
       if (!toRevoke.isEmpty) {
         await revoke(
-            QueryUtil(this).buildIdsOr(foundTrips.map((e) => e.id).toList()));
+            TripQuery(this).andAnyId(foundTrips.map((e) => e.id)).build());
       }
       return _tripDb.writeTxn(() => trips.deleteAll());
     });
@@ -195,28 +196,25 @@ class ProfiledTrekko implements Trekko {
     final List<Trip> trips = await tripsQuery.findAll();
     if (trips.isEmpty) throw Exception("No trips to merge");
 
-    final List<TransportType> transportTypes = trips
-        .map((t) => t.getTransportTypes())
-        .expand((e) => e)
-        .toSet()
-        .toList();
-    final Distance totalDistance = trips
-        .map((t) => t.getDistance())
-        .reduce((value, element) => value + element);
-    final DateTime startTime = trips
-        .map((t) => t.getStartTime())
-        .reduce((value, element) => value.isBefore(element) ? value : element);
-    final DateTime endTime = trips
-        .map((t) => t.getEndTime())
-        .reduce((value, element) => value.isAfter(element) ? value : element);
+    List<Leg> legsSorted = trips.expand((trip) => trip.legs).toList();
+    legsSorted.sort(
+        (a, b) => a.calculateStartTime().compareTo(b.calculateStartTime()));
 
-    final Trip mergedTrip = new Trip();
+    List<TrackedPoint> positionsInOrder =
+        legsSorted.expand((leg) => leg.trackedPoints).toList();
+    positionsInOrder.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-    mergedTrip.startTime = startTime;
-    mergedTrip.endTime = endTime;
-    mergedTrip.setTransportTypes(transportTypes);
-    mergedTrip.setDistance(totalDistance);
-    mergedTrip.legs = trips.first.legs;
+    TripWrapper wrapper = AnalyzingTripWrapper();
+    positionsInOrder.forEach((point) => wrapper.add(point.toPosition()));
+
+    Trip? mergedTrip;
+    try {
+      mergedTrip = await wrapper.get();
+    } catch (e) {}
+
+    if (mergedTrip == null) {
+      mergedTrip = Trip.withData(legsSorted);
+    }
 
     final int mergedTripId = await saveTrip(mergedTrip);
 
@@ -226,7 +224,6 @@ class ProfiledTrekko implements Trekko {
     }
 
     await deleteTrip(tripsQuery);
-
     return mergedTrip;
   }
 
@@ -234,9 +231,7 @@ class ProfiledTrekko implements Trekko {
   Stream<T?> analyze<T>(Query<Trip> trips, Iterable<T> Function(Trip) tripData,
       Calculation<T> calc) {
     return trips.watch(fireImmediately: true).map((trips) {
-      final Iterable<T> toAnalyse =
-          trips.where((trip) => // TODO: Fix, this is highly inefficient
-              !trip.isModified()).expand(tripData);
+      final Iterable<T> toAnalyse = trips.expand(tripData);
       return toAnalyse.isEmpty ? null : calc.calculate(toAnalyse);
     });
   }
@@ -266,32 +261,15 @@ class ProfiledTrekko implements Trekko {
     }
 
     if (state == TrackingState.running) {
-      PermissionStatus permission = await Permission.locationWhenInUse.status;
-      if (permission != PermissionStatus.granted) {
-        permission = await Permission.locationWhenInUse.request();
-        if (permission != PermissionStatus.granted) {
-          return false;
-        }
-      }
-      permission = await Permission.locationAlways.status;
-      if (permission != PermissionStatus.granted) {
-        permission = await Permission.locationAlways.request();
-        if (permission != PermissionStatus.granted) {
-          return false;
-        }
-      }
+      if (!await _tracking.start()) return false;
+    } else if (state == TrackingState.paused) {
+      await _tracking.stop();
     }
 
     Profile profile = await getProfile().first;
     profile.lastTimeTracked = DateTime.now();
     profile.trackingState = state;
     await _saveProfile(profile);
-
-    if (state == TrackingState.running) {
-      await _tracking.start();
-    } else if (state == TrackingState.paused) {
-      await _tracking.stop();
-    }
     return true;
   }
 
@@ -304,7 +282,6 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
-    // await _positionController.close();
     await _tracking.clearCache();
     if (await _tracking.isRunning()) {
       await _tracking.stop();
