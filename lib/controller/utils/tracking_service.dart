@@ -50,6 +50,7 @@ class TrackingService {
         channelDescription: 'Trekko Tracking Service',
         channelImportance: NotificationChannelImportance.MIN,
         priority: NotificationPriority.MIN,
+        isSticky: true,
         visibility: NotificationVisibility.VISIBILITY_SECRET,
         iconData: const NotificationIconData(
           resType: ResourceType.mipmap,
