@@ -62,14 +62,12 @@ class AnalyzingLegWrapper implements LegWrapper {
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
       if (!(await hasStartedMoving())) return 0;
-      print("Calculating hold again probability");
       DateTime last = _positions.last.timestamp;
       DateTime from = last.subtract(_stayDuration);
       // Check if last point is longer than _stayDuration away from _startedMoving
       if (last.difference(_startedMoving!.timestamp) < _stayDuration) return 0;
       double holdAgainProb = await PositionUtils.calculateSingleHoldProbability(
           from, _stayDuration, _stayDistance, _positions);
-      print("Hold again prob: $holdAgainProb");
       return holdAgainProb;
     });
   }
