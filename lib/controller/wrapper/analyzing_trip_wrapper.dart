@@ -44,19 +44,16 @@ class AnalyzingTripWrapper implements TripWrapper {
           "Positions must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${position.timestamp}");
 
     newestTimestamp = position.timestamp;
+    await _legWrapper.add(position);
     double probability = await _legWrapper.calculateEndProbability();
     if (probability > 0.95) {
       _legs.add(await _legWrapper.get());
       _legWrapper = AnalyzingLegWrapper();
-    } else {
-      _legWrapper.add(position);
     }
   }
 
   @override
   Future<Trip> get() async {
-    return Future.microtask(() async {
-      return Trip.withData(_legs);
-    });
+    return Trip.withData(_legs);
   }
 }

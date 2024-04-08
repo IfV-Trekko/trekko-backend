@@ -19,7 +19,7 @@ class QueuedWrapperStream<R> implements WrapperStream<R> {
   }
 
   Future<void> _process(Position position) async {
-    _currentWrapper.add(position);
+    await _currentWrapper.add(position);
     double endProb = await _currentWrapper.calculateEndProbability();
     if (endProb > END_PROBABILITY_THRESHOLD) {
       R result = await _currentWrapper.get();

@@ -41,30 +41,28 @@ class BufferedFilterTripWrapper implements TripWrapper {
   }
 
   @override
-  Future<void> add(Position position) {
-    return Future.microtask(() async {
-      // Buffer positions and add them to the trip wrapper when the buffer is full
-      // Throw away positions if they are off pattern, so the gps probably failed
+  Future<void> add(Position position) async {
+    // Buffer positions and add them to the trip wrapper when the buffer is full
+    // Throw away positions if they are off pattern, so the gps probably failed
 
-      if (_rejected.length > max_rejected) {
-        // Apparently the buffered positions are off pattern, so we throw away the whole buffer and add the rejected positions
-        _buffer.clear();
-        _rejected.forEach((element) => _tripWrapper.add(element));
-        _rejected.clear();
-      }
-
-      // Check if newly added position is off
-      if (!isValidNewPosition(position)) {
-        _rejected.add(position);
-        return;
-      }
-
-      _buffer.add(position);
+    if (_rejected.length > max_rejected) {
+      // Apparently the buffered positions are off pattern, so we throw away the whole buffer and add the rejected positions
+      _buffer.clear();
+      _rejected.forEach((element) => _tripWrapper.add(element));
       _rejected.clear();
-      if (_buffer.length > buffer_size) {
-        return _tripWrapper.add(_buffer.removeAt(0));
-      }
-    });
+    }
+
+    // Check if newly added position is off
+    if (!isValidNewPosition(position)) {
+      _rejected.add(position);
+      return;
+    }
+
+    _buffer.add(position);
+    _rejected.clear();
+    if (_buffer.length > buffer_size) {
+      return _tripWrapper.add(_buffer.removeAt(0));
+    }
   }
 
   @override
