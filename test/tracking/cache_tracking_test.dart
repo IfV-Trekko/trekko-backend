@@ -47,6 +47,22 @@ void main() {
     expect(trip.legs.last.transportType, TransportType.by_foot);
   });
 
+  test("Analyze walk to shop and back in cache half half", () async {
+    await TrackingTestUtil.sendToCache(walkToShopAndBack.sublist(0, walkToShopAndBack.length ~/ 2));
+    trekko = await TrekkoTestUtils.initTrekko();
+    await trekko!.setTrackingState(TrackingState.running);
+
+    await TrackingTestUtil.sendPositions(trekko!, walkToShopAndBack.sublist(walkToShopAndBack.length ~/ 2));
+    await TrackingTestUtil.waitForFinishProcessing(trekko!);
+
+    List<Trip> trips = await trekko!.getTripQuery().findAll();
+    expect(trips.length, 1);
+    Trip trip = trips.first;
+    expect(trip.legs.length, 2);
+    expect(trip.legs.first.transportType, TransportType.by_foot);
+    expect(trip.legs.last.transportType, TransportType.by_foot);
+  });
+
   tearDown(() async {
     if (trekko == null) return;
     await TrekkoTestUtils.close(trekko!);
