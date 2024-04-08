@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -12,13 +13,29 @@ class TrackingTestUtil {
   static Future<void> init() async {
     TrackingService.debug = true;
     print("Initialized tracking test util");
-    await Databases.cache.getInstance(openIfNone: true).then((value) async =>
-        await value!.writeTxn(
-            () async => await value.cacheObjects.where().deleteAll()));
+  }
+
+  static Future<void> clearCache() async {
+    Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    await cache.writeTxn(() async {
+      await cache.cacheObjects.where().deleteAll();
+    });
+  }
+
+  static Future<void> sendToCache(List<Position> positions) async {
+    print("Sending " + positions.length.toString() + " positions to cache");
+    Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    await cache.writeTxn(() async {
+      for (Position pos in positions) {
+        await cache.cacheObjects.put(CacheObject(
+            jsonEncode(pos.toJson()), pos.timestamp.millisecondsSinceEpoch));
+      }
+    });
   }
 
   static Future<void> sendPositions(
       Trekko trekko, List<Position> positions) async {
+    print("Sending " + positions.length.toString() + " positions");
     final SendPort? send =
         IsolateNameServer.lookupPortByName(TrackingService.debugIsolateName);
     if (send == null) throw Exception("No send port");
