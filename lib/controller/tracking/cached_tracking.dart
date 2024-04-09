@@ -12,29 +12,18 @@ import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 
 class CachedTracking implements Tracking {
-  static final List<Permission> perms = [
-    Permission.locationAlways,
-    Permission.locationWhenInUse,
-    Permission.notification
-  ];
 
   late final Isar _cache;
   final QueuedExecutor _dataProcessor = QueuedExecutor();
+  final List<Position> _initialPositions = [];
   late StreamController<Position> _positionStream;
   int _trackingId = 0;
   bool _trackingRunning = false;
 
-  Future<List<Position>> _clearAndReadCache() {
-    Future<List<Position>> result = _cache.cacheObjects
-        .where()
-        .sortByTimestamp()
-        .findAll()
-        .then((value) =>
+  Future<List<Position>> _readCache() {
+    return _cache.cacheObjects.where().sortByTimestamp().findAll().then(
+        (value) =>
             value.map((e) => Position.fromJson(jsonDecode(e.value))).toList());
-    return result.then((value) async {
-      await clearCache();
-      return value;
-    });
   }
 
   void _processLocation(Position position) {
@@ -46,14 +35,15 @@ class CachedTracking implements Tracking {
   }
 
   @override
-  Future<void> init(BatteryUsageSetting setting, {start = false}) async {
+  Future<void> init(BatteryUsageSetting setting) async {
     _positionStream = StreamController<Position>.broadcast();
     _cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    _initialPositions.addAll(await _readCache());
     _positionStream.onListen = () async {
-      List<Position> positions = await _clearAndReadCache();
-      for (Position position in positions) {
-        _positionStream.add(position);
+      for (Position pos in _initialPositions) {
+        _processLocation(pos);
       }
+      _initialPositions.clear();
     };
 
     TrackingService.init(Duration(seconds: setting.interval));
@@ -71,7 +61,7 @@ class CachedTracking implements Tracking {
 
   @override
   Future<bool> start() async {
-    for (Permission perm in perms) {
+    for (Permission perm in Tracking.perms) {
       PermissionStatus status = await perm.status;
       if (status != PermissionStatus.granted) {
         status = await perm.request();
