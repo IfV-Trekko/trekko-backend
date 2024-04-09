@@ -59,6 +59,23 @@ class TrekkoTestUtils {
     }
     return "http://$ip:8080";
   }
+  
+  static Future<void> clear() async {
+    late String ip = getAddress();
+    try {
+      Trekko loggedIn = await LoginBuilder.withData(
+          projectUrl: ip, email: email, password: password)
+          .build();
+      await loggedIn.signOut(delete: true);
+    } catch (e) {
+      if (e is BuildException) {
+        if (e.reason == LoginResult.failedNoSuchUser) {
+          return;
+        }
+      }
+      rethrow;
+    }
+  }
 
   static Future<Trekko> register(String ip) async {
     return await RegistrationBuilder.withData(
@@ -78,7 +95,7 @@ class TrekkoTestUtils {
     PermissionHandlerPlatform.instance = CustomPermissionHandlerPlatform();
   }
 
-  static Future<Trekko> initTrekko() async {
+  static Future<Trekko> initTrekko({bool signOut = true}) async {
     await init();
     await TrackingTestUtil.init();
     late String ip = getAddress();
@@ -86,8 +103,12 @@ class TrekkoTestUtils {
       Trekko loggedIn = await LoginBuilder.withData(
               projectUrl: ip, email: email, password: password)
           .build();
-      await loggedIn.signOut(delete: true);
-      return register(ip);
+      if (signOut) {
+        await loggedIn.signOut(delete: true);
+        return register(ip);
+      } else {
+        return loggedIn;
+      }
     } catch (e) {
       if (e is BuildException) {
         if (e.reason == LoginResult.failedNoSuchUser) {

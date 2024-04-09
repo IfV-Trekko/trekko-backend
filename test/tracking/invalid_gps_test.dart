@@ -82,8 +82,8 @@ void main() {
     List<Position> walkToShopAndBack =
     TripBuilder()
         .stay(Duration(hours: 1))
-        .move(true, Duration(seconds: 10), 40.meters)
-        .move(false, Duration(seconds: 10), 40.meters)
+        .move(true, Duration(seconds: 10), 400.meters)
+        .move(false, Duration(seconds: 10), 400.meters)
         .stay(Duration(hours: 1))
         .collect()
         .map((e) => e.toPosition())

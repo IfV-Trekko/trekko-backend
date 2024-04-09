@@ -1,5 +1,7 @@
 import 'package:trekko_backend/controller/trekko.dart';
+import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/model/cache_object.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
@@ -31,36 +33,77 @@ void main() {
   setUp(() async {
     await TrekkoTestUtils.init();
     await TrackingTestUtil.clearCache();
+    await TrekkoTestUtils.clear();
   });
 
-  test("Analyze walk to shop and back in cache", () async {
+  void checkTrips() async {
+    List<Trip> trips = await trekko!.getTripQuery().findAll();
+    expect(trips.length, 1);
+    Trip trip = trips.first;
+    expect(trip.legs.length, 2);
+    expect(trip.legs.first.transportType, TransportType.by_foot);
+    expect(trip.legs.last.transportType, TransportType.by_foot);
+  }
+
+  Future<void> checkCacheLength(int length) async {
+    Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    expect(await cache.cacheObjects.count(), length);
+  }
+
+  test("Send locations to cache and wait for them to be read out", () async {
     await TrackingTestUtil.sendToCache(walkToShopAndBack);
     trekko = await TrekkoTestUtils.initTrekko();
     await trekko!.setTrackingState(TrackingState.running);
     await TrackingTestUtil.waitForFinishProcessing(trekko!);
-
-    List<Trip> trips = await trekko!.getTripQuery().findAll();
-    expect(trips.length, 1);
-    Trip trip = trips.first;
-    expect(trip.legs.length, 2);
-    expect(trip.legs.first.transportType, TransportType.by_foot);
-    expect(trip.legs.last.transportType, TransportType.by_foot);
+    checkTrips();
   });
 
-  test("Analyze walk to shop and back in cache half half", () async {
-    await TrackingTestUtil.sendToCache(walkToShopAndBack.sublist(0, walkToShopAndBack.length ~/ 2));
+  test("Put locations into cache and live location", () async {
+    await TrackingTestUtil.sendToCache(
+        walkToShopAndBack.sublist(0, walkToShopAndBack.length ~/ 2));
     trekko = await TrekkoTestUtils.initTrekko();
     await trekko!.setTrackingState(TrackingState.running);
 
-    await TrackingTestUtil.sendPositions(trekko!, walkToShopAndBack.sublist(walkToShopAndBack.length ~/ 2));
+    await TrackingTestUtil.sendPositions(
+        trekko!, walkToShopAndBack.sublist(walkToShopAndBack.length ~/ 2));
     await TrackingTestUtil.waitForFinishProcessing(trekko!);
+    checkTrips();
+  });
 
-    List<Trip> trips = await trekko!.getTripQuery().findAll();
-    expect(trips.length, 1);
-    Trip trip = trips.first;
-    expect(trip.legs.length, 2);
-    expect(trip.legs.first.transportType, TransportType.by_foot);
-    expect(trip.legs.last.transportType, TransportType.by_foot);
+  test("Test if location will be processed after reinit 2x", () async {
+    await TrackingTestUtil.sendToCache(
+        walkToShopAndBack.sublist(0, walkToShopAndBack.length ~/ 2));
+    trekko = await TrekkoTestUtils.initTrekko(signOut: false);
+    await trekko!.setTrackingState(TrackingState.running);
+    await trekko!.terminate();
+
+    await checkCacheLength(walkToShopAndBack.length ~/ 2);
+    await TrackingTestUtil.sendToCache(
+        walkToShopAndBack.sublist(walkToShopAndBack.length ~/ 2));
+
+    await checkCacheLength(walkToShopAndBack.length);
+    trekko = await TrekkoTestUtils.initTrekko(signOut: false);
+    await trekko!.setTrackingState(TrackingState.running);
+    await TrackingTestUtil.waitForFinishProcessing(trekko!);
+    checkTrips();
+  });
+
+  test("Test if location will be processed (2x reinit) and send other half",
+      () async {
+    await TrackingTestUtil.sendToCache(
+        walkToShopAndBack.sublist(0, walkToShopAndBack.length ~/ 2));
+    trekko = await TrekkoTestUtils.initTrekko(signOut: false);
+    await trekko!.setTrackingState(TrackingState.running);
+    await trekko!.terminate();
+
+    await checkCacheLength(walkToShopAndBack.length ~/ 2);
+    trekko = await TrekkoTestUtils.initTrekko(signOut: false);
+    await trekko!.setTrackingState(TrackingState.running);
+
+    await TrackingTestUtil.sendPositions(
+        trekko!, walkToShopAndBack.sublist(walkToShopAndBack.length ~/ 2));
+    await TrackingTestUtil.waitForFinishProcessing(trekko!);
+    checkTrips();
   });
 
   tearDown(() async {
