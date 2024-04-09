@@ -282,7 +282,6 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
-    await _tracking.clearCache();
     if (await _tracking.isRunning()) {
       await _tracking.stop();
     }
@@ -297,6 +296,7 @@ class ProfiledTrekko implements Trekko {
   Future<void> signOut({bool delete = false}) async {
     // Terminate, delete the profile, trips and server
     await terminate(keepServiceOpen: true);
+    await _tracking.clearCache();
 
     if (delete) await _server.deleteAccount();
     await _server.close();
