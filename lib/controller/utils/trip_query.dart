@@ -34,6 +34,12 @@ class TripQuery {
     return this;
   }
 
+  TripQuery andTimeAbove(DateTime start) {
+    filter = filter.and().legsElement(
+        (q) => q.trackedPointsElement((q) => q.timestampGreaterThan(start)));
+    return this;
+  }
+
   QueryBuilder<Trip, Trip, QAfterFilterCondition> get() {
     return filter;
   }
