@@ -1,7 +1,14 @@
+import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 
 abstract class Tracking {
+
+  static final List<Permission> perms = [
+    Permission.locationAlways,
+    Permission.locationWhenInUse,
+    Permission.notification
+  ];
 
   Future<void> init(BatteryUsageSetting setting);
 
