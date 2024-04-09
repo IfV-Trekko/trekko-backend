@@ -8,7 +8,7 @@ import 'package:isar/isar.dart';
 part 'leg.g.dart';
 
 @embedded
-class Leg implements PositionCollection {
+class Leg extends PositionCollection {
   @enumerated
   TransportType transportType; // TODO: final
   List<TrackedPoint> trackedPoints;
@@ -42,21 +42,6 @@ class Leg implements PositionCollection {
   @override
   DateTime calculateEndTime() {
     return this.trackedPoints.last.timestamp;
-  }
-
-  @override
-  Duration calculateDuration() {
-    return this.calculateEndTime().difference(this.calculateStartTime());
-  }
-
-  @override
-  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> calculateSpeed() {
-    return ((this.calculateDistance().as(meters) /
-                this.calculateDuration().inSeconds.toDouble()) *
-            3.6)
-        .kilo
-        .meters
-        .per(1.hours);
   }
 
   @override

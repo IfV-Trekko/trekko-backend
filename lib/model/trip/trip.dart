@@ -9,7 +9,7 @@ import 'package:isar/isar.dart';
 part 'trip.g.dart';
 
 @collection
-class Trip implements PositionCollection {
+class Trip extends PositionCollection {
   Id id = Isar.autoIncrement;
   @enumerated
   DonationState donationState = DonationState.undefined;
@@ -50,19 +50,6 @@ class Trip implements PositionCollection {
   Distance calculateDistance() {
     return Distance.sum(legs.map((e) => e.calculateDistance()));
   }
-
-  @override
-  DerivedMeasurement<Measurement<Distance>, Measurement<Time>>
-      calculateSpeed() => ((this.calculateDistance().as(meters) /
-                  this.calculateDuration().inSeconds.toDouble()) *
-              3.6)
-          .kilo
-          .meters
-          .per(1.hours);
-
-  @override
-  Duration calculateDuration() =>
-      this.calculateEndTime().difference(this.calculateStartTime());
 
   @override
   List<TransportType> calculateTransportTypes() {

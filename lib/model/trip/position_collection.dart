@@ -1,5 +1,6 @@
 import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 
 abstract class PositionCollection {
@@ -14,13 +15,30 @@ abstract class PositionCollection {
   DateTime calculateEndTime();
 
   /// Returns the average speed of the collection
-  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> calculateSpeed();
+  DerivedMeasurement<Measurement<Distance>, Measurement<Time>> calculateSpeed() {
+    return ((this.calculateDistance().as(meters) /
+        this.calculateDuration().inSeconds.toDouble()) *
+        3.6)
+        .kilo
+        .meters
+        .per(1.hours);
+  }
 
   /// Returns the distance of the collection
   Distance calculateDistance();
 
   /// Returns the duration of the collection
-  Duration calculateDuration();
+  Duration calculateDuration() {
+    return this.calculateEndTime().difference(this.calculateStartTime());
+  }
+
+  TrackedPoint calculateStartPoint() {
+    return this.getLegs().first.trackedPoints.first;
+  }
+
+  TrackedPoint calculateEndPoint() {
+    return this.getLegs().last.trackedPoints.last;
+  }
 
   /// Returns the transport types of the collection
   List<TransportType> calculateTransportTypes();
