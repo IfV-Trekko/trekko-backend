@@ -12,7 +12,6 @@ import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 
 class CachedTracking implements Tracking {
-
   late final Isar _cache;
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   final List<Position> _initialPositions = [];
