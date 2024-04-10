@@ -103,7 +103,7 @@ class TrackingService {
     if (!debug) {
       FlutterForegroundTask.startService(
           notificationTitle: "Trekko",
-          notificationText: "Trekko verfolgt dich... Gib Acht!",
+          notificationText: "Trekko verfolgt dich... Gib acht!",
           callback: startCallback);
       receivePort = FlutterForegroundTask.receivePort!;
     } else {
