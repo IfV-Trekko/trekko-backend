@@ -5,8 +5,8 @@ import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 abstract class Tracking {
 
   static final List<Permission> perms = [
-    Permission.locationAlways,
     Permission.locationWhenInUse,
+    Permission.locationAlways,
     Permission.notification
   ];
 
