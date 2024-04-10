@@ -105,9 +105,9 @@ class ProfiledTrekko implements Trekko {
     await _initProfile();
     _tripDb = await Databases.trip.open(path: this._profileId.toString());
 
-    await _tracking.init();
-    await _initTrackingListener();
     Profile profile = (await getProfile().first);
+    await _tracking.init(profile.preferences.batteryUsageSetting);
+    await _initTrackingListener();
     if (profile.trackingState == TrackingState.running) {
       await _tracking.start(profile.preferences.batteryUsageSetting);
     }

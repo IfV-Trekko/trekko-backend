@@ -14,7 +14,7 @@ import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:trekko_backend/model/tracking_options.dart';
 
 class TrackingTask extends TaskHandler {
-  late StreamSubscription<Position> positionStream;
+  late BatteryUsageSetting options;
 
   getLocationSettings(TrackingOptions options) {
     BatteryUsageSetting batterySettings = options.batterySettings;
@@ -23,7 +23,7 @@ class TrackingTask extends TaskHandler {
       return AndroidSettings(
           accuracy: batterySettings.accuracy,
           distanceFilter: distanceFilter,
-          intervalDuration: batterySettings.getDuration(),
+          intervalDuration: batterySettings.getInterval(),
           foregroundNotificationConfig: const ForegroundNotificationConfig(
             notificationText:
                 "Trekko will continue to receive your location even when you aren't using it",
@@ -56,25 +56,22 @@ class TrackingTask extends TaskHandler {
   }
 
   @override
-  void onDestroy(DateTime timestamp, SendPort? sendPort) {
-    positionStream.cancel();
-  }
+  void onDestroy(DateTime timestamp, SendPort? sendPort) {}
 
   @override
-  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {}
+  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
+    Geolocator.getCurrentPosition(desiredAccuracy: options.accuracy)
+        .then((value) {
+      _sendData(sendPort, [Trekko.Position.fromGeoPosition(value)]);
+    });
+  }
 
   @override
   void onStart(DateTime timestamp, SendPort? sendPort) async {
     Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
     TrackingOptions? options = await cache.trackingOptions.where().findFirst();
     if (options == null) throw Exception("No tracking interval set");
-    positionStream = Geolocator.getPositionStream(
-            locationSettings: getLocationSettings(options))
-        .listen((Position? position) {
-      if (position != null) {
-        _sendData(sendPort, [Trekko.Position.fromGeoPosition(position)]);
-      }
-    });
+    this.options = options.batterySettings;
   }
 }
 
@@ -88,7 +85,7 @@ class TrackingService {
   static bool debug = false;
   static List<Function(Trekko.Position)> callbacks = [];
 
-  static void init() {
+  static void init(BatteryUsageSetting options) {
     if (debug) return;
 
     FlutterForegroundTask.init(
@@ -111,6 +108,8 @@ class TrackingService {
         playSound: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
+        allowWifiLock: true,
+        interval: options.getInterval().inMilliseconds,
         isOnceEvent: true,
         autoRunOnBoot: true,
         allowWakeLock: true,

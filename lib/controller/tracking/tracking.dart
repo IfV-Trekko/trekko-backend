@@ -10,7 +10,7 @@ abstract class Tracking {
     Permission.notification
   ];
 
-  Future<void> init();
+  Future<void> init(BatteryUsageSetting options);
 
   Future<bool> isRunning();
 

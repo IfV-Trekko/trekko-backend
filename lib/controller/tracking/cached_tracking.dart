@@ -34,7 +34,7 @@ class CachedTracking implements Tracking {
   }
 
   @override
-  Future<void> init() async {
+  Future<void> init(BatteryUsageSetting options) async {
     _positionStream = StreamController<Position>.broadcast();
     _cache = (await Databases.cache.getInstance(openIfNone: true))!;
     _initialPositions.addAll(await _readCache());
@@ -45,7 +45,7 @@ class CachedTracking implements Tracking {
       _initialPositions.clear();
     };
 
-    TrackingService.init();
+    TrackingService.init(options);
   }
 
   @override
