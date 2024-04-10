@@ -32,7 +32,6 @@ void main() {
 
   setUp(() async {
     await TrekkoTestUtils.init();
-    await TrackingTestUtil.clearCache();
     await TrekkoTestUtils.clear();
   });
 
@@ -52,7 +51,7 @@ void main() {
 
   test("Send locations to cache and wait for them to be read out", () async {
     await TrackingTestUtil.sendToCache(walkToShopAndBack);
-    trekko = await TrekkoTestUtils.initTrekko();
+    trekko = await TrekkoTestUtils.initTrekko(signOut: false);
     await trekko!.setTrackingState(TrackingState.running);
     await TrackingTestUtil.waitForFinishProcessing(trekko!);
     checkTrips();
@@ -61,7 +60,7 @@ void main() {
   test("Put locations into cache and live location", () async {
     await TrackingTestUtil.sendToCache(
         walkToShopAndBack.sublist(0, walkToShopAndBack.length ~/ 2));
-    trekko = await TrekkoTestUtils.initTrekko();
+    trekko = await TrekkoTestUtils.initTrekko(signOut: false);
     await trekko!.setTrackingState(TrackingState.running);
 
     await TrackingTestUtil.sendPositions(
