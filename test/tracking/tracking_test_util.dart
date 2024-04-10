@@ -21,7 +21,7 @@ class TrackingTestUtil {
   }
 
   static Future<void> clearCache() async {
-    Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    Isar cache = (await Databases.cache.getInstance());
     await cache.writeTxn(() async {
       await cache.cacheObjects.where().deleteAll();
     });
@@ -29,7 +29,7 @@ class TrackingTestUtil {
 
   static Future<void> sendToCache(List<Position> positions) async {
     print("Sending " + positions.length.toString() + " positions to cache");
-    Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    Isar cache = (await Databases.cache.getInstance());
     await cache.writeTxn(() async {
       for (Position pos in positions) {
         await cache.cacheObjects.put(CacheObject(

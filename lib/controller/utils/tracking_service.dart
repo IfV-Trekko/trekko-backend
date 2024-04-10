@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:fling_units/fling_units.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
@@ -14,41 +13,15 @@ import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:trekko_backend/model/tracking_options.dart';
 
 class TrackingTask extends TaskHandler {
-  late BatteryUsageSetting options;
+  final BatteryUsageSetting options;
 
-  getLocationSettings(TrackingOptions options) {
-    BatteryUsageSetting batterySettings = options.batterySettings;
-    int distanceFilter = batterySettings.getDistanceFilter().as(meters).toInt();
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return AndroidSettings(
-          accuracy: batterySettings.accuracy,
-          distanceFilter: distanceFilter,
-          intervalDuration: batterySettings.getInterval(),
-          foregroundNotificationConfig: const ForegroundNotificationConfig(
-            notificationText:
-                "Trekko will continue to receive your location even when you aren't using it",
-            notificationTitle: "Running in Background",
-            enableWakeLock: true,
-          ));
-    } else if (defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.macOS) {
-      return AppleSettings(
-        accuracy: batterySettings.accuracy,
-        activityType: ActivityType.fitness,
-        distanceFilter: distanceFilter,
-        pauseLocationUpdatesAutomatically: true,
-        showBackgroundLocationIndicator: true,
-      );
-    } else {
-      return LocationSettings(
-        accuracy: options.batterySettings.accuracy,
-        distanceFilter: distanceFilter,
-      );
-    }
-  }
+  TrackingTask(this.options);
 
   Future<void> _sendData(SendPort? sendPort, List<Trekko.Position> loc) async {
-    Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    for (Trekko.Position pos in loc) {
+      print(pos.timestamp);
+    }
+    Isar cache = (await Databases.cache.getInstance());
     List<Map<String, dynamic>> data = loc.map((e) => e.toJson()).toList();
     await cache.writeTxn(() async => await cache.cacheObjects
         .putAll(data.map(CacheObject.fromJson).toList()));
@@ -67,17 +40,15 @@ class TrackingTask extends TaskHandler {
   }
 
   @override
-  void onStart(DateTime timestamp, SendPort? sendPort) async {
-    Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
-    TrackingOptions? options = await cache.trackingOptions.where().findFirst();
-    if (options == null) throw Exception("No tracking interval set");
-    this.options = options.batterySettings;
-  }
+  void onStart(DateTime timestamp, SendPort? sendPort) async {}
 }
 
 @pragma('vm:entry-point')
-void startCallback() {
-  FlutterForegroundTask.setTaskHandler(TrackingTask());
+void startCallback() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Isar cache = (await Databases.cache.getInstance());
+  TrackingOptions? options = await cache.trackingOptions.where().findFirst();
+  FlutterForegroundTask.setTaskHandler(TrackingTask(options!.batterySettings));
 }
 
 class TrackingService {
@@ -110,7 +81,7 @@ class TrackingService {
       foregroundTaskOptions: ForegroundTaskOptions(
         allowWifiLock: true,
         interval: options.getInterval().inMilliseconds,
-        isOnceEvent: true,
+        isOnceEvent: false,
         autoRunOnBoot: true,
         allowWakeLock: true,
       ),
@@ -119,7 +90,7 @@ class TrackingService {
 
   static Future<int> startLocationService(BatteryUsageSetting options) async {
     ReceivePort receivePort = ReceivePort();
-    await Databases.cache.getInstance(openIfNone: true).then((value) => value!
+    await Databases.cache.getInstance().then((value) => value
         .writeTxn(() => value.trackingOptions.put(TrackingOptions(options))));
 
     if (!debug) {

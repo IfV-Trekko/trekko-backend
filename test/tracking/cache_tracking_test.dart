@@ -45,7 +45,7 @@ void main() {
   }
 
   Future<void> checkCacheLength(int length) async {
-    Isar cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    Isar cache = (await Databases.cache.getInstance());
     expect(await cache.cacheObjects.count(), length);
   }
 
