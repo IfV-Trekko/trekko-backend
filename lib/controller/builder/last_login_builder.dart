@@ -18,7 +18,7 @@ class LastLoginBuilder extends TrekkoBuilder {
 
   @override
   Future<Trekko> build() {
-    return Databases.profile.open().then((value) async {
+    return Databases.profile.getInstance().then((value) async {
       Profile? latestProfile =
           await value.profiles.where().sortByLastLoginDesc().findFirst();
       if (latestProfile == null) {

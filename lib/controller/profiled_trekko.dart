@@ -101,15 +101,15 @@ class ProfiledTrekko implements Trekko {
 
   @override
   Future<void> init() async {
-    _profileDb = await Databases.profile.open();
+    _profileDb = await Databases.profile.getInstance();
     await _initProfile();
-    _tripDb = await Databases.trip.open(path: this._profileId.toString());
+    _tripDb = await Databases.trip.getInstance(path: this._profileId.toString());
 
     Profile profile = (await getProfile().first);
     await _tracking.init(profile.preferences.batteryUsageSetting);
     await _initTrackingListener();
     if (profile.trackingState == TrackingState.running) {
-      await _tracking.start();
+      await _tracking.start(profile.preferences.batteryUsageSetting);
     }
   }
 
@@ -260,13 +260,15 @@ class ProfiledTrekko implements Trekko {
       return false;
     }
 
+    Profile profile = await getProfile().first;
     if (state == TrackingState.running) {
-      if (!await _tracking.start()) return false;
+      if (!await _tracking.start(profile.preferences.batteryUsageSetting)) {
+        return false;
+      }
     } else if (state == TrackingState.paused) {
       await _tracking.stop();
     }
 
-    Profile profile = await getProfile().first;
     profile.lastTimeTracked = DateTime.now();
     profile.trackingState = state;
     await _saveProfile(profile);

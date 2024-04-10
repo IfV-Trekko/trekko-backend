@@ -59,12 +59,12 @@ class TrekkoTestUtils {
     }
     return "http://$ip:8080";
   }
-  
+
   static Future<void> clear() async {
     late String ip = getAddress();
     try {
       Trekko loggedIn = await LoginBuilder.withData(
-          projectUrl: ip, email: email, password: password)
+              projectUrl: ip, email: email, password: password)
           .build();
       await loggedIn.signOut(delete: true);
     } catch (e) {
@@ -93,11 +93,14 @@ class TrekkoTestUtils {
     await Isar.initializeIsarCore(download: true);
     PathProviderPlatform.instance = MockPathProvider();
     PermissionHandlerPlatform.instance = CustomPermissionHandlerPlatform();
+    await TrackingTestUtil.init();
   }
 
-  static Future<Trekko> initTrekko({bool signOut = true}) async {
-    await init();
-    await TrackingTestUtil.init();
+  static Future<Trekko> initTrekko(
+      {bool signOut = true, bool initAll = true}) async {
+    if (initAll && signOut) {
+      await init();
+    }
     late String ip = getAddress();
     try {
       Trekko loggedIn = await LoginBuilder.withData(
