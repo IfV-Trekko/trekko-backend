@@ -14,15 +14,22 @@ import 'package:trekko_backend/model/tracking_options.dart';
 
 class TrackingTask extends TaskHandler {
   final BatteryUsageSetting options;
+  DateTime lastTimestamp = DateTime.now();
 
   TrackingTask(this.options);
 
-  Future<void> _sendData(SendPort? sendPort, List<Trekko.Position> loc) async {
-    for (Trekko.Position pos in loc) {
-      print(pos.timestamp);
+  Future<void> _sendData(SendPort? sendPort, List<Trekko.Position> locs) async {
+    List<Trekko.Position> valids = [];
+    for (Trekko.Position p in locs) {
+      if (p.timestamp.isAfter(lastTimestamp) &&
+          !p.timestamp.isAtSameMomentAs(lastTimestamp)) {
+        lastTimestamp = p.timestamp;
+        valids.add(p);
+      }
     }
+
     Isar cache = (await Databases.cache.getInstance());
-    List<Map<String, dynamic>> data = loc.map((e) => e.toJson()).toList();
+    List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
     await cache.writeTxn(() async => await cache.cacheObjects
         .putAll(data.map(CacheObject.fromJson).toList()));
     data.forEach((element) => sendPort?.send(element));
