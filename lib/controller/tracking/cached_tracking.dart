@@ -34,9 +34,9 @@ class CachedTracking implements Tracking {
   }
 
   @override
-  Future<void> init(BatteryUsageSetting setting) async {
+  Future<void> init(BatteryUsageSetting options) async {
     _positionStream = StreamController<Position>.broadcast();
-    _cache = (await Databases.cache.getInstance(openIfNone: true))!;
+    _cache = (await Databases.cache.getInstance());
     _initialPositions.addAll(await _readCache());
     _positionStream.onListen = () async {
       for (Position pos in _initialPositions) {
@@ -45,7 +45,7 @@ class CachedTracking implements Tracking {
       _initialPositions.clear();
     };
 
-    TrackingService.init(Duration(seconds: setting.interval));
+    TrackingService.init(options);
   }
 
   @override
@@ -59,7 +59,7 @@ class CachedTracking implements Tracking {
   }
 
   @override
-  Future<bool> start() async {
+  Future<bool> start(BatteryUsageSetting setting) async {
     for (Permission perm in Tracking.perms) {
       PermissionStatus status = await perm.status;
       if (status != PermissionStatus.granted) {
@@ -71,7 +71,7 @@ class CachedTracking implements Tracking {
     }
 
     TrackingService.getLocationUpdates(_locationCallback);
-    _trackingId = await TrackingService.startLocationService();
+    _trackingId = await TrackingService.startLocationService(setting);
     _trackingRunning = true;
     return true;
   }
