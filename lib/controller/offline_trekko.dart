@@ -210,7 +210,8 @@ class OfflineTrekko implements Trekko {
 
     // If no deletion is planned, we can just close the databases and the server
     if (!keepServiceOpen) {
-      await Future.wait([_profileDb.close(), _tripDb.close()]);
+      await _profileDb.close();
+      await _tripDb.close();
     }
   }
 
