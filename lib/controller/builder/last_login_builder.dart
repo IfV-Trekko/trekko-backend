@@ -17,32 +17,27 @@ class LastLoginBuilder extends TrekkoBuilder {
   }
 
   @override
-  Future<Trekko> build() {
-    return Databases.profile.getInstance().then((value) async {
-      Profile? latestProfile =
-          await value.profiles.where().sortByLastLoginDesc().findFirst();
-      if (latestProfile == null) {
-        await value.close();
-        throw new BuildException(null, LoginResult.failedNoSuchUser);
-      }
+  Future<Trekko> build() async {
+    Isar profileDb = await Databases.profile.getInstance();
+    Profile? latestProfile =
+        await profileDb.profiles.where().sortByLastLoginDesc().findFirst();
+    if (latestProfile == null) {
+      throw new BuildException(null, LoginResult.failedNoSuchUser);
+    }
 
+    if (latestProfile.isOnline()) {
       try {
         await UrlTrekkoServer.withToken(
                 latestProfile.projectUrl, latestProfile.token)
             .getUser();
       } on RequestException catch (e) {
         if ((e.code == 404 || e.code == 403)) {
-          // Delete the profile from the database
-          await value.profiles.filter().idEqualTo(latestProfile.id).deleteAll();
-          value.close();
           throw BuildException(e, LoginResult.failedSessionExpired);
         }
-      } finally {
-        await value.close();
+        rethrow;
       }
+    }
 
-      return makeTrekko(
-          latestProfile.projectUrl, latestProfile.email, latestProfile.token!);
-    });
+    return makeTrekko(latestProfile);
   }
 }

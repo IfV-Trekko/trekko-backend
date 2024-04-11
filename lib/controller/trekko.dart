@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
+import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
@@ -12,7 +13,7 @@ import 'package:isar/isar.dart';
 
 abstract class Trekko {
   /// Initializes the Trekko instance.
-  Future<void> init();
+  Future<void> init(int profileId);
 
   /// Returns a stream of the current profile.
   Stream<Profile> getProfile();
@@ -59,8 +60,11 @@ abstract class Trekko {
   /// Sets the tracking state.
   Future<bool> setTrackingState(TrackingState state);
 
+  /// Returns the current state of the Trekko instance.
+  TrekkoState getState();
+
   /// Terminates the Trekko instance
-  Future<void> terminate();
+  Future<void> terminate({keepServiceOpen = false});
 
   /// Logs out the user.
   Future<void> signOut({bool delete = false});

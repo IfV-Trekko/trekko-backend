@@ -10,8 +10,7 @@ import 'trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
-  setUpAll(() async =>
-      trekko = await TrekkoTestUtils.initTrekko());
+  setUpAll(() async => trekko = await TrekkoTestUtils.initTrekko());
 
   test("Profile data correct", () async {
     Profile profile = await trekko.getProfile().first;
@@ -53,9 +52,9 @@ void main() {
 
     setUp(() {
       preferences = Preferences.withData(
-          [],
-          BatteryUsageSetting.medium,
-          [
+          questionAnswers: [],
+          batteryUsageSetting: BatteryUsageSetting.medium,
+          onboardingQuestions: [
             OnboardingQuestion.withData(
                 "existingKey", "test", QuestionType.text, false, "*", [])
           ]);
