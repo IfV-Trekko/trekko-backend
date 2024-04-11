@@ -1,0 +1,1 @@
+enum TrekkoState { online, offline }

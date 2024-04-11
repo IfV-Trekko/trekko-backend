@@ -9,7 +9,7 @@ part 'preferences.g.dart';
 
 @embedded
 class Preferences {
-  List<QuestionAnswer> questionAnswers; // TODO: Private
+  List<QuestionAnswer> questionAnswers;
   List<OnboardingQuestion> onboardingQuestions;
   @enumerated
   BatteryUsageSetting batteryUsageSetting;
@@ -19,8 +19,11 @@ class Preferences {
         onboardingQuestions = List.empty(growable: true),
         batteryUsageSetting = BatteryUsageSetting.medium;
 
-  Preferences.withData(
-      this.questionAnswers, this.batteryUsageSetting, this.onboardingQuestions);
+  Preferences.withData({
+    required this.questionAnswers,
+    required this.onboardingQuestions,
+    this.batteryUsageSetting = BatteryUsageSetting.medium,
+  });
 
   dynamic _parseAnswer(String key, dynamic answer) {
     if (!onboardingQuestions.any((element) => element.key == key)) {

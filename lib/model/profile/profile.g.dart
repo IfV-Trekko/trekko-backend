@@ -139,19 +139,20 @@ Profile _profileDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Profile(
-    reader.readString(offsets[4]),
-    reader.readString(offsets[0]),
-    reader.readStringOrNull(offsets[5]),
-    reader.readDateTime(offsets[1]),
-    reader.readDateTimeOrNull(offsets[2]),
-    _ProfiletrackingStateValueEnumMap[reader.readByteOrNull(offsets[6])] ??
-        TrackingState.running,
-    reader.readObjectOrNull<Preferences>(
+    email: reader.readStringOrNull(offsets[0]) ?? emailLocal,
+    lastLogin: reader.readDateTime(offsets[1]),
+    lastTimeTracked: reader.readDateTimeOrNull(offsets[2]),
+    preferences: reader.readObjectOrNull<Preferences>(
           offsets[3],
           PreferencesSchema.deserialize,
           allOffsets,
         ) ??
         Preferences(),
+    projectUrl: reader.readStringOrNull(offsets[4]) ?? projectUrlLocal,
+    token: reader.readStringOrNull(offsets[5]),
+    trackingState:
+        _ProfiletrackingStateValueEnumMap[reader.readByteOrNull(offsets[6])] ??
+            TrackingState.paused,
   );
   object.id = id;
   return object;
@@ -165,7 +166,7 @@ P _profileDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? emailLocal) as P;
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
@@ -178,13 +179,13 @@ P _profileDeserializeProp<P>(
           ) ??
           Preferences()) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? projectUrlLocal) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (_ProfiletrackingStateValueEnumMap[
               reader.readByteOrNull(offset)] ??
-          TrackingState.running) as P;
+          TrackingState.paused) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
