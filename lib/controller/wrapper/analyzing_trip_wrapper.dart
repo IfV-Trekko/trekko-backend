@@ -1,3 +1,4 @@
+import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/leg/leg_wrapper.dart';
@@ -47,6 +48,7 @@ class AnalyzingTripWrapper implements TripWrapper {
     await _legWrapper.add(position);
     double probability = await _legWrapper.calculateEndProbability();
     if (probability > 0.95) {
+      Logging.info("Leg finished at ${position.timestamp.toIso8601String()}");
       _legs.add(await _legWrapper.get());
       _legWrapper = AnalyzingLegWrapper();
     }

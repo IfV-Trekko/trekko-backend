@@ -9,7 +9,7 @@ part of 'position.dart';
 Position _$PositionFromJson(Map<String, dynamic> json) => Position(
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
-      timestamp: Position._dateTimeFromJson(json['time'] as int),
+      timestamp: Position._dateTimeFromJson((json['time'] as num).toInt()),
       accuracy: (json['accuracy'] as num).toDouble(),
       altitude: (json['altitude'] as num).toDouble(),
       altitudeAccuracy: (json['altitude_accuracy'] as num?)?.toDouble(),

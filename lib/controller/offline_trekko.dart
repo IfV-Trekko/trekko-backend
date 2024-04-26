@@ -8,6 +8,7 @@ import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
+import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
@@ -49,8 +50,13 @@ class OfflineTrekko implements Trekko {
   }
 
   Future<void> _initTrackingListener() async {
-    _tracking.track().listen((pos) => _tripStream.add(pos));
+    _tracking.track().listen((pos) {
+      Logging.info("Processing position: ${pos.timestamp.toIso8601String()}");
+      _tripStream.add(pos);
+    });
     _tripStream.getResults().listen((trip) async {
+      Logging.info(
+          "Saving trip from ${trip.calculateStartTime().toIso8601String()} to ${trip.calculateEndTime().toIso8601String()}");
       await saveTrip(trip);
       await _tracking.clearCache();
     });

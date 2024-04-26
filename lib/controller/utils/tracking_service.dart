@@ -7,6 +7,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
+import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/model/cache_object.dart';
 import 'package:trekko_backend/model/position.dart' as Trekko;
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
@@ -25,9 +26,12 @@ class TrackingTask extends TaskHandler {
           !p.timestamp.isAtSameMomentAs(lastTimestamp)) {
         lastTimestamp = p.timestamp;
         valids.add(p);
+      } else {
+        await Logging.warning("Skipping position: ${p.toJson()}");
       }
     }
 
+    await Logging.info("Sending ${valids.length} positions to cache");
     Isar cache = (await Databases.cache.getInstance());
     List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
     await cache.writeTxn(() async => await cache.cacheObjects
@@ -36,7 +40,9 @@ class TrackingTask extends TaskHandler {
   }
 
   @override
-  void onDestroy(DateTime timestamp, SendPort? sendPort) {}
+  void onDestroy(DateTime timestamp, SendPort? sendPort) {
+    Logging.info("Tracking service destroyed");
+  }
 
   @override
   void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
@@ -47,7 +53,9 @@ class TrackingTask extends TaskHandler {
   }
 
   @override
-  void onStart(DateTime timestamp, SendPort? sendPort) async {}
+  void onStart(DateTime timestamp, SendPort? sendPort) async {
+    Logging.info("Tracking service started");
+  }
 }
 
 @pragma('vm:entry-point')

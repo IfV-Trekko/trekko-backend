@@ -8,7 +8,7 @@ part of 'error_response.dart';
 
 ErrorResponse _$ErrorResponseFromJson(Map<String, dynamic> json) =>
     ErrorResponse(
-      json['reasonCode'] as int,
+      (json['reasonCode'] as num).toInt(),
       json['reason'] as String,
     );
 
