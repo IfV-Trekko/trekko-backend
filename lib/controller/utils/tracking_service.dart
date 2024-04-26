@@ -41,7 +41,7 @@ class TrackingTask extends TaskHandler {
 
   @override
   void onDestroy(DateTime timestamp, SendPort? sendPort) {
-    Logging.info("Tracking service destroyed");
+    Logging.warning("Tracking service destroyed");
   }
 
   @override
@@ -54,7 +54,7 @@ class TrackingTask extends TaskHandler {
 
   @override
   void onStart(DateTime timestamp, SendPort? sendPort) async {
-    Logging.info("Tracking service started");
+    Logging.warning("Tracking service started");
   }
 }
 
@@ -69,7 +69,7 @@ void startCallback() async {
 class TrackingService {
   static String debugIsolateName = "tracking_service";
   static bool debug = false;
-  static List<Function(Trekko.Position)> callbacks = [];
+  static List<Future Function(Trekko.Position)> callbacks = [];
 
   static void init(BatteryUsageSetting options) {
     if (debug) return;
@@ -120,8 +120,10 @@ class TrackingService {
           receivePort.sendPort, debugIsolateName);
     }
 
-    receivePort.listen((dynamic data) {
-      callbacks.forEach((c) => c.call(Trekko.Position.fromJson(data)));
+    receivePort.listen((dynamic data) async {
+      for (Future Function(Trekko.Position) callback in callbacks) {
+        await callback.call(Trekko.Position.fromJson(data));
+      }
     });
     return 0;
   }
@@ -133,7 +135,7 @@ class TrackingService {
     callbacks.clear();
   }
 
-  static void getLocationUpdates(Function(Trekko.Position) locationCallback) {
+  static void getLocationUpdates(Future Function(Trekko.Position) locationCallback) {
     callbacks.add(locationCallback);
   }
 }
