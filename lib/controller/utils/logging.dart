@@ -25,7 +25,7 @@ class Logging {
 
   static Future<Stream<List<LogEntry>>> read() async {
     Isar _logs = await Databases.logs.getInstance();
-    return _logs.logEntrys.where().sortByTimestampDesc().watch();
+    return _logs.logEntrys.where().sortByTimestampDesc().watch(fireImmediately: true);
   }
 
   static Future<void> clear() async {
