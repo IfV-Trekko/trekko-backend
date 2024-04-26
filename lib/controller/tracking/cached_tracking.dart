@@ -5,6 +5,7 @@ import 'package:isar/isar.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
+import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/controller/utils/tracking_service.dart';
 import 'package:trekko_backend/model/cache_object.dart';
@@ -39,6 +40,7 @@ class CachedTracking implements Tracking {
     _cache = (await Databases.cache.getInstance());
     _initialPositions.addAll(await _readCache());
     _positionStream.onListen = () async {
+      Logging.info("Processing ${_initialPositions.length} initial positions");
       for (Position pos in _initialPositions) {
         _processLocation(pos);
       }
