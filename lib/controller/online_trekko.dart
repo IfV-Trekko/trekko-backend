@@ -27,7 +27,8 @@ class OnlineTrekko implements Trekko {
     _internal = OfflineTrekko();
   }
 
-  Future<void> _revoke(Iterable<Trip> revoke) async {
+  Future<int> _revoke(Iterable<Trip> revoke) async {
+    int revoked = 0;
     for (Trip trip in revoke) {
       if (trip.donationState != DonationState.donated) {
         throw Exception("Trip is not donated");
@@ -35,7 +36,9 @@ class OnlineTrekko implements Trekko {
       await _server.deleteTrip(trip.id.toString());
       trip.donationState = DonationState.notDonated;
       await this._internal.saveTrip(trip);
+      revoked++;
     }
+    return revoked;
   }
 
   @override
@@ -110,9 +113,9 @@ class OnlineTrekko implements Trekko {
 
   @override
   Future<int> deleteTrip(TripQuery trips) async {
-    TripQuery donated = trips.andDonationState(DonationState.donated);
+    TripQuery donated = await trips.andDonationState(DonationState.donated);
     if (!await donated.isEmpty()) {
-      await this._revoke(await donated.collect());
+      await this.revoke(donated);
     }
     return _internal.deleteTrip(trips);
   }
