@@ -12,7 +12,6 @@ import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
-import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/onboarding_question.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
@@ -34,7 +33,7 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  Future<void> init(int profileId) async {
+  Future init(int profileId) async {
     await _internal.init(profileId);
     Profile profile = await this.getProfile().first;
     _server = UrlTrekkoServer.withToken(profile.projectUrl, profile.token);
@@ -66,7 +65,7 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  Future<void> savePreferences(Preferences preferences) async {
+  Future savePreferences(Preferences preferences) async {
     return await _server
         .updateProfile(preferences.toServerProfile())
         .then((value) => _internal.savePreferences(preferences));
@@ -163,17 +162,12 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  Stream<Position> getPosition() {
-    return _internal.getPosition();
-  }
-
-  @override
   TrekkoState getState() {
     return TrekkoState.online;
   }
 
   @override
-  Future<void> terminate({keepServiceOpen = false}) async {
+  Future terminate({keepServiceOpen = false}) async {
     await _internal.terminate(keepServiceOpen: keepServiceOpen);
     if (!keepServiceOpen) {
       await _server.close();
@@ -181,7 +175,7 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  Future<void> signOut({bool delete = false}) async {
+  Future signOut({bool delete = false}) async {
     if (delete) await _server.deleteAccount();
     await _server.close();
     return _internal.signOut(delete: delete);

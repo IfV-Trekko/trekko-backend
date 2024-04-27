@@ -4,7 +4,6 @@ import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
-import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
@@ -13,13 +12,13 @@ import 'package:isar/isar.dart';
 
 abstract class Trekko {
   /// Initializes the Trekko instance.
-  Future<void> init(int profileId);
+  Future init(int profileId);
 
   /// Returns a stream of the current profile.
   Stream<Profile> getProfile();
 
   /// Saves the preferences. Also synchronizes the preferences with the server.
-  Future<void> savePreferences(Preferences preferences);
+  Future savePreferences(Preferences preferences);
 
   /// Loads a onboarding tex from the server
   Future<String> loadText(OnboardingTextType type);
@@ -48,9 +47,6 @@ abstract class Trekko {
   /// Revokes a query of trips from the server.
   Future<int> revoke(Query<Trip> query);
 
-  /// Returns a stream of the current position.
-  Stream<Position> getPosition();
-
   /// Returns whether the tracking is currently processing data.
   bool isProcessingLocationData();
 
@@ -64,8 +60,8 @@ abstract class Trekko {
   TrekkoState getState();
 
   /// Terminates the Trekko instance
-  Future<void> terminate({keepServiceOpen = false});
+  Future terminate({keepServiceOpen = false});
 
   /// Logs out the user.
-  Future<void> signOut({bool delete = false});
+  Future signOut({bool delete = false});
 }

@@ -8,8 +8,8 @@ part of 'server_trip.dart';
 
 ServerTrip _$ServerTripFromJson(Map<String, dynamic> json) => ServerTrip(
       json['uid'] as String,
-      json['startTimestamp'] as int,
-      json['endTimestamp'] as int,
+      (json['startTimestamp'] as num).toInt(),
+      (json['endTimestamp'] as num).toInt(),
       (json['distance'] as num).toDouble(),
       (json['transportTypes'] as List<dynamic>)
           .map((e) => e as String)
