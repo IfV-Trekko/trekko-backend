@@ -48,7 +48,9 @@ class BufferedFilterTripWrapper implements TripWrapper {
     if (_rejected.length > max_rejected) {
       // Apparently the buffered positions are off pattern, so we throw away the whole buffer and add the rejected positions
       _buffer.clear();
-      _rejected.forEach((element) => _tripWrapper.add(element));
+      for (int i = 0; i < _rejected.length - 1; i++) {
+        await _tripWrapper.add(_rejected[i]);
+      }
       _rejected.clear();
     }
 

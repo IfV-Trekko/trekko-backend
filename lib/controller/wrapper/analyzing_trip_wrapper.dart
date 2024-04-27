@@ -35,7 +35,7 @@ class AnalyzingTripWrapper implements TripWrapper {
   }
 
   @override
-  Future<void> add(Position position) async {
+  Future add(Position position) async {
     if (oldestTimestamp == null) {
       oldestTimestamp = position.timestamp;
     }
