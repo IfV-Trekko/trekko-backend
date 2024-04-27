@@ -9,6 +9,7 @@ import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
+import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/wrapper/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/buffered_filter_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
@@ -111,23 +112,23 @@ class OfflineTrekko implements Trekko {
   }
 
   @override
-  Future<int> donate(Query<Trip> query) async {
+  Future<int> donate(TripQuery query) async {
     throw Exception("Cannot donate in offline trekko");
   }
 
   @override
-  Future<int> revoke(Query<Trip> query) async {
+  Future<int> revoke(TripQuery query) async {
     throw Exception("Cannot revoke in offline trekko");
   }
 
   @override
-  Future<int> deleteTrip(Query<Trip> trips) async {
-    return _tripDb.writeTxn(() => trips.deleteAll());
+  Future<int> deleteTrip(TripQuery trips) async {
+    return _tripDb.writeTxn(() => trips.build().deleteAll());
   }
 
   @override
-  Future<Trip> mergeTrips(Query<Trip> tripsQuery) async {
-    final List<Trip> trips = await tripsQuery.findAll();
+  Future<Trip> mergeTrips(TripQuery tripsQuery) async {
+    final List<Trip> trips = await tripsQuery.collect();
     if (trips.isEmpty) throw Exception("No trips to merge");
 
     List<Leg> legsSorted = trips.expand((trip) => trip.legs).toList();
@@ -155,9 +156,9 @@ class OfflineTrekko implements Trekko {
   }
 
   @override
-  Stream<T?> analyze<T>(Query<Trip> trips, Iterable<T> Function(Trip) tripData,
+  Stream<T?> analyze<T>(TripQuery trips, Iterable<T> Function(Trip) tripData,
       Calculation<T> calc) {
-    return trips.watch(fireImmediately: true).map((trips) {
+    return trips.stream().map((trips) {
       final Iterable<T> toAnalyse = trips.expand(tripData);
       return toAnalyse.isEmpty ? null : calc.calculate(toAnalyse);
     });
@@ -169,8 +170,8 @@ class OfflineTrekko implements Trekko {
   }
 
   @override
-  QueryBuilder<Trip, Trip, QWhere> getTripQuery() {
-    return _tripDb.trips.where();
+  TripQuery getTripQuery() {
+    return TripQuery(this._tripDb.trips.where());
   }
 
   @override

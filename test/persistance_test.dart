@@ -3,7 +3,6 @@ import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
 import 'trekko_test_utils.dart';
@@ -27,12 +26,12 @@ void main() {
 
   test("Save trip, init trekko and read", () async {
     int tripId = await trekko.saveTrip(trip);
-    expect((await trekko.getTripQuery().filter().idEqualTo(tripId).findFirst()),
+    expect((await trekko.getTripQuery().andId(tripId).collectFirst()),
         isNotNull);
     await trekko.terminate();
     trekko = await LastLoginBuilder().build();
     Trip tripRead =
-        (await trekko.getTripQuery().filter().idEqualTo(tripId).findFirst())!;
+        (await trekko.getTripQuery().andId(tripId).collectFirst())!;
     expect(tripRead.calculateStartTime(), equals(trip.calculateStartTime()));
     expect(tripRead.calculateEndTime(), equals(trip.calculateEndTime()));
     expect(tripRead.calculateDistance(), equals(trip.calculateDistance()));

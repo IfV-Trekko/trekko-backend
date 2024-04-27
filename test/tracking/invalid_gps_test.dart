@@ -6,7 +6,6 @@ import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isar/isar.dart';
 
 import '../trekko_test_utils.dart';
 import 'tracking_test_util.dart';
@@ -19,21 +18,20 @@ void main() {
   });
 
   test("Analyze walk to shop and back with gps errors", () async {
-    List<Position> walkToShopAndBack =
-        TripBuilder()
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            // walk 500m
-            .move(true, Duration(minutes: 10), 500.meters)
-            // stay for 5min
-            .stay(Duration(minutes: 5))
-            // walk 500m back
-            .move(false, Duration(minutes: 10), 500.meters)
-            // stay for 1h
-            .stay(Duration(hours: 1))
-            .collect()
-            .map((e) => e.toPosition())
-            .toList();
+    List<Position> walkToShopAndBack = TripBuilder()
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        // walk 500m
+        .move(true, Duration(minutes: 10), 500.meters)
+        // stay for 5min
+        .stay(Duration(minutes: 5))
+        // walk 500m back
+        .move(false, Duration(minutes: 10), 500.meters)
+        // stay for 1h
+        .stay(Duration(hours: 1))
+        .collect()
+        .map((e) => e.toPosition())
+        .toList();
 
     // Obscure the GPS data. Choose random points and make the position off by over 100m
     List<Position> wrongPositions = [];
@@ -61,7 +59,7 @@ void main() {
 
     await TrackingTestUtil.sendPositions(trekko, walkToShopAndBack);
 
-    List<Trip> trips = await trekko.getTripQuery().findAll();
+    List<Trip> trips = await trekko.getTripQuery().collect();
     // Check if the wrong positions are in the trips
     List<TrackedPoint> allPositions = trips
         .expand((trip) => trip.legs.expand((leg) => leg.trackedPoints))
@@ -72,15 +70,16 @@ void main() {
           point.latitude == wrongPosition.latitude &&
               point.longitude == wrongPosition.longitude &&
               point.timestamp == wrongPosition.timestamp,
-          isFalse, reason: "Wrong position found in trip; ts: " + point.timestamp.toString(),
+          isFalse,
+          reason:
+              "Wrong position found in trip; ts: " + point.timestamp.toString(),
         );
       }
     }
   });
 
   test("Analyze small jump in coordinates", () async {
-    List<Position> walkToShopAndBack =
-    TripBuilder()
+    List<Position> walkToShopAndBack = TripBuilder()
         .stay(Duration(hours: 1))
         .move(true, Duration(seconds: 10), 400.meters)
         .move(false, Duration(seconds: 10), 400.meters)

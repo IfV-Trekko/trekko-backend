@@ -1,9 +1,9 @@
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/model/trip/donation_state.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
 import 'trekko_test_utils.dart';
@@ -17,7 +17,7 @@ void main() {
 
   test("Donate empty query", () async {
     try {
-      await trekko.donate(trekko.getTripQuery().idEqualTo(-1).build());
+      await trekko.donate(trekko.getTripQuery().andId(-1));
       fail("Expected exception");
     } catch (e) {
       expect(e, isA<Exception>());
@@ -27,13 +27,13 @@ void main() {
   test("Donate random trip and donate again", () async {
     Trip trip = TripBuilder().move_r(Duration(hours: 2), 200.meters).build();
     int tripId = await trekko.saveTrip(trip);
-    await trekko.donate(trekko.getTripQuery().idEqualTo(tripId).build());
+    await trekko.donate(trekko.getTripQuery().andId(tripId));
 
-    trip = (await trekko.getTripQuery().idEqualTo(tripId).findFirst())!;
+    trip = (await trekko.getTripQuery().andId(tripId).collectFirst())!;
     expect(trip.donationState, DonationState.donated);
 
     try {
-      await trekko.donate(trekko.getTripQuery().idEqualTo(tripId).build());
+      await trekko.donate(trekko.getTripQuery().andId(tripId));
       fail("Expected exception");
     } catch (e) {
       expect(e, isA<Exception>());
@@ -43,68 +43,66 @@ void main() {
   test("Donate random trip and revoke again", () async {
     Trip trip = TripBuilder().move_r(Duration(hours: 2), 200.meters).build();
     int tripId = await trekko.saveTrip(trip);
-    await trekko.donate(trekko.getTripQuery().idEqualTo(tripId).build());
+    await trekko.donate(trekko.getTripQuery().andId(tripId));
 
-    trip = (await trekko.getTripQuery().idEqualTo(tripId).findFirst())!;
+    trip = (await trekko.getTripQuery().andId(tripId).collectFirst())!;
     expect(trip.donationState, DonationState.donated);
 
-    await trekko.revoke(trekko.getTripQuery().idEqualTo(tripId).build());
+    await trekko.revoke(trekko.getTripQuery().andId(tripId));
 
-    trip = (await trekko.getTripQuery().idEqualTo(tripId).findFirst())!;
+    trip = (await trekko.getTripQuery().andId(tripId).collectFirst())!;
     expect(trip.donationState, DonationState.notDonated);
   });
 
   test("Donate random trip and delete again", () async {
     Trip trip = TripBuilder().move_r(Duration(hours: 2), 200.meters).build();
     int tripId = await trekko.saveTrip(trip);
-    await trekko.donate(trekko.getTripQuery().idEqualTo(tripId).build());
+    await trekko.donate(trekko.getTripQuery().andId(tripId));
 
-    trip = (await trekko.getTripQuery().idEqualTo(tripId).findFirst())!;
+    trip = (await trekko.getTripQuery().andId(tripId).collectFirst())!;
     expect(trip.donationState, DonationState.donated);
 
-    await trekko.deleteTrip(trekko.getTripQuery().idEqualTo(tripId).build());
-    expect(await trekko.getTripQuery().idEqualTo(tripId).build().count(), 0);
+    await trekko.deleteTrip(trekko.getTripQuery().andId(tripId));
+    expect(await trekko.getTripQuery().andId(tripId).count(), 0);
   });
 
   test("Donate multiple random trips and delete them again in one query",
       () async {
     List<int> tripIds = [];
-    var query = trekko.getTripQuery().filter().idEqualTo(-1);
     for (int i = 0; i < 10; i++) {
       Trip trip = TripBuilder().move_r(Duration(hours: 2), 200.meters).build();
       tripIds.add(await trekko.saveTrip(trip));
-      query = query.or().idEqualTo(tripIds.last);
     }
-    await trekko.donate(query.build());
+    TripQuery query = trekko.getTripQuery().andAnyId(tripIds);
+    await trekko.donate(query);
 
     for (int tripId in tripIds) {
-      Trip trip = (await trekko.getTripQuery().idEqualTo(tripId).findFirst())!;
+      Trip trip = (await trekko.getTripQuery().andId(tripId).collectFirst())!;
       expect(trip.donationState, DonationState.donated);
     }
 
-    await trekko.deleteTrip(query.build());
+    await trekko.deleteTrip(query);
     expect(await query.count(), 0);
   });
 
   test("Donate multiple random trips and delete them again in multiple queries",
       () async {
     List<int> tripIds = [];
-    var query = trekko.getTripQuery().filter().idEqualTo(-1);
     for (int i = 0; i < 10; i++) {
       Trip trip = TripBuilder().move_r(Duration(hours: 2), 200.meters).build();
       tripIds.add(await trekko.saveTrip(trip));
-      query = query.or().idEqualTo(tripIds.last);
     }
-    await trekko.donate(query.build());
+    TripQuery query = trekko.getTripQuery().andAnyId(tripIds);
+    await trekko.donate(query);
 
     for (int tripId in tripIds) {
-      Trip trip = (await trekko.getTripQuery().idEqualTo(tripId).findFirst())!;
+      Trip trip = (await trekko.getTripQuery().andId(tripId).collectFirst())!;
       expect(trip.donationState, DonationState.donated);
     }
 
     for (int tripId in tripIds) {
-      await trekko.deleteTrip(trekko.getTripQuery().idEqualTo(tripId).build());
-      expect(await trekko.getTripQuery().idEqualTo(tripId).build().count(), 0);
+      await trekko.deleteTrip(trekko.getTripQuery().andId(tripId));
+      expect(await trekko.getTripQuery().andId(tripId).count(), 0);
     }
   });
 
