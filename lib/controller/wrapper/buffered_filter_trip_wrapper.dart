@@ -63,7 +63,7 @@ class BufferedFilterTripWrapper implements TripWrapper {
     _buffer.add(position);
     _rejected.clear();
     if (_buffer.length > buffer_size) {
-      return _tripWrapper.add(_buffer.removeAt(0));
+      return await _tripWrapper.add(_buffer.removeAt(0));
     }
   }
 
