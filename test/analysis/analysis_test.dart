@@ -2,21 +2,20 @@ import 'package:trekko_backend/controller/analysis/average.dart';
 import 'package:trekko_backend/controller/analysis/reductions.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
-import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
-import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
 import '../trekko_test_utils.dart';
 
 Future<void> checkTrip(
     Trekko trekko, int tripId, Distance distance, Duration duration) async {
-  var query = trekko.getTripQuery().idEqualTo(tripId).build();
+  TripQuery query = trekko.getTripQuery().andId(tripId);
   double? calculatedDistance = await trekko
-      .analyze(
-          query, (t) => [t.calculateDistance().as(kilo.meters)], DoubleReduction.SUM)
+      .analyze(query, (t) => [t.calculateDistance().as(kilo.meters)],
+          DoubleReduction.SUM)
       .first;
   double? calculatedDuration = (await trekko
       .analyze(query, (t) => [t.calculateDuration().inSeconds.toDouble()],
@@ -39,7 +38,6 @@ Future<void> checkTrip(
 
 void main() {
   late Trekko trekko;
-
 
   setUpAll(() async {
     trekko = await TrekkoTestUtils.initTrekko();
@@ -75,12 +73,10 @@ void main() {
   });
 
   test("Analyze transport type data with not trip in it", () async {
-    var query = trekko
-        .getTripQuery()
-        .filter()
-        .legsElement((q) => q.transportTypeEqualTo(TransportType.other));
+    TripQuery query =
+        trekko.getTripQuery().andTransportType(TransportType.other);
     var transportTypeData = await trekko
-        .analyze(query.build(), (t) => [t.calculateDistance().as(kilo.meters)],
+        .analyze(query, (t) => [t.calculateDistance().as(kilo.meters)],
             DoubleReduction.SUM)
         .first;
     expect(transportTypeData, equals(null));

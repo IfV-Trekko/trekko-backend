@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trekko_backend/controller/trekko.dart';
-import 'package:trekko_backend/controller/utils/trip_query.dart';
 
 import '../trekko_test_utils.dart';
 
@@ -15,16 +14,14 @@ void main() {
     DateTime start = TrekkoTestUtils.default_trip.calculateStartTime();
     DateTime end = TrekkoTestUtils.default_trip.calculateEndTime();
 
-    expect(TripQuery(trekko).build().countSync(), 1);
-    expect(TripQuery(trekko).andTimeBetween(start, end).build().countSync(), 1);
-    expect(TripQuery(trekko).andTimeBetween(end, end).build().countSync(), 1);
-    expect(
-        TripQuery(trekko).andTimeBetween(start, start).build().countSync(), 1);
+    expect(await trekko.getTripQuery().count(), 1);
+    expect(await trekko.getTripQuery().andTimeBetween(start, end).count(), 1);
+    expect(await trekko.getTripQuery().andTimeBetween(end, end).count(), 1);
+    expect(await trekko.getTripQuery().andTimeBetween(start, start).count(), 1);
     end = end.add(const Duration(milliseconds: 1));
     start = start.subtract(const Duration(milliseconds: 1));
-    expect(TripQuery(trekko).andTimeBetween(end, end).build().countSync(), 0);
-    expect(
-        TripQuery(trekko).andTimeBetween(start, start).build().countSync(), 0);
+    expect(await trekko.getTripQuery().andTimeBetween(end, end).count(), 0);
+    expect(await trekko.getTripQuery().andTimeBetween(start, start).count(), 0);
   });
 
   tearDown(() async {

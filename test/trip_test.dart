@@ -3,7 +3,6 @@ import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
-import 'package:isar/isar.dart';
 import 'package:test/test.dart';
 
 import 'trekko_test_utils.dart';
@@ -33,10 +32,10 @@ void main() {
     trekko = await TrekkoTestUtils.initTrekko();
     int trip1Id = await trekko.saveTrip(trip1);
     trip1Read =
-        (await trekko.getTripQuery().filter().idEqualTo(trip1Id).findFirst())!;
+        (await trekko.getTripQuery().andId(trip1Id).collectFirst())!;
     int trip2Id = await trekko.saveTrip(trip2);
     trip2Read =
-        (await trekko.getTripQuery().filter().idEqualTo(trip2Id).findFirst())!;
+        (await trekko.getTripQuery().andId(trip2Id).collectFirst())!;
     await trekko.saveTrip(trip2);
   });
 

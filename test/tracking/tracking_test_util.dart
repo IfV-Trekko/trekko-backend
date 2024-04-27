@@ -79,7 +79,7 @@ class TrackingTestUtil {
         trekko, positions.sublist(itemsInCache));
     await TrackingTestUtil.waitForFinishProcessing(trekko);
 
-    test.call(await trekko.getTripQuery().findAll());
+    test.call(await trekko.getTripQuery().collect());
     await TrekkoTestUtils.close(trekko);
   }
 

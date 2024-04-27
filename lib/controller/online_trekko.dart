@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/offline_trekko.dart';
 import 'package:trekko_backend/controller/request/bodies/request/trips_request.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
+import 'package:trekko_backend/controller/request/bodies/response/trips_response.dart';
 import 'package:trekko_backend/controller/request/bodies/server_trip.dart';
 import 'package:trekko_backend/controller/request/trekko_server.dart';
 import 'package:trekko_backend/controller/request/url_trekko_server.dart';
@@ -25,6 +25,17 @@ class OnlineTrekko implements Trekko {
 
   OnlineTrekko() {
     _internal = OfflineTrekko();
+  }
+
+  Future<void> _revoke(Iterable<Trip> revoke) async {
+    for (Trip trip in revoke) {
+      if (trip.donationState != DonationState.donated) {
+        throw Exception("Trip is not donated");
+      }
+      await _server.deleteTrip(trip.id.toString());
+      trip.donationState = DonationState.notDonated;
+      await this._internal.saveTrip(trip);
+    }
   }
 
   @override
@@ -72,68 +83,54 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  Future<int> donate(Query<Trip> query) async {
-    return query.findAll().then((trips) async {
-      if (trips.isEmpty) throw Exception("No trips to donate");
+  Future<int> donate(TripQuery query) async {
+    List<Trip> donate =
+        await query.notDonationState(DonationState.donated).collect();
+    if (donate.isEmpty) throw Exception("No trips to donate");
 
-      if (trips
-          .any((element) => element.donationState == DonationState.donated))
-        throw Exception("Some trips are already donated");
-
-      await _server.donateTrips(TripsRequest.fromTrips(trips));
-      for (Trip trip in trips) {
-        trip.donationState = DonationState.donated;
-        await saveTrip(trip);
-      }
-      return trips.length;
-    });
+    TripsResponse res =
+        await _server.donateTrips(TripsRequest.fromTrips(donate));
+    Set<int> idsDonated = res.trips.map((e) => int.parse(e.uid)).toSet();
+    for (Trip trip
+        in donate.where((element) => idsDonated.contains(element.id))) {
+      trip.donationState = DonationState.donated;
+      await this._internal.saveTrip(trip);
+    }
+    return res.trips.length;
   }
 
   @override
-  Future<int> revoke(Query<Trip> query) async {
-    return query.findAll().then((trips) async {
-      if (trips.isEmpty) throw Exception("No trips to revoke");
-
-      for (Trip trip in trips) {
-        if (trip.donationState == DonationState.donated) {
-          await _server.deleteTrip(trip.id.toString());
-        }
-        trip.donationState = DonationState.notDonated;
-        await saveTrip(trip);
-      }
-      return trips.length;
-    });
+  Future<int> revoke(TripQuery query) async {
+    List<Trip> revoke =
+        await query.andDonationState(DonationState.donated).collect();
+    if (revoke.isEmpty) throw Exception("No trips to revoke");
+    await _revoke(revoke);
+    return revoke.length;
   }
 
   @override
-  Future<int> deleteTrip(Query<Trip> trips) async {
-    return trips.findAll().then((foundTrips) async {
-      List<Trip> toRevoke = foundTrips
-          .where((t) => t.donationState == DonationState.donated)
-          .toList();
-      if (!toRevoke.isEmpty) {
-        await revoke(
-            TripQuery(this).andAnyId(foundTrips.map((e) => e.id)).build());
-      }
-      return _internal.deleteTrip(trips);
-    });
+  Future<int> deleteTrip(TripQuery trips) async {
+    TripQuery donated = trips.andDonationState(DonationState.donated);
+    if (!await donated.isEmpty()) {
+      await this._revoke(await donated.collect());
+    }
+    return _internal.deleteTrip(trips);
   }
 
   @override
-  Future<Trip> mergeTrips(Query<Trip> tripsQuery) async {
-    final List<Trip> trips = await tripsQuery.findAll();
+  Future<Trip> mergeTrips(TripQuery tripsQuery) async {
     Trip mergedTrip = await _internal.mergeTrips(tripsQuery);
 
     // if any of the merged trips are donated, donate the merged trip
-    if (trips.any((t) => t.donationState == DonationState.donated)) {
-      await donate(getTripQuery().idEqualTo(mergedTrip.id).build());
+    if (!await tripsQuery.andDonationState(DonationState.donated).isEmpty()) {
+      await donate(getTripQuery().andId(mergedTrip.id));
     }
 
     return mergedTrip;
   }
 
   @override
-  Stream<T?> analyze<T>(Query<Trip> trips, Iterable<T> Function(Trip) tripData,
+  Stream<T?> analyze<T>(TripQuery trips, Iterable<T> Function(Trip) tripData,
       Calculation<T> calc) {
     return _internal.analyze(trips, tripData, calc);
   }
@@ -147,7 +144,7 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  QueryBuilder<Trip, Trip, QWhere> getTripQuery() {
+  TripQuery getTripQuery() {
     return _internal.getTripQuery();
   }
 

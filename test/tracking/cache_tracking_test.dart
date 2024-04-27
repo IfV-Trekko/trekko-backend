@@ -36,7 +36,7 @@ void main() {
   });
 
   void checkTrips() async {
-    List<Trip> trips = await trekko!.getTripQuery().findAll();
+    List<Trip> trips = await trekko!.getTripQuery().collect();
     expect(trips.length, 1);
     Trip trip = trips.first;
     expect(trip.legs.length, 2);
