@@ -26,10 +26,11 @@ class Trip extends PositionCollection {
     }
 
     for (int i = 1; i < legs.length; i++) {
-      if (legs[i]
-          .calculateStartTime()
-          .isBefore(legs[i - 1].calculateEndTime())) {
-        throw Exception("The legs must be in chronological order");
+      DateTime start = legs[i].calculateStartTime();
+      DateTime prevStart = legs[i - 1].calculateStartTime();
+      if (start.isBefore(prevStart)) {
+        throw Exception(
+            "The legs must be in chronological order, timestamps $start should not be before $prevStart");
       }
     }
 
@@ -53,7 +54,11 @@ class Trip extends PositionCollection {
 
   @override
   List<TransportType> calculateTransportTypes() {
-    return this.legs.expand((e) => e.calculateTransportTypes()).toSet().toList();
+    return this
+        .legs
+        .expand((e) => e.calculateTransportTypes())
+        .toSet()
+        .toList();
   }
 
   @override

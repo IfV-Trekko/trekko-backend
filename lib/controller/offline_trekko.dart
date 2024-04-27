@@ -52,8 +52,6 @@ class OfflineTrekko implements Trekko {
   }
 
   Future _processPosition(Position pos) async {
-    await Logging.info(
-        "Processing position: ${pos.timestamp.toIso8601String()}");
     _tripStream.add(pos);
   }
 
