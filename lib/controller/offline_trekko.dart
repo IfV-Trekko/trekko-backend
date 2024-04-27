@@ -152,6 +152,7 @@ class OfflineTrekko implements Trekko {
     }
 
     await deleteTrip(tripsQuery);
+    await saveTrip(mergedTrip);
     return mergedTrip;
   }
 
