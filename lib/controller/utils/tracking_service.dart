@@ -84,6 +84,9 @@ class TrackingService {
         priority: NotificationPriority.MIN,
         isSticky: true,
         visibility: NotificationVisibility.VISIBILITY_SECRET,
+        foregroundServiceType:  AndroidForegroundServiceType.LOCATION,
+        showWhen: false,
+        playSound: false,
         iconData: const NotificationIconData(
           resType: ResourceType.mipmap,
           resPrefix: ResourcePrefix.ic,
