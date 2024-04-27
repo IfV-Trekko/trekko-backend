@@ -14,7 +14,7 @@ class QueuedWrapperStream<R> implements WrapperStream<R> {
   late DataWrapper<R> _currentWrapper;
 
   QueuedWrapperStream(this.wrapperFactory, {sync = false})
-      : _controller = StreamController<R>.broadcast(sync: sync) {
+      : _controller = StreamController<R>(sync: sync) {
     _currentWrapper = wrapperFactory.call();
   }
 
@@ -29,7 +29,7 @@ class QueuedWrapperStream<R> implements WrapperStream<R> {
   }
 
   @override
-  add(Position data) async {
+  add(Position data) {
     _dataProcessor.add(() async => await _process(data));
   }
 

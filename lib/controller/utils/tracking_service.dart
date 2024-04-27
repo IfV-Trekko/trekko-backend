@@ -70,6 +70,7 @@ class TrackingService {
   static String debugIsolateName = "tracking_service";
   static bool debug = false;
   static List<Future Function(Trekko.Position)> callbacks = [];
+  static ReceivePort? receivePort;
 
   static void init(BatteryUsageSetting options) {
     if (debug) return;
@@ -104,23 +105,26 @@ class TrackingService {
   }
 
   static Future<int> startLocationService(BatteryUsageSetting options) async {
-    ReceivePort receivePort = ReceivePort();
     await Databases.cache.getInstance().then((value) => value
         .writeTxn(() => value.trackingOptions.put(TrackingOptions(options))));
 
     if (!debug) {
-      await FlutterForegroundTask.startService(
-          notificationTitle: "Trekko",
-          notificationText: "Trekko verfolgt dich... Gib acht!",
-          callback: startCallback);
+      if (!await FlutterForegroundTask.isRunningService) {
+        bool service = await FlutterForegroundTask.startService(
+            notificationTitle: "Trekko",
+            notificationText: "Trekko verfolgt dich... Gib acht!",
+            callback: startCallback);
+        if (!service) throw Exception("Failed to start service");
+      }
       receivePort = FlutterForegroundTask.receivePort!;
     } else {
       receivePort = ReceivePort();
-      IsolateNameServer.registerPortWithName(
-          receivePort.sendPort, debugIsolateName);
+      bool register = IsolateNameServer.registerPortWithName(
+          receivePort!.sendPort, debugIsolateName);
+      if (!register) throw Exception("Failed to register port");
     }
 
-    receivePort.listen((dynamic data) async {
+    receivePort!.listen((dynamic data) async {
       for (Future Function(Trekko.Position) callback in callbacks) {
         await callback.call(Trekko.Position.fromJson(data));
       }
@@ -131,11 +135,17 @@ class TrackingService {
   static Future stopLocationService(int id) async {
     if (!debug) {
       await FlutterForegroundTask.stopService();
+    } else {
+      IsolateNameServer.removePortNameMapping(debugIsolateName);
+      receivePort?.close();
+      receivePort = null;
     }
+
     callbacks.clear();
   }
 
-  static void getLocationUpdates(Future Function(Trekko.Position) locationCallback) {
+  static void getLocationUpdates(
+      Future Function(Trekko.Position) locationCallback) {
     callbacks.add(locationCallback);
   }
 }

@@ -21,4 +21,6 @@ abstract class Tracking {
 
   Future clearCache();
 
+  bool isProcessing();
+
 }

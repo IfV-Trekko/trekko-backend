@@ -33,7 +33,8 @@ class OfflineTrekko implements Trekko {
 
   OfflineTrekko()
       : _tracking = CachedTracking(),
-        _tripStream = QueuedWrapperStream(() => BufferedFilterTripWrapper());
+        _tripStream =
+            QueuedWrapperStream(() => BufferedFilterTripWrapper(), sync: true);
 
   Future<int> _saveProfile(Profile profile) {
     return _profileDb.writeTxn(() async => _profileDb.profiles.put(profile));
@@ -53,7 +54,7 @@ class OfflineTrekko implements Trekko {
   Future _processPosition(Position pos) async {
     await Logging.info(
         "Processing position: ${pos.timestamp.toIso8601String()}");
-    await _tripStream.add(pos);
+    _tripStream.add(pos);
   }
 
   _initTrackingListener() {
@@ -67,7 +68,7 @@ class OfflineTrekko implements Trekko {
 
   @override
   bool isProcessingLocationData() {
-    return _tripStream.isProcessing();
+    return _tracking.isProcessing() || _tripStream.isProcessing();
   }
 
   @override
@@ -209,6 +210,10 @@ class OfflineTrekko implements Trekko {
 
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
+    if (await isProcessingLocationData()) {
+      throw Exception("Cannot terminate while processing location data");
+    }
+
     if (await _tracking.isRunning()) {
       await _tracking.stop();
     }

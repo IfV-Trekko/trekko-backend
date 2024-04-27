@@ -73,7 +73,6 @@ void main() {
     await TrackingTestUtil.sendToCache(
         walkToShopAndBack.sublist(0, walkToShopAndBack.length ~/ 2));
     trekko = await TrekkoTestUtils.initTrekko(signOut: false);
-    await trekko!.setTrackingState(TrackingState.running);
     await trekko!.terminate();
 
     await checkCacheLength(walkToShopAndBack.length ~/ 2);
@@ -92,7 +91,6 @@ void main() {
     await TrackingTestUtil.sendToCache(
         walkToShopAndBack.sublist(0, walkToShopAndBack.length ~/ 2));
     trekko = await TrekkoTestUtils.initTrekko(signOut: false);
-    await trekko!.setTrackingState(TrackingState.running);
     await trekko!.terminate();
 
     await checkCacheLength(walkToShopAndBack.length ~/ 2);

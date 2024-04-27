@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
+import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/controller/utils/tracking_service.dart';
 import 'package:trekko_backend/model/cache_object.dart';
 import 'package:trekko_backend/model/position.dart';
@@ -14,6 +15,7 @@ import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 class CachedTracking implements Tracking {
   late final Isar _cache;
   final List<Position> _initialPositions = [];
+  final QueuedExecutor _dataProcessor = QueuedExecutor();
   int _trackingId = 0;
   bool _trackingRunning = false;
 
@@ -21,6 +23,12 @@ class CachedTracking implements Tracking {
     return _cache.cacheObjects.where().sortByTimestamp().findAll().then(
         (value) =>
             value.map((e) => Position.fromJson(jsonDecode(e.value))).toList());
+  }
+
+  _process(Position position, Future Function(Position) callback) {
+    _dataProcessor.add(() async {
+      await callback(position);
+    });
   }
 
   @override
@@ -36,7 +44,8 @@ class CachedTracking implements Tracking {
   }
 
   @override
-  Future<bool> start(BatteryUsageSetting setting, Future Function(Position) callback) async {
+  Future<bool> start(
+      BatteryUsageSetting setting, Future Function(Position) callback) async {
     for (Permission perm in Tracking.perms) {
       PermissionStatus status = await perm.status;
       if (status != PermissionStatus.granted) {
@@ -48,14 +57,15 @@ class CachedTracking implements Tracking {
     }
 
     if (_initialPositions.isNotEmpty) {
-      await Logging.info("Processing ${_initialPositions.length} initial positions");
+      await Logging.info(
+          "Processing ${_initialPositions.length} initial positions");
       for (Position pos in _initialPositions) {
-        await callback(pos);
+        _process(pos, callback);
       }
       _initialPositions.clear();
     }
 
-    TrackingService.getLocationUpdates(callback);
+    TrackingService.getLocationUpdates((pos) async => _process(pos, callback));
     _trackingId = await TrackingService.startLocationService(setting);
     _trackingRunning = true;
     return true;
@@ -72,5 +82,10 @@ class CachedTracking implements Tracking {
   @override
   Future<void> clearCache() async {
     await _cache.writeTxn(() => _cache.cacheObjects.where().deleteAll());
+  }
+
+  @override
+  bool isProcessing() {
+    return _dataProcessor.isProcessing;
   }
 }
