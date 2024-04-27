@@ -64,7 +64,7 @@ class CachedTracking implements Tracking {
   @override
   Future<bool> stop() async {
     if (!_trackingRunning) return false;
-    TrackingService.stopLocationService(_trackingId);
+    await TrackingService.stopLocationService(_trackingId);
     _trackingRunning = false;
     return true;
   }

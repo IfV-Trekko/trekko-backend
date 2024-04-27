@@ -109,7 +109,7 @@ class TrackingService {
         .writeTxn(() => value.trackingOptions.put(TrackingOptions(options))));
 
     if (!debug) {
-      FlutterForegroundTask.startService(
+      await FlutterForegroundTask.startService(
           notificationTitle: "Trekko",
           notificationText: "Trekko verfolgt dich... Gib acht!",
           callback: startCallback);
@@ -128,9 +128,9 @@ class TrackingService {
     return 0;
   }
 
-  static void stopLocationService(int id) {
+  static Future stopLocationService(int id) async {
     if (!debug) {
-      FlutterForegroundTask.stopService();
+      await FlutterForegroundTask.stopService();
     }
     callbacks.clear();
   }
