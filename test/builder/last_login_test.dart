@@ -12,7 +12,7 @@ void main() {
     // Register new account
     await TrekkoTestUtils.init();
     Isar db = await Databases.profile.getInstance();
-    db.close(deleteFromDisk: true);
+    await db.close(deleteFromDisk: true);
   });
 
   test("Last login fails if no user has been logged in before", () async {
