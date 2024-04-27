@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -43,33 +44,35 @@ class TrackingTestUtil {
 
   static Future<void> sendPositions(
       Trekko trekko, List<Position> positions) async {
-    print("Sending " + positions.length.toString() + " positions");
     final SendPort? send =
         IsolateNameServer.lookupPortByName(TrackingService.debugIsolateName);
-    if (send == null) throw Exception("No send port");
+    print("Sending " +
+        positions.length.toString() +
+        " positions to ${send!.nativePort}");
+    // if (send == null) throw Exception("No send port");
     for (Position pos in positions) {
       send.send(pos.toJson());
     }
 
-    print("Finished sending positions; " +
-        positions.length.toString() +
-        " positions sent");
+    print("Finished sending " + positions.length.toString() + " positions");
     await waitForFinishProcessing(trekko);
   }
 
   static Future<void> waitForFinishProcessing(Trekko trekko) async {
-    while (trekko.isProcessingLocationData()) {
+    print("Waiting for processing to finish...");
+    do {
       await Future.delayed(Duration(milliseconds: 50));
-    }
+    } while (trekko.isProcessingLocationData());
     await Future.delayed(Duration(milliseconds: 3000));
+    print("Finished processing");
   }
 
   static Future<void> sendCacheAndPositions(List<Position> positions,
       double inCache, Function(List<Trip>) test) async {
+    print("Cache and position ratio: " + inCache.toString());
     int itemsInCache = inCache != 0 ? positions.length ~/ inCache : 0;
     await TrackingTestUtil.sendToCache(positions.sublist(0, itemsInCache));
     Trekko trekko = await TrekkoTestUtils.initTrekko(signOut: false);
-    await trekko.setTrackingState(TrackingState.running);
     await trekko.terminate();
 
     trekko = await TrekkoTestUtils.initTrekko(signOut: false);
@@ -77,7 +80,6 @@ class TrackingTestUtil {
 
     await TrackingTestUtil.sendPositions(
         trekko, positions.sublist(itemsInCache));
-    await TrackingTestUtil.waitForFinishProcessing(trekko);
 
     test.call(await trekko.getTripQuery().collect());
     await TrekkoTestUtils.close(trekko);

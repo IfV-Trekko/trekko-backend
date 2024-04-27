@@ -7,7 +7,8 @@ abstract class Tracking {
   static final List<Permission> perms = [
     Permission.locationWhenInUse,
     Permission.locationAlways,
-    Permission.notification
+    Permission.notification,
+    Permission.ignoreBatteryOptimizations
   ];
 
   Future init(BatteryUsageSetting options);
@@ -19,5 +20,7 @@ abstract class Tracking {
   Future stop();
 
   Future clearCache();
+
+  bool isProcessing();
 
 }

@@ -15,6 +15,14 @@ class Logging {
     await write(LogLevel.error, message);
   }
 
+  static Future<void> errorE(Object exception, StackTrace? stack) async {
+    String message = exception.toString();
+    if (stack != null) {
+      message += "\nStack:\n" + stack.toString();
+    }
+    await error(message);
+  }
+
   static Future<void> info(String message) async {
     await write(LogLevel.info, message);
   }
