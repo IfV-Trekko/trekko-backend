@@ -25,11 +25,10 @@ class Leg extends PositionCollection {
     }
 
     for (int i = 1; i < this.trackedPoints.length; i++) {
-      if (this
-          .trackedPoints[i]
-          .timestamp
-          .isBefore(this.trackedPoints[i - 1].timestamp)) {
-        throw Exception("The tracked points must be in chronological order");
+      DateTime start = this.trackedPoints[i].timestamp;
+      DateTime prevStart = this.trackedPoints[i - 1].timestamp;
+      if (start.isBefore(prevStart)) {
+        throw Exception("The tracked points must be in chronological order - timestamp $start should not be before $prevStart");
       }
     }
   }
