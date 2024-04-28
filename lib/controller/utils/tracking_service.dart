@@ -15,15 +15,16 @@ import 'package:trekko_backend/model/tracking_options.dart';
 
 class TrackingTask extends TaskHandler {
   final BatteryUsageSetting options;
-  DateTime lastTimestamp = DateTime.now();
+  DateTime? lastTimestamp;
 
   TrackingTask(this.options);
 
   Future<void> _sendData(SendPort? sendPort, List<Trekko.Position> locs) async {
     List<Trekko.Position> valids = [];
     for (Trekko.Position p in locs) {
-      if (p.timestamp.isAfter(lastTimestamp) &&
-          !p.timestamp.isAtSameMomentAs(lastTimestamp)) {
+      if (lastTimestamp == null ||
+          (p.timestamp.isAfter(lastTimestamp!) &&
+              !p.timestamp.isAtSameMomentAs(lastTimestamp!))) {
         lastTimestamp = p.timestamp;
         valids.add(p);
       } else {
@@ -80,7 +81,7 @@ class TrackingService {
         channelId: 'trekko_tracking_service',
         channelName: 'Trekko Tracking Service',
         channelDescription: 'Trekko Tracking Service',
-        channelImportance: NotificationChannelImportance.MIN,
+        channelImportance: NotificationChannelImportance.NONE,
         priority: NotificationPriority.MIN,
         isSticky: true,
         visibility: NotificationVisibility.VISIBILITY_SECRET,
