@@ -67,6 +67,13 @@ class TripQuery {
     return filter.build().watch(fireImmediately: true);
   }
 
+  Stream<List<Trip>> completeStream() {
+    var query = filter.build();
+    return query
+        .watchLazy(fireImmediately: true)
+        .map((event) => query.findAllSync());
+  }
+
   Query<Trip> build() {
     return filter.build();
   }
