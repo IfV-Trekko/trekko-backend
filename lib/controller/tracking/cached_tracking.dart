@@ -17,6 +17,7 @@ class CachedTracking implements Tracking {
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   int _trackingId = 0;
   bool _trackingRunning = false;
+  DateTime? _lastPosition;
 
   Future<Iterable<Position>> _readCache() {
     return _cache.cacheObjects.where().sortByTimestamp().findAll().then(
@@ -25,6 +26,13 @@ class CachedTracking implements Tracking {
 
   _process(Position position, Future Function(Position) callback) {
     _dataProcessor.add(() async {
+      // Check if the position is older than the last position
+      if (_lastPosition != null && position.timestamp.isBefore(_lastPosition!)) {
+        throw Exception(
+            "Positions must be added in chronological order. Newest timestamp: $_lastPosition, new timestamp: ${position.timestamp}");
+      }
+
+      _lastPosition = position.timestamp;
       await callback(position);
     });
   }
@@ -54,6 +62,7 @@ class CachedTracking implements Tracking {
       }
     }
 
+    _lastPosition = null;
     Iterable<Position> initialPositions = await _readCache();
     if (initialPositions.isNotEmpty) {
       await Logging.info(
