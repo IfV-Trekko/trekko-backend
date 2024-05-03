@@ -14,7 +14,6 @@ import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 
 class CachedTracking implements Tracking {
   late final Isar _cache;
-  final List<Position> _initialPositions = [];
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   int _trackingId = 0;
   bool _trackingRunning = false;
@@ -34,7 +33,6 @@ class CachedTracking implements Tracking {
   @override
   Future<void> init(BatteryUsageSetting options) async {
     _cache = (await Databases.cache.getInstance());
-    _initialPositions.addAll(await _readCache());
     TrackingService.init(options);
   }
 
@@ -46,6 +44,7 @@ class CachedTracking implements Tracking {
   @override
   Future<bool> start(
       BatteryUsageSetting setting, Future Function(Position) callback) async {
+    if (_trackingRunning) return false;
     for (Permission perm in Tracking.perms) {
       PermissionStatus status = await perm.status;
       if (status != PermissionStatus.granted) {
@@ -56,13 +55,13 @@ class CachedTracking implements Tracking {
       }
     }
 
-    if (_initialPositions.isNotEmpty) {
+    List<Position> initialPositions = await _readCache();
+    if (initialPositions.isNotEmpty) {
       await Logging.info(
-          "Processing ${_initialPositions.length} initial positions");
-      for (Position pos in _initialPositions) {
+          "Processing ${initialPositions.length} initial positions");
+      for (Position pos in initialPositions) {
         _process(pos, callback);
       }
-      _initialPositions.clear();
     }
 
     TrackingService.getLocationUpdates((pos) async => _process(pos, callback));
