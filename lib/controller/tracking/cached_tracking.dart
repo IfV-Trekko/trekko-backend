@@ -18,10 +18,9 @@ class CachedTracking implements Tracking {
   int _trackingId = 0;
   bool _trackingRunning = false;
 
-  Future<List<Position>> _readCache() {
+  Future<Iterable<Position>> _readCache() {
     return _cache.cacheObjects.where().sortByTimestamp().findAll().then(
-        (value) =>
-            value.map((e) => Position.fromJson(jsonDecode(e.value))).toList());
+        (value) => value.map((e) => Position.fromJson(jsonDecode(e.value))));
   }
 
   _process(Position position, Future Function(Position) callback) {
@@ -55,7 +54,7 @@ class CachedTracking implements Tracking {
       }
     }
 
-    List<Position> initialPositions = await _readCache();
+    Iterable<Position> initialPositions = await _readCache();
     if (initialPositions.isNotEmpty) {
       await Logging.info(
           "Processing ${initialPositions.length} initial positions");
