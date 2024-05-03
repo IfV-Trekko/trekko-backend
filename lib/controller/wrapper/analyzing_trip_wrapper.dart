@@ -32,7 +32,7 @@ class AnalyzingTripWrapper implements TripWrapper {
       if (newestTimestamp!.difference(oldestLegStart) < _stayDuration) return 0;
 
       Position? currentLegStart = await _legWrapper.getLegStart();
-      if (currentLegStart == null) return 0;
+      if (currentLegStart != null) return 0;
 
       List<Position> positionsInOrder = _getPositionsInOrder();
       return PositionUtils.calculateSingleHoldProbability(
