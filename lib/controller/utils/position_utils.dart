@@ -143,4 +143,15 @@ final class PositionUtils {
         latest.subtract(maxDuration), maxDuration, expectedDistance, positions);
     return (maxEndProb + minEndProb) / 2;
   }
+
+  static Position? checkInOrder(Iterable<Position> positions) {
+    Position? previous;
+    for (Position position in positions) {
+      if (previous != null && previous.timestamp.isAfter(position.timestamp)) {
+        return previous;
+      }
+      previous = position;
+    }
+    return null;
+  }
 }

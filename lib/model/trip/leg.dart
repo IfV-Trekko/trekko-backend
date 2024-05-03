@@ -1,4 +1,5 @@
 import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/position_collection.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
@@ -24,12 +25,11 @@ class Leg extends PositionCollection {
       throw Exception("A leg must have at least two tracked points");
     }
 
-    for (int i = 1; i < this.trackedPoints.length; i++) {
-      DateTime start = this.trackedPoints[i].timestamp;
-      DateTime prevStart = this.trackedPoints[i - 1].timestamp;
-      if (start.isBefore(prevStart)) {
-        throw Exception("The tracked points must be in chronological order - timestamp $start should not be before $prevStart");
-      }
+    Position? notInOrder = PositionUtils.checkInOrder(
+        this.trackedPoints.map((e) => e.toPosition()));
+    if (notInOrder != null) {
+      throw Exception(
+          "The tracked points must be in chronological order - timestamp of the first out-of-order point: ${notInOrder.timestamp}");
     }
   }
 
