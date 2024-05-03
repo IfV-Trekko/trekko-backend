@@ -54,14 +54,14 @@ class AnalyzingLegWrapper implements LegWrapper {
   }
 
   @override
-  Future<bool> hasStartedMoving() async {
-    return _startedMoving != null;
+  Future<Position?> getLegStart() async {
+    return _startedMoving;
   }
 
   @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
-      if (!(await hasStartedMoving())) return 0;
+      if (_startedMoving == null) return 0;
       DateTime last = _positions.last.timestamp;
       DateTime from = last.subtract(_stayDuration);
       // Check if last point is longer than _stayDuration away from _startedMoving
@@ -88,7 +88,7 @@ class AnalyzingLegWrapper implements LegWrapper {
     return Future.microtask(() async {
       // Trimming positions
       List<Position> trimmedPositions = List.empty(growable: true);
-      if (!(await hasStartedMoving())) throw Exception("Not started moving");
+      if (_startedMoving == null) throw Exception("Not started moving");
       DateTime start = _startedMoving!.timestamp;
       trimmedPositions.add(_startedMoving!);
 
