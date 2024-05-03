@@ -11,7 +11,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
-  static const Duration _stayDuration = Duration(minutes: 2);
+  static const Duration _stayDuration = Duration(minutes: 3);
   static Distance _stayDistance = meters(50);
 
   List<Position> _positions = List.empty(growable: true);
