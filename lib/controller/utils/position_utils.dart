@@ -60,7 +60,7 @@ final class PositionUtils {
     }
 
     Iterable<Position> centerPositions =
-        positions.sublist(0, centerPinpointIndex!);
+        positions.sublist(0, centerPinpointIndex! + 1);
     return Position(
         longitude: AverageCalculation()
             .calculate(centerPositions.map((e) => e.longitude))!,
