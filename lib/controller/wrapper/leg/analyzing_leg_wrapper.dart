@@ -66,16 +66,20 @@ class AnalyzingLegWrapper implements LegWrapper {
       DateTime from = last.subtract(_stayDuration);
       // Check if last point is longer than _stayDuration away from _startedMoving
       if (last.difference(_startedMoving!.timestamp) < _stayDuration) return 0;
-      double holdAgainProb = await PositionUtils.calculateSingleHoldProbability(
+      return await PositionUtils.calculateSingleHoldProbability(
           from, _stayDuration, _stayDistance, _positions);
-      return holdAgainProb;
     });
   }
 
   @override
   add(Position position) async {
-    _positions.add(position);
+    if (_positions.isNotEmpty &&
+        position.timestamp.isBefore(_positions.last.timestamp)) {
+      throw Exception(
+          "Positions must be added in chronological order. Last timestamp: ${_positions.last.timestamp}, new timestamp: ${position.timestamp}");
+    }
 
+    _positions.add(position);
     if (_startedMoving == null && await _checkStartedMoving()) {
       Position? centerStart = _cluster(_positions);
       if (centerStart == null) throw Exception("No center start found");
@@ -86,9 +90,10 @@ class AnalyzingLegWrapper implements LegWrapper {
   @override
   Future<Leg> get() async {
     return Future.microtask(() async {
+      if (_startedMoving == null) throw Exception("Not started moving");
+
       // Trimming positions
       List<Position> trimmedPositions = List.empty(growable: true);
-      if (_startedMoving == null) throw Exception("Not started moving");
       DateTime start = _startedMoving!.timestamp;
       trimmedPositions.add(_startedMoving!);
 
@@ -103,11 +108,8 @@ class AnalyzingLegWrapper implements LegWrapper {
       }
 
       trimmedPositions.add(endCenter);
-      _positions = trimmedPositions;
-
-      // Wrapping
       return Leg.withData(await _calculateMaxProbability(),
-          _positions.map(TrackedPoint.fromPosition).toList());
+          trimmedPositions.map(TrackedPoint.fromPosition).toList());
     });
   }
 }
