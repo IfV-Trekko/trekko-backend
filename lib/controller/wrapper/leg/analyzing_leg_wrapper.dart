@@ -97,9 +97,11 @@ class AnalyzingLegWrapper implements LegWrapper {
       DateTime start = _startedMoving!.timestamp;
       trimmedPositions.add(_startedMoving!);
 
-      Position endCenter = _cluster(_positions.reversed.toList())!;
+      DateTime endStart = _positions.last.timestamp.subtract(_stayDuration);
+      Position endCenter = _cluster(_positions.reversed
+          .where((element) => element.timestamp.isAfter(endStart))
+          .toList())!;
       DateTime end = endCenter.timestamp;
-
       for (int i = 0; i < _positions.length - 1; i++) {
         if (_positions[i].timestamp.isAfter(start) &&
             _positions[i].timestamp.isBefore(end)) {
