@@ -43,4 +43,6 @@ abstract class PositionCollection {
   /// Returns the transport types of the collection
   List<TransportType> calculateTransportTypes();
 
+  TransportType calculateMostUsedType();
+
 }

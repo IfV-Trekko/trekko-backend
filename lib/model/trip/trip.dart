@@ -65,4 +65,15 @@ class Trip extends PositionCollection {
   List<Leg> getLegs() {
     return List.from(this.legs);
   }
+
+  @override
+  TransportType calculateMostUsedType() {
+    Map<Leg, Distance> distances = Map.fromIterable(this.legs,
+        key: (e) => e, value: (e) => e.calculateDistance());
+    return this
+        .legs
+        .reduce((value, element) =>
+            distances[value]! > distances[element]! ? value : element)
+        .calculateMostUsedType();
+  }
 }

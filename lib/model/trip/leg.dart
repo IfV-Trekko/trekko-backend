@@ -61,6 +61,11 @@ class Leg extends PositionCollection {
   }
 
   @override
+  TransportType calculateMostUsedType() {
+    return this.transportType;
+  }
+
+  @override
   List<Leg> getLegs() {
     return [this];
   }
