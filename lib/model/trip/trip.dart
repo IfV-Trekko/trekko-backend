@@ -76,4 +76,23 @@ class Trip extends PositionCollection {
             distances[value]! > distances[element]! ? value : element)
         .calculateMostUsedType();
   }
+
+  @override
+  bool deepEquals(PositionCollection other) {
+    if (!(other is Trip)) return false;
+
+    if (this.legs.length != other.legs.length) {
+      return false;
+    }
+
+    for (int i = 0; i < this.legs.length; i++) {
+      if (!this.legs[i].deepEquals(other.legs[i])) {
+        return false;
+      }
+    }
+
+    return other.comment == this.comment &&
+        other.purpose == this.purpose &&
+        other.donationState == this.donationState;
+  }
 }

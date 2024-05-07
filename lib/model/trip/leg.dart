@@ -69,4 +69,14 @@ class Leg extends PositionCollection {
   List<Leg> getLegs() {
     return [this];
   }
+
+  @override
+  bool deepEquals(PositionCollection other) {
+    if (other is Leg) {
+      return this.transportType == other.transportType &&
+          this.trackedPoints.length == other.trackedPoints.length &&
+          this.trackedPoints.every((element) => other.trackedPoints.contains(element));
+    }
+    return false;
+  }
 }

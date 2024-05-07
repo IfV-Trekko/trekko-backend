@@ -40,4 +40,19 @@ class TrackedPoint {
       speed: 0,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TrackedPoint) {
+      return this.latitude == other.latitude &&
+          this.longitude == other.longitude &&
+          this.timestamp == other.timestamp;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(latitude, longitude, timestamp);
+  }
 }

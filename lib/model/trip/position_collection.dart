@@ -45,4 +45,6 @@ abstract class PositionCollection {
 
   TransportType calculateMostUsedType();
 
+  bool deepEquals(PositionCollection other);
+
 }
