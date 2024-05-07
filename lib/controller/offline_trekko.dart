@@ -26,15 +26,12 @@ import 'package:trekko_backend/model/trip/trip.dart';
 
 class OfflineTrekko implements Trekko {
   final Tracking _tracking;
-  final WrapperStream<Trip> _tripStream;
   late int _profileId;
   late Isar _profileDb;
   late Isar _tripDb;
+  WrapperStream<Trip>? _tripStream;
 
-  OfflineTrekko()
-      : _tracking = CachedTracking(),
-        _tripStream =
-            QueuedWrapperStream(() => BufferedFilterTripWrapper(), sync: true);
+  OfflineTrekko() : _tracking = CachedTracking();
 
   Future<int> _saveProfile(Profile profile) {
     return _profileDb.writeTxn(() async => _profileDb.profiles.put(profile));
@@ -51,22 +48,29 @@ class OfflineTrekko implements Trekko {
     _profileId = await _saveProfile(found);
   }
 
-  Future _processPosition(Position pos) async {
-    _tripStream.add(pos);
+  Future _tripReceive(Trip trip) async {
+    await Logging.info(
+        "Saving trip from ${trip.calculateStartTime().toIso8601String()} to ${trip.calculateEndTime().toIso8601String()}");
+    await saveTrip(trip);
+    await _tracking.clearCache();
   }
 
-  _initTrackingListener() {
-    _tripStream.getResults().listen((trip) async {
-      await Logging.info(
-          "Saving trip from ${trip.calculateStartTime().toIso8601String()} to ${trip.calculateEndTime().toIso8601String()}");
-      await saveTrip(trip);
-      await _tracking.clearCache();
-    });
+  Future _processPosition(Position pos) async {
+    _tripStream!.add(pos);
+  }
+
+  Future<bool> _startTracking(Profile profile) async {
+    _tripStream =
+        QueuedWrapperStream(() => BufferedFilterTripWrapper(), sync: true);
+    _tripStream!.getResults().listen(_tripReceive);
+    return await _tracking.start(
+        profile.preferences.batteryUsageSetting, _processPosition);
   }
 
   @override
   bool isProcessingLocationData() {
-    return _tracking.isProcessing() || _tripStream.isProcessing();
+    return _tracking.isProcessing() ||
+        (_tripStream != null && _tripStream!.isProcessing());
   }
 
   @override
@@ -79,10 +83,8 @@ class OfflineTrekko implements Trekko {
 
     Profile profile = (await getProfile().first);
     await _tracking.init(profile.preferences.batteryUsageSetting);
-    _initTrackingListener();
     if (profile.trackingState == TrackingState.running) {
-      await _tracking.start(
-          profile.preferences.batteryUsageSetting, _processPosition);
+      await _startTracking(profile);
     }
   }
 
@@ -187,8 +189,7 @@ class OfflineTrekko implements Trekko {
 
     Profile profile = await getProfile().first;
     if (state == TrackingState.running) {
-      if (!await _tracking.start(
-          profile.preferences.batteryUsageSetting, _processPosition)) {
+      if (!await _startTracking(profile)) {
         return false;
       }
     } else if (state == TrackingState.paused) {

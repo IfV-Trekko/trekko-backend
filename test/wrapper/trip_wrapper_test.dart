@@ -6,9 +6,12 @@ import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
+import '../trekko_test_utils.dart';
+
 void main() {
   late TripWrapper tripWrapper;
   setUp(() async {
+    await TrekkoTestUtils.init();
     tripWrapper = AnalyzingTripWrapper();
   });
 

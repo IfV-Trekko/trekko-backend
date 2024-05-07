@@ -11,7 +11,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
-  static const Duration _stayDuration = Duration(minutes: 2);
+  static const Duration _stayDuration = Duration(minutes: 3);
   static Distance _stayDistance = meters(50);
 
   List<Position> _positions = List.empty(growable: true);
@@ -54,28 +54,32 @@ class AnalyzingLegWrapper implements LegWrapper {
   }
 
   @override
-  Future<bool> hasStartedMoving() async {
-    return _startedMoving != null;
+  Future<Position?> getLegStart() async {
+    return _startedMoving;
   }
 
   @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
-      if (!(await hasStartedMoving())) return 0;
+      if (_startedMoving == null) return 0;
       DateTime last = _positions.last.timestamp;
       DateTime from = last.subtract(_stayDuration);
       // Check if last point is longer than _stayDuration away from _startedMoving
       if (last.difference(_startedMoving!.timestamp) < _stayDuration) return 0;
-      double holdAgainProb = await PositionUtils.calculateSingleHoldProbability(
+      return await PositionUtils.calculateSingleHoldProbability(
           from, _stayDuration, _stayDistance, _positions);
-      return holdAgainProb;
     });
   }
 
   @override
   add(Position position) async {
-    _positions.add(position);
+    if (_positions.isNotEmpty &&
+        position.timestamp.isBefore(_positions.last.timestamp)) {
+      throw Exception(
+          "Positions must be added in chronological order. Last timestamp: ${_positions.last.timestamp}, new timestamp: ${position.timestamp}");
+    }
 
+    _positions.add(position);
     if (_startedMoving == null && await _checkStartedMoving()) {
       Position? centerStart = _cluster(_positions);
       if (centerStart == null) throw Exception("No center start found");
@@ -86,15 +90,18 @@ class AnalyzingLegWrapper implements LegWrapper {
   @override
   Future<Leg> get() async {
     return Future.microtask(() async {
+      if (_startedMoving == null) throw Exception("Not started moving");
+
       // Trimming positions
       List<Position> trimmedPositions = List.empty(growable: true);
-      if (!(await hasStartedMoving())) throw Exception("Not started moving");
       DateTime start = _startedMoving!.timestamp;
       trimmedPositions.add(_startedMoving!);
 
-      Position endCenter = _cluster(_positions.reversed.toList())!;
+      DateTime endStart = _positions.last.timestamp.subtract(_stayDuration);
+      Position endCenter = _cluster(_positions.reversed
+          .where((element) => element.timestamp.isAfter(endStart))
+          .toList())!;
       DateTime end = endCenter.timestamp;
-
       for (int i = 0; i < _positions.length - 1; i++) {
         if (_positions[i].timestamp.isAfter(start) &&
             _positions[i].timestamp.isBefore(end)) {
@@ -103,11 +110,8 @@ class AnalyzingLegWrapper implements LegWrapper {
       }
 
       trimmedPositions.add(endCenter);
-      _positions = trimmedPositions;
-
-      // Wrapping
       return Leg.withData(await _calculateMaxProbability(),
-          _positions.map(TrackedPoint.fromPosition).toList());
+          trimmedPositions.map(TrackedPoint.fromPosition).toList());
     });
   }
 }

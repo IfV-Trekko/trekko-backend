@@ -1,5 +1,6 @@
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
@@ -26,15 +27,15 @@ void main() {
   test("Analyze walk to shop and back", () async {
     int compose = 1;
     List<Position> walkToShopAndBack = composeBuilder(
-            (p0) => p0
+        (p0) => p0
             .stay(Duration(hours: 1))
-        // walk 500m
+            // walk 500m
             .move(true, Duration(minutes: 10), 500.meters)
-        // stay for 5min
+            // stay for 5min
             .stay(Duration(minutes: 5))
-        // walk 500m back
+            // walk 500m back
             .move(false, Duration(minutes: 10), 500.meters)
-        // stay for 1h
+            // stay for 1h
             .stay(Duration(hours: 1)),
         compose);
 
@@ -113,6 +114,31 @@ void main() {
 
     await TrackingTestUtil.sendPositionsDiverse(walkToShopAndBack, (trips) {
       expect(trips.length, 0);
+    });
+  });
+
+  test("Analyze walk with some wild movements", () async {
+    List<Position> points = TripBuilder()
+        .stay(Duration(hours: 1))
+        .move(true, Duration(minutes: 1), 49.meters)
+        .move(false, Duration(minutes: 1), 49.meters)
+        .stay(Duration(hours: 1))
+        .move(true, Duration(minutes: 10), 500.meters)
+        .move(false, Duration(seconds: 50), 30.meters)
+        .move(true, Duration(seconds: 50), 32.meters)
+        .stay(Duration(minutes: 24))
+        .collect()
+        .map((e) => e.toPosition())
+        .toList();
+
+    await TrackingTestUtil.sendPositionsDiverse(points, (trips) {
+      expect(trips.length, 1);
+      expect(trips.first.legs.length, 1);
+      Leg wrapped = trips.first.legs.first;
+      expect(wrapped.calculateDistance().as(meters), inInclusiveRange(485, 501));
+      expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
+      expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
+      expect(wrapped.transportType, equals(TransportType.by_foot));
     });
   });
 }

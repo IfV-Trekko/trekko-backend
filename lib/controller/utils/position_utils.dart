@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:trekko_backend/controller/analysis/average.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:fling_units/fling_units.dart';
 
@@ -34,36 +35,38 @@ final class PositionUtils {
   static Position getCenter(List<Position> positions) {
     if (positions.length == 0) throw Exception("Positions may not be empty");
     // This is where the fun begins
-    double sumLat =
-        positions.map((e) => e.latitude).reduce((p0, p1) => p0 + p1) /
-            positions.length;
-    double sumLong =
-        positions.map((e) => e.longitude).reduce((p0, p1) => p0 + p1) /
-            positions.length;
+    double avgLat =
+        AverageCalculation().calculate(positions.map((e) => e.latitude))!;
+    double avgLong =
+        AverageCalculation().calculate(positions.map((e) => e.longitude))!;
 
     double? previousDistanceToCenter;
-    Position? tripStart;
+    int? centerPinpointIndex;
     for (int i = positions.length - 1; i >= 0; i--) {
       Position position = positions[i];
       double distanceToCenter = calculateDistance(
-          sumLat, sumLong, position.latitude, position.longitude);
+          avgLat, avgLong, position.latitude, position.longitude);
       if (previousDistanceToCenter == null) {
         previousDistanceToCenter = distanceToCenter;
-        tripStart = position;
+        centerPinpointIndex = i;
       } else {
         if (previousDistanceToCenter > distanceToCenter) {
           previousDistanceToCenter = distanceToCenter;
-          tripStart = position;
+          centerPinpointIndex = i;
         } else {
           break;
         }
       }
     }
 
+    Iterable<Position> centerPositions =
+        positions.sublist(0, centerPinpointIndex! + 1);
     return Position(
-        longitude: tripStart!.longitude,
-        latitude: tripStart.latitude,
-        timestamp: tripStart.timestamp,
+        longitude: AverageCalculation()
+            .calculate(centerPositions.map((e) => e.longitude))!,
+        latitude: AverageCalculation()
+            .calculate(centerPositions.map((e) => e.latitude))!,
+        timestamp: centerPositions.last.timestamp,
         accuracy: 0,
         altitude: 0,
         altitudeAccuracy: 0,
@@ -142,5 +145,16 @@ final class PositionUtils {
     double maxEndProb = calculateSingleHoldProbability(
         latest.subtract(maxDuration), maxDuration, expectedDistance, positions);
     return (maxEndProb + minEndProb) / 2;
+  }
+
+  static Position? checkInOrder(Iterable<Position> positions) {
+    Position? previous;
+    for (Position position in positions) {
+      if (previous != null && previous.timestamp.isAfter(position.timestamp)) {
+        return previous;
+      }
+      previous = position;
+    }
+    return null;
   }
 }

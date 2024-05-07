@@ -9,38 +9,44 @@ import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 
 class AnalyzingTripWrapper implements TripWrapper {
+  static const Duration _stayDuration = Duration(minutes: 25);
+  static Distance _stayDistance = meters(200);
+
   final List<Leg> _legs = List.empty(growable: true);
   LegWrapper _legWrapper = AnalyzingLegWrapper();
-  DateTime? newestTimestamp = DateTime.fromMillisecondsSinceEpoch(0);
-  Duration _minDuration = Duration(minutes: 25);
-  DateTime? oldestTimestamp;
+  DateTime? newestTimestamp;
+
+  List<Position> _getPositionsInOrder() {
+    return _legs
+        .expand((element) => element.trackedPoints)
+        .map((e) => e.toPosition())
+        .toList();
+  }
 
   @override
   Future<double> calculateEndProbability() {
     return Future.microtask(() async {
-      if (_legs.isEmpty || newestTimestamp == null || oldestTimestamp == null)
-        return 0;
-      if (newestTimestamp!.difference(oldestTimestamp!) < _minDuration ||
-          await _legWrapper.hasStartedMoving()) return 0;
-      List<Position> positionsInOrder = _legs
-          .expand((element) => element.trackedPoints)
-          .map((e) => e.toPosition())
-          .toList();
+      if (_legs.isEmpty || newestTimestamp == null) return 0;
+
+      DateTime oldestLegStart = _legs.first.calculateStartTime();
+      if (newestTimestamp!.difference(oldestLegStart) < _stayDuration) return 0;
+
+      Position? currentLegStart = await _legWrapper.getLegStart();
+      if (currentLegStart != null) return 0;
+
+      List<Position> positionsInOrder = _getPositionsInOrder();
       return PositionUtils.calculateSingleHoldProbability(
-          newestTimestamp!.subtract(_minDuration),
-          _minDuration,
-          meters(200),
+          newestTimestamp!.subtract(_stayDuration),
+          _stayDuration,
+          _stayDistance,
           positionsInOrder);
     });
   }
 
   @override
   Future add(Position position) async {
-    if (oldestTimestamp == null) {
-      oldestTimestamp = position.timestamp;
-    }
-
-    if (newestTimestamp != null && position.timestamp.isBefore(newestTimestamp!))
+    if (newestTimestamp != null &&
+        position.timestamp.isBefore(newestTimestamp!))
       throw Exception(
           "Positions must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${position.timestamp}");
 
