@@ -1,5 +1,4 @@
 import 'package:fling_units/fling_units.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:trekko_backend/model/position_accuracy.dart';
 
 // Leave order and names as is!
