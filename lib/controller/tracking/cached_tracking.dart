@@ -31,12 +31,12 @@ class CachedTracking implements Tracking {
         .then(
             (value) => value.map((e) => Position.fromJson(jsonDecode(e.value))))
         .then((value) async {
-      _clearCache();
+      if (value.isNotEmpty) _clearCache();
       return await value;
     });
   }
 
-  _process(Position position, Future Function(Position) callback) {
+  _queue(Position position, Future Function(Position) callback) {
     _dataProcessor.add(() async {
       // Check if the position is older than the last position
       if (_lastPosition != null &&
@@ -48,6 +48,19 @@ class CachedTracking implements Tracking {
       _lastPosition = position.timestamp;
       await callback(position);
     });
+  }
+
+  Future _process(Position position, Future Function(Position) callback) async {
+    Iterable<Position> initialPositions = await _readCache();
+    if (initialPositions.isNotEmpty) {
+      await Logging.info(
+          "Processing ${initialPositions.length} cached positions first");
+      for (Position pos in initialPositions) {
+        _queue(pos, callback);
+      }
+    }
+
+    _queue(position, callback);
   }
 
   @override
@@ -76,15 +89,6 @@ class CachedTracking implements Tracking {
     }
 
     _lastPosition = null;
-    Iterable<Position> initialPositions = await _readCache();
-    if (initialPositions.isNotEmpty) {
-      await Logging.info(
-          "Processing ${initialPositions.length} initial positions");
-      for (Position pos in initialPositions) {
-        _process(pos, callback);
-      }
-    }
-
     TrackingService.getLocationUpdates((pos) async => _process(pos, callback));
     _trackingId = await TrackingService.startLocationService(setting);
     _trackingRunning = true;

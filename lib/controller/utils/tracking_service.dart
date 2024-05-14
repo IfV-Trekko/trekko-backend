@@ -33,18 +33,15 @@ class TrackingTask extends TaskHandler {
     }
 
     if (valids.isEmpty) return;
-
-    // Check if anything is listening to the port, if not send to cache
-    if (sendPort == null) {
-      // TODO: Check if this is correct
+    if (!await FlutterForegroundTask.isAppOnForeground) {
       await Logging.info("Sending ${valids.length} positions to cache");
       Isar cache = (await Databases.cache.getInstance());
       List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
       await cache.writeTxn(() async => await cache.cacheObjects
           .putAll(data.map(CacheObject.fromJson).toList()));
     } else {
-      await Logging.info("Sending ${valids.length} directly");
-      valids.forEach((element) => sendPort.send(element.toJson()));
+      await Logging.info("Sending ${valids.length} positions directly");
+      valids.forEach((element) => sendPort!.send(element.toJson()));
     }
   }
 
