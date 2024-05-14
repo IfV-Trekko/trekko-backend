@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -44,7 +45,7 @@ class TrackingTask extends TaskHandler {
           .putAll(data.map(CacheObject.fromJson).toList()));
     } else {
       await Logging.info("Sending ${valids.length} directly");
-      valids.forEach((element) => sendPort.send(element));
+      valids.forEach((element) => sendPort.send(element.toJson()));
     }
   }
 
