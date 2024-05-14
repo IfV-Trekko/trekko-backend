@@ -1,8 +1,9 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
-import 'package:trekko_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/leg/leg_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/analyzing_leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
@@ -15,6 +16,8 @@ class AnalyzingTripWrapper implements TripWrapper {
   final List<Leg> _legs = List.empty(growable: true);
   LegWrapper _legWrapper = AnalyzingLegWrapper();
   DateTime? newestTimestamp;
+
+  AnalyzingTripWrapper();
 
   List<Position> _getPositionsInOrder() {
     return _legs
@@ -61,7 +64,33 @@ class AnalyzingTripWrapper implements TripWrapper {
   }
 
   @override
-  Future<Trip> get() async {
-    return Trip.withData(_legs);
+  Future<Trip> get({bool preliminary = false}) async {
+    List<Leg> legs = List.from(_legs);
+    if (preliminary) {
+      Leg lastLeg = await _legWrapper.get(preliminary: true);
+      legs.add(lastLeg);
+    }
+    return Trip.withData(legs);
+  }
+
+  @override
+  Map<String, dynamic> save() {
+    Map<String, dynamic> json = Map<String, dynamic>();
+    json["legs"] = _legs.map((e) => e.toJson()).toList();
+    json["newestTimestamp"] = newestTimestamp?.toIso8601String();
+    json["legWrapper"] = _legWrapper.save();
+    return json;
+  }
+
+  @override
+  void load(Map<String, dynamic> json) {
+    List<dynamic> legs = json["legs"];
+    _legs.clear();
+    _legs.addAll(legs.map((e) => Leg.fromJson(e)));
+
+    newestTimestamp = json["newestTimestamp"] == null
+        ? null
+        : DateTime.parse(json["newestTimestamp"]);
+    _legWrapper.load(json);
   }
 }

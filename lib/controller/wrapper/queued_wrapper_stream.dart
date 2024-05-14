@@ -1,17 +1,18 @@
 import 'dart:async';
 
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
-import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/position_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/trip/position_collection.dart';
 
-class QueuedWrapperStream<R> implements WrapperStream<R> {
+class QueuedWrapperStream<R extends PositionCollection> implements WrapperStream<R> {
   static const double END_PROBABILITY_THRESHOLD = 0.95;
 
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   final StreamController<R> _controller;
   final Function wrapperFactory;
-  late DataWrapper<R> _currentWrapper;
+  late PositionWrapper<R> _currentWrapper;
 
   QueuedWrapperStream(this.wrapperFactory, {sync = false})
       : _controller = StreamController<R>(sync: sync) {
