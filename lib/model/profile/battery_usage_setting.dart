@@ -1,14 +1,15 @@
 import 'package:fling_units/fling_units.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:trekko_backend/model/position_accuracy.dart';
 
 // Leave order and names as is!
 enum BatteryUsageSetting {
-  low(60, LocationAccuracy.best, 40),
-  medium(35, LocationAccuracy.best, 15),
-  high(20, LocationAccuracy.best, 2);
+  low(60, PositionAccuracy.best, 40),
+  medium(35, PositionAccuracy.best, 15),
+  high(20, PositionAccuracy.best, 2);
 
   final int interval;
-  final LocationAccuracy accuracy;
+  final PositionAccuracy accuracy;
   final int distanceFilterMeters;
 
   const BatteryUsageSetting(this.interval, this.accuracy, this.distanceFilterMeters);
