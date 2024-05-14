@@ -1,10 +1,16 @@
 import 'dart:math';
 
+import 'package:geolocator/geolocator.dart' as Geoloc;
 import 'package:trekko_backend/controller/analysis/average.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:fling_units/fling_units.dart';
 
 final class PositionUtils {
+  static Future<Position> getPosition(Geoloc.LocationAccuracy accuracy) {
+    return Geoloc.Geolocator.getCurrentPosition(desiredAccuracy: accuracy)
+        .then((value) => Position.fromGeoPosition(value));
+  }
+
   static double calculateDistance(
       double startLat, double startLong, double endLat, double endLong) {
     const double earthRadius = 6371000; // Erdradius in Metern

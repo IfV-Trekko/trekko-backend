@@ -4,10 +4,10 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
+import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/model/cache/cache_object.dart';
 import 'package:trekko_backend/model/position.dart' as Trekko;
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
@@ -35,7 +35,8 @@ class TrackingTask extends TaskHandler {
     if (valids.isEmpty) return;
 
     // Check if anything is listening to the port, if not send to cache
-    if (sendPort == null) { // TODO: Check if this is correct
+    if (sendPort == null) {
+      // TODO: Check if this is correct
       await Logging.info("Sending ${valids.length} positions to cache");
       Isar cache = (await Databases.cache.getInstance());
       List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
@@ -54,10 +55,8 @@ class TrackingTask extends TaskHandler {
 
   @override
   void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
-    Geolocator.getCurrentPosition(desiredAccuracy: options.accuracy)
-        .then((value) {
-      _sendData(sendPort, [Trekko.Position.fromGeoPosition(value)]);
-    });
+    PositionUtils.getPosition(options.accuracy)
+        .then((value) => _sendData(sendPort, [value]));
   }
 
   @override
