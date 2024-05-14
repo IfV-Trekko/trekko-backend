@@ -17,7 +17,7 @@ class QueuedWrapperStream<R extends PositionCollection>
 
   QueuedWrapperStream(PositionWrapper<R> initialWrapper, this.wrapperFactory,
       {sync = false})
-      : _controller = StreamController<R>(sync: sync),
+      : _controller = StreamController.broadcast(sync: sync),
         this._currentWrapper = initialWrapper;
 
   Future<void> _process(Position position) async {
