@@ -1,3 +1,4 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/position_collection.dart';
@@ -8,10 +9,15 @@ import 'package:isar/isar.dart';
 
 part 'leg.g.dart';
 
+@JsonSerializable()
 @embedded
 class Leg extends PositionCollection {
+
+  @JsonKey(name: 'transportType')
   @enumerated
-  TransportType transportType; // TODO: final
+  TransportType transportType;
+
+  @JsonKey(name: 'trackedPoints')
   List<TrackedPoint> trackedPoints;
 
   /// Creates a new leg
@@ -19,12 +25,10 @@ class Leg extends PositionCollection {
       : transportType = TransportType.car,
         trackedPoints = List.empty(growable: true);
 
+  factory Leg.fromJson(Map<String, dynamic> json) => _$LegFromJson(json);
+
   /// Creates a leg with the given data
   Leg.withData(this.transportType, this.trackedPoints) {
-    if (this.trackedPoints.length < 2) {
-      throw Exception("A leg must have at least two tracked points");
-    }
-
     Position? notInOrder = PositionUtils.checkInOrder(
         this.trackedPoints.map((e) => e.toPosition()));
     if (notInOrder != null) {
@@ -79,4 +83,6 @@ class Leg extends PositionCollection {
     }
     return false;
   }
+
+  Map<String, dynamic> toJson() => _$LegToJson(this);
 }

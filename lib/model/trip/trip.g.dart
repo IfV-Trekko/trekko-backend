@@ -879,3 +879,30 @@ extension TripQueryProperty on QueryBuilder<Trip, Trip, QQueryProperty> {
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Trip _$TripFromJson(Map<String, dynamic> json) => Trip()
+  ..id = (json['id'] as num).toInt()
+  ..donationState = $enumDecode(_$DonationStateEnumMap, json['donationState'])
+  ..legs = (json['legs'] as List<dynamic>)
+      .map((e) => Leg.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..comment = json['comment'] as String?
+  ..purpose = json['purpose'] as String?;
+
+Map<String, dynamic> _$TripToJson(Trip instance) => <String, dynamic>{
+      'id': instance.id,
+      'donationState': _$DonationStateEnumMap[instance.donationState]!,
+      'legs': instance.legs,
+      'comment': instance.comment,
+      'purpose': instance.purpose,
+    };
+
+const _$DonationStateEnumMap = {
+  DonationState.donated: 'donated',
+  DonationState.notDonated: 'notDonated',
+  DonationState.undefined: 'undefined',
+};

@@ -1,3 +1,4 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:trekko_backend/model/trip/donation_state.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/position_collection.dart';
@@ -8,23 +9,30 @@ import 'package:isar/isar.dart';
 
 part 'trip.g.dart';
 
+@JsonSerializable()
 @collection
 class Trip extends PositionCollection {
+
+  @JsonKey(name: 'id')
   Id id = Isar.autoIncrement;
+
+  @JsonKey(name: 'donationState')
   @enumerated
   DonationState donationState = DonationState.undefined;
+
+  @JsonKey(name: 'legs')
   late List<Leg> legs;
+
+  @JsonKey(name: 'comment')
   String? comment;
+
+  @JsonKey(name: 'purpose')
   String? purpose;
 
   Trip();
 
   /// Creates a new trip
   Trip.withData(List<Leg> legs) {
-    if (legs.isEmpty) {
-      throw Exception("A trip must have at least one leg");
-    }
-
     for (int i = 1; i < legs.length; i++) {
       DateTime start = legs[i].calculateStartTime();
       DateTime prevStart = legs[i - 1].calculateStartTime();
@@ -36,6 +44,8 @@ class Trip extends PositionCollection {
 
     this.legs = legs;
   }
+
+  factory Trip.fromJson(Map<String, dynamic> json) => _$TripFromJson(json);
 
   @override
   DateTime calculateStartTime() {
@@ -95,4 +105,6 @@ class Trip extends PositionCollection {
         other.purpose == this.purpose &&
         other.donationState == this.donationState;
   }
+
+  Map<String, dynamic> toJson() => _$TripToJson(this);
 }

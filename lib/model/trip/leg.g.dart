@@ -273,3 +273,28 @@ extension LegQueryObject on QueryBuilder<Leg, Leg, QFilterCondition> {
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Leg _$LegFromJson(Map<String, dynamic> json) => Leg()
+  ..transportType = $enumDecode(_$TransportTypeEnumMap, json['transportType'])
+  ..trackedPoints = (json['trackedPoints'] as List<dynamic>)
+      .map((e) => TrackedPoint.fromJson(e as Map<String, dynamic>))
+      .toList();
+
+Map<String, dynamic> _$LegToJson(Leg instance) => <String, dynamic>{
+      'transportType': _$TransportTypeEnumMap[instance.transportType]!,
+      'trackedPoints': instance.trackedPoints,
+    };
+
+const _$TransportTypeEnumMap = {
+  TransportType.by_foot: 'by_foot',
+  TransportType.bicycle: 'bicycle',
+  TransportType.car: 'car',
+  TransportType.publicTransport: 'publicTransport',
+  TransportType.ship: 'ship',
+  TransportType.plane: 'plane',
+  TransportType.other: 'other',
+};

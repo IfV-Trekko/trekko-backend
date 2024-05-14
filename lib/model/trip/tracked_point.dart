@@ -1,23 +1,30 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:isar/isar.dart';
 
 part 'tracked_point.g.dart';
 
+@JsonSerializable()
 @embedded
 class TrackedPoint {
+  @JsonKey(name: 'latitude')
   double latitude;
+  @JsonKey(name: 'longitude')
   double longitude;
+  @JsonKey(name: 'timestamp')
   DateTime timestamp;
 
   /// Creates a tracked point with the given data
-  TrackedPoint.withData(
-      this.latitude, this.longitude, this.timestamp);
+  TrackedPoint.withData(this.latitude, this.longitude, this.timestamp);
 
   /// Creates a tracked point with no data
   TrackedPoint()
       : latitude = 0,
         longitude = 0,
         timestamp = DateTime.now();
+
+  factory TrackedPoint.fromJson(Map<String, dynamic> json) =>
+      _$TrackedPointFromJson(json);
 
   /// Creates a new tracked point from the given position
   TrackedPoint.fromPosition(Position position)
@@ -40,6 +47,8 @@ class TrackedPoint {
       speed: 0,
     );
   }
+
+  Map<String, dynamic> toJson() => _$TrackedPointToJson(this);
 
   @override
   bool operator ==(Object other) {
