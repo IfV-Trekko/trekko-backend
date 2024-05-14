@@ -65,4 +65,9 @@ class SimplePositionWrapper implements ManualTripWrapper {
   void updateTransportType(TransportType type) {
     this.type = type;
   }
+
+  @override
+  TransportType? getTransportType() {
+    return this.type;
+  }
 }

@@ -7,4 +7,6 @@ abstract class ManualTripWrapper extends TripWrapper {
 
   void updateTransportType(TransportType type);
 
+  TransportType? getTransportType();
+
 }
