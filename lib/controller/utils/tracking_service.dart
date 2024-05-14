@@ -8,10 +8,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
-import 'package:trekko_backend/model/cache_object.dart';
+import 'package:trekko_backend/model/cache/cache_object.dart';
 import 'package:trekko_backend/model/position.dart' as Trekko;
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
-import 'package:trekko_backend/model/tracking_options.dart';
+import 'package:trekko_backend/model/cache/tracking_options.dart';
 
 class TrackingTask extends TaskHandler {
   final BatteryUsageSetting options;
@@ -32,12 +32,19 @@ class TrackingTask extends TaskHandler {
       }
     }
 
-    await Logging.info("Sending ${valids.length} positions to cache");
-    Isar cache = (await Databases.cache.getInstance());
-    List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
-    await cache.writeTxn(() async => await cache.cacheObjects
-        .putAll(data.map(CacheObject.fromJson).toList()));
-    data.forEach((element) => sendPort?.send(element));
+    if (valids.isEmpty) return;
+
+    // Check if anything is listening to the port, if not send to cache
+    if (sendPort == null) { // TODO: Check if this is correct
+      await Logging.info("Sending ${valids.length} positions to cache");
+      Isar cache = (await Databases.cache.getInstance());
+      List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
+      await cache.writeTxn(() async => await cache.cacheObjects
+          .putAll(data.map(CacheObject.fromJson).toList()));
+    } else {
+      await Logging.info("Sending ${valids.length} directly");
+      valids.forEach((element) => sendPort.send(element));
+    }
   }
 
   @override

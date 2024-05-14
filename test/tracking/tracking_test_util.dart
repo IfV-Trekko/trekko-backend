@@ -7,7 +7,8 @@ import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/tracking_service.dart';
-import 'package:trekko_backend/model/cache_object.dart';
+import 'package:trekko_backend/model/cache/analyzer_cache.dart';
+import 'package:trekko_backend/model/cache/cache_object.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
@@ -25,6 +26,7 @@ class TrackingTestUtil {
     Isar cache = (await Databases.cache.getInstance());
     await cache.writeTxn(() async {
       await cache.cacheObjects.where().deleteAll();
+      await cache.analyzerCaches.where().deleteAll();
     });
   }
 

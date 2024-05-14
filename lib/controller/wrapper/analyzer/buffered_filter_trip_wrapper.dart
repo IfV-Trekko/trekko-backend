@@ -1,6 +1,6 @@
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 

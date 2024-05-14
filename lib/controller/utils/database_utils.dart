@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:trekko_backend/model/cache_object.dart';
+import 'package:trekko_backend/model/cache/analyzer_cache.dart';
+import 'package:trekko_backend/model/cache/cache_object.dart';
 import 'package:trekko_backend/model/log/log_entry.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
-import 'package:trekko_backend/model/tracking_options.dart';
+import 'package:trekko_backend/model/cache/tracking_options.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,7 +13,8 @@ import 'package:path/path.dart' as p;
 enum Databases {
   profile("profile", [ProfileSchema]),
   trip("trip", [TripSchema], needsExtraParams: true),
-  cache("location_cache", [CacheObjectSchema, TrackingOptionsSchema]),
+  cache("location_cache",
+      [CacheObjectSchema, TrackingOptionsSchema, AnalyzerCacheSchema]),
   logs("logs", [LogEntrySchema]);
 
   final String name;

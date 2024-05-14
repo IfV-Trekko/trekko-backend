@@ -32,7 +32,7 @@ final class PositionUtils {
         start.latitude, start.longitude, end.latitude, end.longitude);
   }
 
-  static Position getCenter(List<Position> positions) {
+  static Position getCenter(List<Position> positions, {bool reverse = false}) {
     if (positions.length == 0) throw Exception("Positions may not be empty");
     // This is where the fun begins
     double avgLat =

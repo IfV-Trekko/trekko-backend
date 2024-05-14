@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/analysis/calculation.dart';
@@ -11,10 +12,11 @@ import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/buffered_filter_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
+import 'package:trekko_backend/model/cache/analyzer_cache.dart';
+import 'package:trekko_backend/model/cache/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
@@ -26,12 +28,15 @@ import 'package:trekko_backend/model/trip/trip.dart';
 
 class OfflineTrekko implements Trekko {
   final Tracking _tracking;
+  final Map<WrapperType, WrapperStream<Trip>> _streams;
   late int _profileId;
   late Isar _profileDb;
   late Isar _tripDb;
-  WrapperStream<Trip>? _tripStream;
+  late Isar _cacheDb;
 
-  OfflineTrekko() : _tracking = CachedTracking();
+  OfflineTrekko()
+      : _tracking = CachedTracking(),
+        _streams = {};
 
   Future<int> _saveProfile(Profile profile) {
     return _profileDb.writeTxn(() async => _profileDb.profiles.put(profile));
@@ -48,29 +53,45 @@ class OfflineTrekko implements Trekko {
     _profileId = await _saveProfile(found);
   }
 
+  void _initStreams() {
+    for (WrapperType type in WrapperType.values) {
+      TripWrapper initialWrapper = type.build();
+      AnalyzerCache? cache =
+          _cacheDb.analyzerCaches.filter().typeEqualTo(type).findFirstSync();
+      if (cache != null) initialWrapper.load(jsonDecode(cache.value));
+      _streams[type] =
+          QueuedWrapperStream(initialWrapper, () => type.build(), sync: true);
+      _streams[type]!.getResults().listen(_tripReceive);
+    }
+  }
+
+  Future _saveWrapper() async {
+    Map<WrapperType<TripWrapper>, String> wrapper =
+        _streams.map((k, e) => MapEntry(k, jsonEncode(e.getWrapper().save())));
+    await _cacheDb.writeTxn(() => _cacheDb.analyzerCaches.putAll(
+        wrapper.keys.map((k) => AnalyzerCache(k, wrapper[k]!)).toList()));
+  }
+
   Future _tripReceive(Trip trip) async {
     await Logging.info(
         "Saving trip from ${trip.calculateStartTime().toIso8601String()} to ${trip.calculateEndTime().toIso8601String()}");
     await saveTrip(trip);
-    await _tracking.clearCache();
   }
 
-  Future _processPosition(Position pos) async {
-    _tripStream!.add(pos);
+  Future _processTrackedPosition(Position pos) {
+    return sendPosition(pos,
+        WrapperType.values.where((element) => element.needsRealPositionData));
   }
 
   Future<bool> _startTracking(Profile profile) async {
-    _tripStream =
-        QueuedWrapperStream(() => BufferedFilterTripWrapper(), sync: true);
-    _tripStream!.getResults().listen(_tripReceive);
     return await _tracking.start(
-        profile.preferences.batteryUsageSetting, _processPosition);
+        profile.preferences.batteryUsageSetting, _processTrackedPosition);
   }
 
   @override
   bool isProcessingLocationData() {
     return _tracking.isProcessing() ||
-        (_tripStream != null && _tripStream!.isProcessing());
+        _streams.values.any((element) => element.isProcessing());
   }
 
   @override
@@ -80,6 +101,8 @@ class OfflineTrekko implements Trekko {
     await _initProfile();
     _tripDb =
         await Databases.trip.getInstance(path: this._profileId.toString());
+    _cacheDb = await Databases.cache.getInstance();
+    _initStreams();
 
     Profile profile = (await getProfile().first);
     await _tracking.init(profile.preferences.batteryUsageSetting);
@@ -228,7 +251,7 @@ class OfflineTrekko implements Trekko {
   Future<void> signOut({bool delete = false}) async {
     // Terminate, delete the profile, trips and server
     await terminate(keepServiceOpen: true);
-    await _tracking.clearCache();
+    await _cacheDb.close(deleteFromDisk: true);
 
     if (delete) {
       await _profileDb.writeTxn(() => _profileDb.profiles.delete(_profileId));
@@ -240,5 +263,27 @@ class OfflineTrekko implements Trekko {
 
     await _profileDb.close();
     await _tripDb.close(deleteFromDisk: delete);
+  }
+
+  @override
+  Stream<T> getWrapper<T extends TripWrapper>(WrapperType<T> type) {
+    WrapperStream<Trip> stream = _streams[type]!;
+    StreamController<T> controller = StreamController();
+    void Function() addFunc = () {
+      controller.add(stream.getWrapper() as T);
+    };
+    StreamSubscription s = stream.getResults().listen((event) => addFunc());
+    controller.onListen = addFunc;
+    controller.onCancel = () => s.cancel();
+    return controller.stream;
+  }
+
+  @override
+  Future sendPosition(
+      Position position, Iterable<WrapperType<TripWrapper>> types) async {
+    for (WrapperType type in types) {
+      _streams[type]!.add(position);
+    }
+    await _saveWrapper();
   }
 }

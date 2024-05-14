@@ -41,9 +41,11 @@ class AnalyzingLegWrapper implements LegWrapper {
     return maxData.transportType;
   }
 
-  Position? _cluster(List<Position> positions) {
+  Position? _cluster(List<Position> positions, {bool reverse = false}) {
     List<Position> firstIn = PositionUtils.getFirstIn(_stayDistance, positions);
-    return firstIn.isEmpty ? null : PositionUtils.getCenter(firstIn);
+    return firstIn.isEmpty
+        ? null
+        : PositionUtils.getCenter(firstIn, reverse: reverse);
   }
 
   Future<bool> _checkStartedMoving() async {
@@ -104,9 +106,8 @@ class AnalyzingLegWrapper implements LegWrapper {
       DateTime start = _startedMoving!.timestamp;
       trimmedPositions.add(_startedMoving!);
 
-      DateTime endStart = _positions.last.timestamp.subtract(_stayDuration);
       Position endCenter = _cluster(_positions.reversed
-          .where((element) => element.timestamp.isAfter(endStart))
+          .where((element) => element.timestamp.isAfter(start))
           .toList())!;
       DateTime end = endCenter.timestamp;
       for (int i = 0; i < _positions.length - 1; i++) {
@@ -126,7 +127,8 @@ class AnalyzingLegWrapper implements LegWrapper {
   Map<String, dynamic> save() {
     Map<String, dynamic> json = Map<String, dynamic>();
     json["positions"] = _positions.map((e) => e.toJson()).toList();
-    if (_startedMoving != null) json["startedMoving"] = _startedMoving!.toJson();
+    if (_startedMoving != null)
+      json["startedMoving"] = _startedMoving!.toJson();
     return json;
   }
 

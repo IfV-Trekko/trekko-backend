@@ -8,7 +8,7 @@ import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/controller/utils/tracking_service.dart';
-import 'package:trekko_backend/model/cache_object.dart';
+import 'package:trekko_backend/model/cache/cache_object.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 
@@ -19,15 +19,28 @@ class CachedTracking implements Tracking {
   bool _trackingRunning = false;
   DateTime? _lastPosition;
 
+  Future<void> _clearCache() async {
+    await _cache.writeTxn(() => _cache.cacheObjects.where().deleteAll());
+  }
+
   Future<Iterable<Position>> _readCache() {
-    return _cache.cacheObjects.where().sortByTimestamp().findAll().then(
-        (value) => value.map((e) => Position.fromJson(jsonDecode(e.value))));
+    return _cache.cacheObjects
+        .where()
+        .sortByTimestamp()
+        .findAll()
+        .then(
+            (value) => value.map((e) => Position.fromJson(jsonDecode(e.value))))
+        .then((value) async {
+      _clearCache();
+      return await value;
+    });
   }
 
   _process(Position position, Future Function(Position) callback) {
     _dataProcessor.add(() async {
       // Check if the position is older than the last position
-      if (_lastPosition != null && position.timestamp.isBefore(_lastPosition!)) {
+      if (_lastPosition != null &&
+          position.timestamp.isBefore(_lastPosition!)) {
         throw Exception(
             "Positions must be added in chronological order. Newest timestamp: $_lastPosition, new timestamp: ${position.timestamp}");
       }
@@ -84,11 +97,6 @@ class CachedTracking implements Tracking {
     await TrackingService.stopLocationService(_trackingId);
     _trackingRunning = false;
     return true;
-  }
-
-  @override
-  Future<void> clearCache() async {
-    await _cache.writeTxn(() => _cache.cacheObjects.where().deleteAll());
   }
 
   @override
