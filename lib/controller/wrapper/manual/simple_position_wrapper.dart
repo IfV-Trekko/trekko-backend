@@ -40,7 +40,6 @@ class SimplePositionWrapper implements ManualTripWrapper {
     _legs.clear();
     _positions.clear();
 
-    print(json["legs"]);
     if (json["legs"].length > 0)
       _legs.addAll(json["legs"].map((e) => Leg.fromJson(e)));
     if (json["positions"].length > 0)
