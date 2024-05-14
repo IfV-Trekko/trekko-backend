@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -57,7 +56,7 @@ class TrackingTask extends TaskHandler {
   @override
   void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
     PositionUtils.getPosition(options.accuracy)
-        .then((value) => _sendData(sendPort, [value]));
+        .then((value) => _sendData(sendPort, [value!]));
   }
 
   @override

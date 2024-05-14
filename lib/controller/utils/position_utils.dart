@@ -1,14 +1,23 @@
 import 'dart:math';
 
 import 'package:geolocator/geolocator.dart' as Geoloc;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/analysis/average.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/model/position_accuracy.dart';
 
 final class PositionUtils {
-  static Future<Position> getPosition(PositionAccuracy accuracy) {
-    return Geoloc.Geolocator.getCurrentPosition(
+  static Future<Position?> getPosition(PositionAccuracy accuracy,
+      {bool checkPermissions = false}) async {
+    if (checkPermissions) {
+      PermissionStatus status = await Permission.location.request();
+      if (status != PermissionStatus.granted) {
+        return null;
+      }
+    }
+
+    return await Geoloc.Geolocator.getCurrentPosition(
             desiredAccuracy: accuracy.accuracy)
         .then((value) => Position.fromGeoPosition(value));
   }
