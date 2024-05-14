@@ -20,7 +20,7 @@ class SimplePositionWrapper implements ManualTripWrapper {
 
   @override
   Future<Trip> get({bool preliminary = false}) async {
-    return Trip.withData(_legs);
+    return Trip.withData(_legs)..comment = "Tracked manually";
   }
 
   @override
