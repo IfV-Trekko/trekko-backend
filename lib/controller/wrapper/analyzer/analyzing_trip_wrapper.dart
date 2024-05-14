@@ -85,9 +85,8 @@ class AnalyzingTripWrapper implements TripWrapper {
   void load(Map<String, dynamic> json) {
     _legs.clear();
 
-    if (json["legs"].length > 0) {
-      _legs.addAll(json["legs"].map((e) => Leg.fromJson(e)));
-    }
+    List<dynamic> legs = json["legs"];
+    _legs.addAll(legs.map((e) => Leg.fromJson(e)));
 
     newestTimestamp = json["newestTimestamp"] == null
         ? null

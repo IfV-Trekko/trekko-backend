@@ -31,8 +31,7 @@ class SimplePositionWrapper implements ManualTripWrapper {
 
   @override
   Future<Trip> get({bool preliminary = false}) async {
-    return Trip.withData(_legs)
-      ..comment = "Tracked manually";
+    return Trip.withData(_legs)..comment = "Tracked manually";
   }
 
   @override
@@ -40,11 +39,11 @@ class SimplePositionWrapper implements ManualTripWrapper {
     _legs.clear();
     _positions.clear();
 
-    if (json["legs"].length > 0)
-      _legs.addAll(json["legs"].map((e) => Leg.fromJson(e)));
-    if (json["positions"].length > 0)
-      _positions
-          .addAll(json["positions"].map((e) => Position.fromJson(e)).toList());
+    List<dynamic> legs = json["legs"];
+    _legs.addAll(legs.map((e) => Leg.fromJson(e)));
+
+    List<dynamic> positions = json["positions"];
+    _positions.addAll(positions.map((e) => Position.fromJson(e)).toList());
     if (json.containsKey("transportType")) {
       type = TransportType.values[json["transportType"] as int];
     }
