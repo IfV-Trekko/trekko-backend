@@ -83,13 +83,15 @@ class AnalyzingTripWrapper implements TripWrapper {
 
   @override
   void load(Map<String, dynamic> json) {
-    List<dynamic> legs = json["legs"];
     _legs.clear();
-    _legs.addAll(legs.map((e) => Leg.fromJson(e)));
+
+    if (json["legs"].length > 0) {
+      _legs.addAll(json["legs"].map((e) => Leg.fromJson(e)));
+    }
 
     newestTimestamp = json["newestTimestamp"] == null
         ? null
         : DateTime.parse(json["newestTimestamp"]);
-    _legWrapper.load(json);
+    _legWrapper.load(json["legWrapper"]);
   }
 }

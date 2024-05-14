@@ -136,7 +136,9 @@ class AnalyzingLegWrapper implements LegWrapper {
   void load(Map<String, dynamic> json) {
     List<dynamic> positions = json["positions"];
     _positions.clear();
-    _positions.addAll(positions.map((e) => Position.fromJson(e)));
+
+    if (_positions.length > 0)
+      _positions.addAll(positions.map((e) => Position.fromJson(e)));
     if (json.containsKey("startedMoving")) {
       _startedMoving = Position.fromJson(json["startedMoving"]);
     }

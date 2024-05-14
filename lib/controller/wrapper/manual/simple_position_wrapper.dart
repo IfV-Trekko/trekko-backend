@@ -1,3 +1,4 @@
+import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/manual/manual_trip_wrapper.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
@@ -15,7 +16,8 @@ class SimplePositionWrapper implements ManualTripWrapper {
   Future add(Position position) async {
     _positions.add(position);
 
-    if (_positions.length >= 2) {
+    if (_positions.length >= 2 &&
+        PositionUtils.distanceBetweenPoints(_positions) > 0) {
       _legs.add(Leg.withData(
           type!, _positions.map((e) => TrackedPoint.fromPosition(e)).toList()));
       _positions.clear();
@@ -29,7 +31,8 @@ class SimplePositionWrapper implements ManualTripWrapper {
 
   @override
   Future<Trip> get({bool preliminary = false}) async {
-    return Trip.withData(_legs)..comment = "Tracked manually";
+    return Trip.withData(_legs)
+      ..comment = "Tracked manually";
   }
 
   @override
@@ -37,9 +40,12 @@ class SimplePositionWrapper implements ManualTripWrapper {
     _legs.clear();
     _positions.clear();
 
-    _legs.addAll(json["legs"].map((e) => Leg.fromJson(e)).toList());
-    _positions
-        .addAll(json["positions"].map((e) => Position.fromJson(e)).toList());
+    print(json["legs"]);
+    if (json["legs"].length > 0)
+      _legs.addAll(json["legs"].map((e) => Leg.fromJson(e)));
+    if (json["positions"].length > 0)
+      _positions
+          .addAll(json["positions"].map((e) => Position.fromJson(e)).toList());
     if (json.containsKey("transportType")) {
       type = TransportType.values[json["transportType"] as int];
     }
