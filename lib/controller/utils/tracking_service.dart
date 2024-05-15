@@ -33,13 +33,21 @@ class TrackingTask extends TaskHandler {
     }
 
     if (valids.isEmpty) return;
+    Isar cache = (await Databases.cache.getInstance());
     if (!await FlutterForegroundTask.isAppOnForeground) {
       await Logging.info("Sending ${valids.length} positions to cache");
-      Isar cache = (await Databases.cache.getInstance());
       List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
       await cache.writeTxn(() async => await cache.cacheObjects
           .putAll(data.map(CacheObject.fromJson).toList()));
     } else {
+      if (cache.cacheObjects.where().isNotEmptySync()) {
+        await Logging.info("Sending cached positions first");
+        List<CacheObject> cached =
+            await cache.cacheObjects.where().sortByTimestamp().findAll();
+        cached.forEach((element) => sendPort!.send(element.value));
+        await cache.writeTxn(() => cache.cacheObjects.where().deleteAll());
+      }
+
       await Logging.info("Sending ${valids.length} positions directly");
       valids.forEach((element) => sendPort!.send(element.toJson()));
     }
