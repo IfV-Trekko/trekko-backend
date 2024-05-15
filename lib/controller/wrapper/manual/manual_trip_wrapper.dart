@@ -3,9 +3,9 @@ import 'package:trekko_backend/model/trip/transport_type.dart';
 
 abstract class ManualTripWrapper extends TripWrapper {
 
-  void triggerEndOnLegEnd();
+  void triggerEnd();
 
-  void updateTransportType(TransportType type);
+  void triggerStartLeg(TransportType nextType);
 
   TransportType? getTransportType();
 

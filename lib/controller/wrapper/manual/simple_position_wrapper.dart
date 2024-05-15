@@ -9,24 +9,29 @@ import 'package:trekko_backend/model/trip/trip.dart';
 class SimplePositionWrapper implements ManualTripWrapper {
   final List<Leg> _legs = [];
   final List<Position> _positions = [];
-  TransportType? type;
-  bool _endOnLegEnd = false;
+  TransportType? _type;
+  TransportType? _nextType;
+  bool _endSoon = false;
 
   @override
   Future add(Position position) async {
-    _positions.add(position);
+    if (this._type == null) return;
 
-    if (_positions.length >= 2 &&
+    _positions.add(position);
+    if (_nextType != null &&
+        _positions.length > 1 &&
         PositionUtils.distanceBetweenPoints(_positions) > 0) {
-      _legs.add(Leg.withData(
-          type!, _positions.map((e) => TrackedPoint.fromPosition(e)).toList()));
+      _legs.add(Leg.withData(_type!,
+          _positions.map((e) => TrackedPoint.fromPosition(e)).toList()));
       _positions.clear();
+      _type = _nextType;
+      _nextType = null;
     }
   }
 
   @override
   Future<double> calculateEndProbability() async {
-    return _endOnLegEnd && _positions.isEmpty ? 1 : 0;
+    return _endSoon ? 1 : 0;
   }
 
   @override
@@ -45,7 +50,7 @@ class SimplePositionWrapper implements ManualTripWrapper {
     List<dynamic> positions = json["positions"];
     _positions.addAll(positions.map((e) => Position.fromJson(e)).toList());
     if (json.containsKey("transportType")) {
-      type = TransportType.values[json["transportType"] as int];
+      _type = TransportType.values[json["transportType"] as int];
     }
   }
 
@@ -54,24 +59,29 @@ class SimplePositionWrapper implements ManualTripWrapper {
     Map<String, dynamic> json = Map<String, dynamic>();
     json["legs"] = _legs.map((e) => e.toJson()).toList();
     json["positions"] = _positions.map((e) => e.toJson()).toList();
-    if (type != null) {
-      json["transportType"] = type!.index;
+    if (_type != null) {
+      json["transportType"] = _type!.index;
     }
     return json;
   }
 
   @override
-  void triggerEndOnLegEnd() {
-    _endOnLegEnd = true;
-  }
-
-  @override
-  void updateTransportType(TransportType type) {
-    this.type = type;
+  void triggerEnd() {
+    _endSoon = true;
+    _nextType = _type;
   }
 
   @override
   TransportType? getTransportType() {
-    return this.type;
+    return this._type;
+  }
+
+  @override
+  void triggerStartLeg(TransportType type) {
+    if (this._type == null) {
+      this._type = type;
+    } else {
+      this._nextType = type;
+    }
   }
 }

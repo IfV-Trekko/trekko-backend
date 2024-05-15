@@ -5,7 +5,7 @@ import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 
 enum WrapperType<T extends TripWrapper> {
   ANALYZER<BufferedFilterTripWrapper>(true, buildAnalyzer),
-  MANUAL<ManualTripWrapper>(false, buildManual);
+  MANUAL<ManualTripWrapper>(true, buildManual);
 
   final bool needsRealPositionData;
   final T Function() builder;
