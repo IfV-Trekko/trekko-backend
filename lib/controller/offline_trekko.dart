@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
+import 'package:flutter/widgets.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
@@ -26,7 +28,7 @@ import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
-class OfflineTrekko implements Trekko {
+class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   final Tracking _tracking;
   final Map<WrapperType, WrapperStream<Trip>> _streams;
   late int _profileId;
@@ -78,14 +80,25 @@ class OfflineTrekko implements Trekko {
     await saveTrip(trip);
   }
 
-  Future _processTrackedPosition(Position pos) {
-    return sendPosition(pos,
+  Future _sendPositions(
+      List<Position> positions, Iterable<WrapperType> types) async {
+    for (Position position in positions) {
+      for (WrapperType type in types) {
+        _streams[type]!.add(position);
+      }
+    }
+
+    await _saveWrapper();
+  }
+
+  Future _processTrackedPositions(List<Position> positions) async {
+    return await _sendPositions(positions,
         WrapperType.values.where((element) => element.needsRealPositionData));
   }
 
   Future<bool> _startTracking(Profile profile) async {
     return await _tracking.start(
-        profile.preferences.batteryUsageSetting, _processTrackedPosition);
+        profile.preferences.batteryUsageSetting, _processTrackedPositions);
   }
 
   @override
@@ -109,6 +122,8 @@ class OfflineTrekko implements Trekko {
     if (profile.trackingState == TrackingState.running) {
       await _startTracking(profile);
     }
+
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -245,6 +260,8 @@ class OfflineTrekko implements Trekko {
       await _profileDb.close();
       await _tripDb.close();
     }
+
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override
@@ -279,11 +296,16 @@ class OfflineTrekko implements Trekko {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    Logging.info("App lifecycle changed to $state!");
+    if (state == AppLifecycleState.resumed) {
+      await _tracking.readCache();
+    }
+  }
+
+  @override
   Future sendPosition(
       Position position, Iterable<WrapperType<TripWrapper>> types) async {
-    for (WrapperType type in types) {
-      _streams[type]!.add(position);
-    }
-    await _saveWrapper();
+    await _sendPositions([position], types);
   }
 }
