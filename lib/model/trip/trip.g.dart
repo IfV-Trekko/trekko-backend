@@ -51,7 +51,7 @@ const TripSchema = CollectionSchema(
   getId: _tripGetId,
   getLinks: _tripGetLinks,
   attach: _tripAttach,
-  version: '3.1.0+1',
+  version: '3.1.7',
 );
 
 int _tripEstimateSize(
