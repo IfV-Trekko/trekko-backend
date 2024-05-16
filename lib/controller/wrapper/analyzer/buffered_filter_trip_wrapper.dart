@@ -1,5 +1,5 @@
 import 'package:trekko_backend/controller/utils/position_utils.dart';
-import 'package:trekko_backend/controller/wrapper/analyzing_trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
@@ -73,7 +73,27 @@ class BufferedFilterTripWrapper implements TripWrapper {
   }
 
   @override
-  Future<Trip> get() {
-    return _tripWrapper.get();
+  Future<Trip> get({bool preliminary = false}) {
+    return _tripWrapper.get(preliminary: preliminary);
+  }
+
+  @override
+  Map<String, dynamic> save() {
+    Map<String, dynamic> json = Map<String, dynamic>();
+    json["buffer"] = _buffer.map((e) => e.toJson()).toList();
+    json["rejected"] = _rejected.map((e) => e.toJson()).toList();
+    json["tripWrapper"] = _tripWrapper.save();
+    return json;
+  }
+
+  @override
+  void load(Map<String, dynamic> json) {
+    List<dynamic> buffer = json["buffer"];
+    List<dynamic> rejected = json["rejected"];
+    _buffer.clear();
+    _rejected.clear();
+    _buffer.addAll(buffer.map((e) => Position.fromJson(e)));
+    _rejected.addAll(rejected.map((e) => Position.fromJson(e)));
+    _tripWrapper.load(json["tripWrapper"]);
   }
 }

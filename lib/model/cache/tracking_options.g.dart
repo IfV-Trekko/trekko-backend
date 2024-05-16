@@ -35,7 +35,7 @@ const TrackingOptionsSchema = CollectionSchema(
   getId: _trackingOptionsGetId,
   getLinks: _trackingOptionsGetLinks,
   attach: _trackingOptionsAttach,
-  version: '3.1.0+1',
+  version: '3.1.7',
 );
 
 int _trackingOptionsEstimateSize(

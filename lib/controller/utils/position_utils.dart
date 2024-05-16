@@ -1,10 +1,27 @@
 import 'dart:math';
 
+import 'package:geolocator/geolocator.dart' as Geoloc;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/analysis/average.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:fling_units/fling_units.dart';
+import 'package:trekko_backend/model/position_accuracy.dart';
 
 final class PositionUtils {
+  static Future<Position?> getPosition(PositionAccuracy accuracy,
+      {bool checkPermissions = false}) async {
+    if (checkPermissions) {
+      PermissionStatus status = await Permission.location.request();
+      if (status != PermissionStatus.granted) {
+        return null;
+      }
+    }
+
+    return await Geoloc.Geolocator.getCurrentPosition(
+            desiredAccuracy: accuracy.accuracy)
+        .then((value) => Position.fromGeoPosition(value));
+  }
+
   static double calculateDistance(
       double startLat, double startLong, double endLat, double endLong) {
     const double earthRadius = 6371000; // Erdradius in Metern
@@ -32,7 +49,7 @@ final class PositionUtils {
         start.latitude, start.longitude, end.latitude, end.longitude);
   }
 
-  static Position getCenter(List<Position> positions) {
+  static Position getCenter(List<Position> positions, {bool reverse = false}) {
     if (positions.length == 0) throw Exception("Positions may not be empty");
     // This is where the fun begins
     double avgLat =

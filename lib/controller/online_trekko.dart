@@ -11,7 +11,10 @@ import 'package:trekko_backend/controller/request/url_trekko_server.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
+import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/model/cache/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
+import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/onboarding_question.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
@@ -179,5 +182,16 @@ class OnlineTrekko implements Trekko {
     if (delete) await _server.deleteAccount();
     await _server.close();
     return _internal.signOut(delete: delete);
+  }
+
+  @override
+  Stream<T> getWrapper<T extends TripWrapper>(WrapperType<T> type) {
+    return _internal.getWrapper(type);
+  }
+
+  @override
+  Future sendPosition(
+      Position position, Iterable<WrapperType<TripWrapper>> types) {
+    return _internal.sendPosition(position, types);
   }
 }

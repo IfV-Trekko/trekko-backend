@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:trekko_backend/controller/utils/position_utils.dart';
-import 'package:trekko_backend/controller/wrapper/leg/leg_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/leg/position/transport_type_data.dart';
-import 'package:trekko_backend/controller/wrapper/leg/position/weighted_transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/weighted_transport_type_evaluator.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
@@ -17,20 +17,22 @@ class AnalyzingLegWrapper implements LegWrapper {
   List<Position> _positions = List.empty(growable: true);
   Position? _startedMoving;
 
-  Future<double> _calculateProbability(TransportTypeData data) {
+  Future<double> _calculateProbability(
+      List<Position> positions, TransportTypeData data) {
     WeightedTransportTypeEvaluator evaluator =
         WeightedTransportTypeEvaluator(data);
     Leg leg = Leg();
-    leg.trackedPoints = _positions.map(TrackedPoint.fromPosition).toList();
+    leg.trackedPoints = positions.map(TrackedPoint.fromPosition).toList();
     return evaluator.evaluate(leg);
   }
 
-  Future<TransportType> _calculateMaxProbability() async {
+  Future<TransportType> _calculateMaxProbability(
+      List<Position> positions) async {
     // Calculating probability
     double maxProbability = 0;
     TransportTypeData maxData = TransportTypeData.by_foot;
     for (TransportTypeData data in TransportTypeData.values) {
-      double probability = await _calculateProbability(data);
+      double probability = await _calculateProbability(positions, data);
       if (probability > maxProbability) {
         maxProbability = probability;
         maxData = data;
@@ -39,9 +41,11 @@ class AnalyzingLegWrapper implements LegWrapper {
     return maxData.transportType;
   }
 
-  Position? _cluster(List<Position> positions) {
+  Position? _cluster(List<Position> positions, {bool reverse = false}) {
     List<Position> firstIn = PositionUtils.getFirstIn(_stayDistance, positions);
-    return firstIn.isEmpty ? null : PositionUtils.getCenter(firstIn);
+    return firstIn.isEmpty
+        ? null
+        : PositionUtils.getCenter(firstIn, reverse: reverse);
   }
 
   Future<bool> _checkStartedMoving() async {
@@ -88,8 +92,13 @@ class AnalyzingLegWrapper implements LegWrapper {
   }
 
   @override
-  Future<Leg> get() async {
+  Future<Leg> get({bool preliminary = false}) async {
     return Future.microtask(() async {
+      if (preliminary) {
+        return Leg.withData(await _calculateMaxProbability(_positions),
+            _positions.map(TrackedPoint.fromPosition).toList());
+      }
+
       if (_startedMoving == null) throw Exception("Not started moving");
 
       // Trimming positions
@@ -97,9 +106,8 @@ class AnalyzingLegWrapper implements LegWrapper {
       DateTime start = _startedMoving!.timestamp;
       trimmedPositions.add(_startedMoving!);
 
-      DateTime endStart = _positions.last.timestamp.subtract(_stayDuration);
       Position endCenter = _cluster(_positions.reversed
-          .where((element) => element.timestamp.isAfter(endStart))
+          .where((element) => element.timestamp.isAfter(start))
           .toList())!;
       DateTime end = endCenter.timestamp;
       for (int i = 0; i < _positions.length - 1; i++) {
@@ -110,8 +118,27 @@ class AnalyzingLegWrapper implements LegWrapper {
       }
 
       trimmedPositions.add(endCenter);
-      return Leg.withData(await _calculateMaxProbability(),
+      return Leg.withData(await _calculateMaxProbability(trimmedPositions),
           trimmedPositions.map(TrackedPoint.fromPosition).toList());
     });
+  }
+
+  @override
+  Map<String, dynamic> save() {
+    Map<String, dynamic> json = Map<String, dynamic>();
+    json["positions"] = _positions.map((e) => e.toJson()).toList();
+    if (_startedMoving != null)
+      json["startedMoving"] = _startedMoving!.toJson();
+    return json;
+  }
+
+  @override
+  void load(Map<String, dynamic> json) {
+    List<dynamic> positions = json["positions"];
+    _positions.clear();
+    _positions.addAll(positions.map((e) => Position.fromJson(e)));
+    if (json.containsKey("startedMoving")) {
+      _startedMoving = Position.fromJson(json["startedMoving"]);
+    }
   }
 }

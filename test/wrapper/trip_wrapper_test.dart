@@ -1,5 +1,5 @@
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
-import 'package:trekko_backend/controller/wrapper/analyzing_trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';

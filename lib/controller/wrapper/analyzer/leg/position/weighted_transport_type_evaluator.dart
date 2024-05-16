@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:trekko_backend/controller/wrapper/leg/position/transport_type_data_provider.dart';
-import 'package:trekko_backend/controller/wrapper/leg/position/transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data_provider.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_evaluator.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:fling_units/fling_units.dart';
 

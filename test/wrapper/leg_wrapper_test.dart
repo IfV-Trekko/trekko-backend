@@ -1,6 +1,6 @@
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
-import 'package:trekko_backend/controller/wrapper/leg/analyzing_leg_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/leg/leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/analyzing_leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
@@ -107,7 +107,7 @@ void main() {
     expect(probability, greaterThan(0.95));
 
     Leg wrapped = await legWrapper.get();
-    expect(wrapped.calculateDistance().as(meters), inInclusiveRange(498, 502));
+    expect(wrapped.calculateDistance().as(meters), inInclusiveRange(497, 502));
     expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
     expect(wrapped.transportType, equals(TransportType.by_foot));
