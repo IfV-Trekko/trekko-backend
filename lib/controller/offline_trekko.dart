@@ -297,7 +297,6 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    Logging.info("App lifecycle changed to $state!");
     if (state == AppLifecycleState.resumed) {
       await _tracking.readCache();
     }
