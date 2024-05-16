@@ -66,9 +66,9 @@ class CachedTracking implements Tracking {
     this._callback = callback;
     TrackingService.getLocationUpdates((pos) async => await _process([pos]));
     _trackingId = await TrackingService.startLocationService(setting);
-    _trackingRunning = true;
-
     await readCache();
+
+    _trackingRunning = true;
     return true;
   }
 
