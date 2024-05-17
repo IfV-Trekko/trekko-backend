@@ -13,7 +13,7 @@ part 'trip.g.dart';
 @collection
 class Trip extends PositionCollection {
 
-  @JsonKey(name: 'id')
+  @JsonKey(name: 'id', includeToJson: false, includeFromJson: false)
   Id id = Isar.autoIncrement;
 
   @JsonKey(name: 'donationState')

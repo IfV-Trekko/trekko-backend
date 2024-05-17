@@ -89,6 +89,16 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
+  Future<int> export(TripQuery query) {
+    return _internal.export(query);
+  }
+
+  @override
+  Future<List<int>> import() {
+    return _internal.import();
+  }
+
+  @override
   Future<int> donate(TripQuery query) async {
     List<Trip> donate =
         await query.notDonationState(DonationState.donated).collect();

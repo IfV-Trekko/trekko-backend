@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/analysis/calculation.dart';
@@ -148,6 +149,28 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     Profile profile = await getProfile().first;
     profile.preferences = preferences;
     await _saveProfile(profile);
+  }
+
+  @override
+  Future<int> export(TripQuery query) async {
+    List<Trip> trips = await query.collect();
+    if (trips.isEmpty) throw Exception("No trips to export");
+
+    List<Map<String, dynamic>> jsonTrips =
+        trips.map((e) => e.toJson()).toList();
+    String json = jsonEncode(jsonTrips);
+    await Clipboard.setData(ClipboardData(text: json));
+    return trips.length;
+  }
+
+  @override
+  Future<List<int>> import() async {
+    ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data == null) throw Exception("No data in clipboard");
+
+    List<dynamic> jsonTrips = jsonDecode(data.text!);
+    List<Trip> trips = jsonTrips.map((e) => Trip.fromJson(e)).toList();
+    return await _tripDb.writeTxn(() => _tripDb.trips.putAll(trips));
   }
 
   @override
