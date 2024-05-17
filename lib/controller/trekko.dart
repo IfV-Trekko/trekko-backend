@@ -44,6 +44,12 @@ abstract class Trekko {
   Stream<T?> analyze<T>(
       TripQuery trips, Iterable<T> Function(Trip) tripData, Calculation<T> calc);
 
+  /// Exports a query of trips to the clipboard.
+  Future<int> export(TripQuery query);
+
+  /// Imports a query of trips from the clipboard.
+  Future<List<int>> import();
+
   /// Donates a query of trips to the server.
   Future<int> donate(TripQuery query);
 

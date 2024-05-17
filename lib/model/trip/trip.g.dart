@@ -885,7 +885,6 @@ extension TripQueryProperty on QueryBuilder<Trip, Trip, QQueryProperty> {
 // **************************************************************************
 
 Trip _$TripFromJson(Map<String, dynamic> json) => Trip()
-  ..id = (json['id'] as num).toInt()
   ..donationState = $enumDecode(_$DonationStateEnumMap, json['donationState'])
   ..legs = (json['legs'] as List<dynamic>)
       .map((e) => Leg.fromJson(e as Map<String, dynamic>))
@@ -894,7 +893,6 @@ Trip _$TripFromJson(Map<String, dynamic> json) => Trip()
   ..purpose = json['purpose'] as String?;
 
 Map<String, dynamic> _$TripToJson(Trip instance) => <String, dynamic>{
-      'id': instance.id,
       'donationState': _$DonationStateEnumMap[instance.donationState]!,
       'legs': instance.legs,
       'comment': instance.comment,
