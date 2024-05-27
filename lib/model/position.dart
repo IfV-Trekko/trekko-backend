@@ -12,19 +12,19 @@ class Position {
   @JsonKey(name: "time", toJson: _dateTimeToJson, fromJson: _dateTimeFromJson)
   final DateTime timestamp;
   @JsonKey(name: "accuracy")
-  final double accuracy;
+  final double? accuracy;
   @JsonKey(name: "altitude")
-  final double altitude;
+  final double? altitude;
   @JsonKey(name: "altitude_accuracy")
   final double? altitudeAccuracy;
   @JsonKey(name: "heading")
-  final double heading;
+  final double? heading;
   @JsonKey(name: "heading_accuracy")
   final double? headingAccuracy;
   @JsonKey(name: "speed")
-  final double speed;
+  final double? speed;
   @JsonKey(name: "speed_accuracy")
-  final double speedAccuracy;
+  final double? speedAccuracy;
 
   Position({
     required this.latitude,
@@ -37,6 +37,19 @@ class Position {
     required this.headingAccuracy,
     required this.speed,
     required this.speedAccuracy,
+  });
+
+  Position.min({
+    required this.latitude,
+    required this.longitude,
+    required this.timestamp,
+    this.accuracy,
+    this.altitude,
+    this.altitudeAccuracy,
+    this.heading,
+    this.headingAccuracy,
+    this.speed,
+    this.speedAccuracy,
   });
 
   factory Position.fromGeoPosition(geo.Position position) {
