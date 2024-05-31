@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 void main() {
   late LegWrapper legWrapper;
   setUp(() async {
-    legWrapper = AnalyzingLegWrapper();
+    legWrapper = AnalyzingLegWrapper([]);
   });
 
   test("Analyze walk to shop", () async {
@@ -29,7 +29,7 @@ void main() {
     double probability = await legWrapper.calculateEndProbability();
     expect(probability, greaterThan(0.9));
 
-    Leg wrapped = await legWrapper.get();
+    Leg wrapped = (await legWrapper.get()).result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(495, 505));
     expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
@@ -83,7 +83,7 @@ void main() {
     double probability = await legWrapper.calculateEndProbability();
     expect(probability, greaterThan(0.95));
 
-    Leg wrapped = await legWrapper.get();
+    Leg wrapped = (await legWrapper.get()).result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(485, 501));
     expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
@@ -106,7 +106,7 @@ void main() {
     double probability = await legWrapper.calculateEndProbability();
     expect(probability, greaterThan(0.95));
 
-    Leg wrapped = await legWrapper.get();
+    Leg wrapped = (await legWrapper.get()).result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(497, 502));
     expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));

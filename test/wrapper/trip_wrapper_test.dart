@@ -12,7 +12,7 @@ void main() {
   late TripWrapper tripWrapper;
   setUp(() async {
     await TrekkoTestUtils.init();
-    tripWrapper = AnalyzingTripWrapper();
+    tripWrapper = AnalyzingTripWrapper([]);
   });
 
   test("Analyze walk to shop and back", () async {
@@ -35,7 +35,7 @@ void main() {
     double probability = await tripWrapper.calculateEndProbability();
     expect(probability, greaterThan(0.9));
 
-    Trip wrapped = await tripWrapper.get();
+    Trip wrapped = (await tripWrapper.get()).result;
     expect(wrapped.legs.length, equals(2));
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(700, 1000));
     expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(20, 25));
