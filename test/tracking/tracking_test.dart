@@ -1,5 +1,5 @@
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';

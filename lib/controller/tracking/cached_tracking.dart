@@ -8,27 +8,28 @@ import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/controller/utils/tracking_service.dart';
-import 'package:trekko_backend/model/cache/cache_object.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class CachedTracking implements Tracking {
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   int _trackingId = 0;
   bool _trackingRunning = false;
   DateTime? _lastPosition;
-  Future Function(List<Position>)? _callback;
+  Future Function(List<RawPhoneData>)? _callback;
 
-  Future _process(List<Position> positions) async {
+  Future _process(List<RawPhoneData> positions) async {
     _dataProcessor.add(() async {
       // Check if the position is older than the last position
-      for (Position pos in positions) {
+      for (RawPhoneData pos in positions) {
         if (_lastPosition == null ||
-            pos.timestamp.isAfter(_lastPosition!) ||
-            pos.timestamp.isAtSameMomentAs(_lastPosition!)) {
-          _lastPosition = pos.timestamp;
+            pos.getTimestamp().isAfter(_lastPosition!) ||
+            pos.getTimestamp().isAtSameMomentAs(_lastPosition!)) {
+          _lastPosition = pos.getTimestamp();
         } else if (_lastPosition != null &&
-            pos.timestamp.isBefore(_lastPosition!)) {
+            pos.getTimestamp().isBefore(_lastPosition!)) {
           throw Exception("Position is older than last position");
         }
       }
@@ -49,7 +50,7 @@ class CachedTracking implements Tracking {
 
   @override
   Future<bool> start(BatteryUsageSetting setting,
-      Future Function(List<Position>) callback) async {
+      Future Function(List<RawPhoneData>) callback) async {
     if (_trackingRunning) return false;
     for (Permission perm in Tracking.perms) {
       PermissionStatus status = await perm.status;

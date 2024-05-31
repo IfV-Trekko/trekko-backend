@@ -19,12 +19,12 @@ import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
-import 'package:trekko_backend/model/cache/analyzer_cache.dart';
-import 'package:trekko_backend/model/cache/wrapper_type.dart';
+import 'package:trekko_backend/model/tracking/analyzer/analyzer_cache.dart';
+import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
-import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
@@ -82,19 +82,19 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     await saveTrip(trip);
   }
 
-  Future _sendPositions(
-      List<Position> positions, Iterable<WrapperType> types) async {
-    for (Position position in positions) {
+  Future _sendData(
+      List<RawPhoneData> dataPoints, Iterable<WrapperType> types) async {
+    for (RawPhoneData data in dataPoints) {
       for (WrapperType type in types) {
-        _streams[type]!.add(position);
+        _streams[type]!.add(data);
       }
     }
 
     await _saveWrapper();
   }
 
-  Future _processTrackedPositions(List<Position> positions) async {
-    return await _sendPositions(positions,
+  Future _processTrackedPositions(List<RawPhoneData> positions) async {
+    return await _sendData(positions,
         WrapperType.values.where((element) => element.needsRealPositionData));
   }
 
@@ -327,8 +327,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   @override
-  Future sendPosition(
-      Position position, Iterable<WrapperType<TripWrapper>> types) async {
-    await _sendPositions([position], types);
+  Future sendData(RawPhoneData data, Iterable<WrapperType> types) async {
+    await _sendData([data], types);
   }
 }

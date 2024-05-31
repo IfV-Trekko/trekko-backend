@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:geolocator/geolocator.dart' as Geoloc;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/analysis/average.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/model/position_accuracy.dart';
 
@@ -19,7 +19,11 @@ final class PositionUtils {
 
     return await Geoloc.Geolocator.getCurrentPosition(
             desiredAccuracy: accuracy.accuracy)
-        .then((value) => Position.fromGeoPosition(value));
+        .then((value) => Position(
+            longitude: value.longitude,
+            latitude: value.latitude,
+            accuracy: value.accuracy,
+            timestamp: value.timestamp));
   }
 
   static double calculateDistance(
@@ -84,13 +88,7 @@ final class PositionUtils {
         latitude: AverageCalculation()
             .calculate(centerPositions.map((e) => e.latitude))!,
         timestamp: centerPositions.last.timestamp,
-        accuracy: 0,
-        altitude: 0,
-        altitudeAccuracy: 0,
-        heading: 0,
-        headingAccuracy: 0,
-        speed: 0,
-        speedAccuracy: 0);
+        accuracy: 0);
   }
 
   static double distanceBetweenPoints(List<Position> positions) {

@@ -8,10 +8,11 @@ import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
-import 'package:trekko_backend/model/cache/cache_object.dart';
-import 'package:trekko_backend/model/position.dart' as Trekko;
+import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
+import 'package:trekko_backend/model/tracking/position.dart' as Trekko;
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
-import 'package:trekko_backend/model/cache/tracking_options.dart';
+import 'package:trekko_backend/model/tracking/cache/tracking_options.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class TrackingTask extends TaskHandler {
   final BatteryUsageSetting options;
@@ -73,7 +74,7 @@ void startCallback() async {
 class TrackingService {
   static String debugIsolateName = "tracking_service";
   static bool debug = false;
-  static List<Future Function(Trekko.Position)> callbacks = [];
+  static List<Future Function(RawPhoneData)> callbacks = [];
   static ReceivePort? receivePort;
 
   static void init(BatteryUsageSetting options) {
@@ -132,7 +133,7 @@ class TrackingService {
     }
 
     receivePort!.listen((dynamic data) async {
-      for (Future Function(Trekko.Position) callback in callbacks) {
+      for (Future Function(RawPhoneData) callback in callbacks) {
         await callback.call(Trekko.Position.fromJson(data));
       }
     });
@@ -152,7 +153,7 @@ class TrackingService {
   }
 
   static void getLocationUpdates(
-      Future Function(Trekko.Position) locationCallback) {
+      Future Function(RawPhoneData) locationCallback) {
     callbacks.add(locationCallback);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 
 void main() {
   setUp(() async {});
