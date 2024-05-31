@@ -1,5 +1,6 @@
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/manual/manual_trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
@@ -35,8 +36,8 @@ class SimplePositionWrapper implements ManualTripWrapper {
   }
 
   @override
-  Future<Trip> get({bool preliminary = false}) async {
-    return Trip.withData(_legs)..comment = "Tracked manually";
+  Future<WrapperResult<Trip>> get({bool preliminary = false}) async {
+    return WrapperResult(Trip.withData(_legs)..comment = "Tracked manually",[]);
   }
 
   @override

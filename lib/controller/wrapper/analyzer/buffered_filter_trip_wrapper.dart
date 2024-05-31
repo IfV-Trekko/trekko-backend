@@ -4,6 +4,8 @@ import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
+import '../wrapper_result.dart';
+
 class BufferedFilterTripWrapper implements TripWrapper {
   static const buffer_size = 2;
   static const max_rejected = 3;
@@ -15,7 +17,7 @@ class BufferedFilterTripWrapper implements TripWrapper {
 
   BufferedFilterTripWrapper.withBuilder(this._tripWrapper);
 
-  BufferedFilterTripWrapper() : _tripWrapper = AnalyzingTripWrapper();
+  BufferedFilterTripWrapper() : _tripWrapper = AnalyzingTripWrapper([]);
 
   double averageDistance() {
     double sum = 0;
@@ -73,8 +75,9 @@ class BufferedFilterTripWrapper implements TripWrapper {
   }
 
   @override
-  Future<Trip> get({bool preliminary = false}) {
-    return _tripWrapper.get(preliminary: preliminary);
+  Future<WrapperResult<Trip>> get({bool preliminary = false}) async {
+    WrapperResult<Trip> result = await _tripWrapper.get(preliminary: preliminary);
+    return result;
   }
 
   @override

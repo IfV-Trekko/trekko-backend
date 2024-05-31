@@ -3,6 +3,7 @@ import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/analyzing_leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
@@ -13,10 +14,11 @@ class AnalyzingTripWrapper implements TripWrapper {
   static Distance _stayDistance = meters(200);
 
   final List<Leg> _legs = List.empty(growable: true);
-  LegWrapper _legWrapper = AnalyzingLegWrapper();
+  LegWrapper _legWrapper;
   DateTime? newestTimestamp;
 
-  AnalyzingTripWrapper();
+  AnalyzingTripWrapper(List<Position> oldPositions)
+      : _legWrapper = AnalyzingLegWrapper(oldPositions);
 
   List<Position> _getPositionsInOrder() {
     return _legs
@@ -57,19 +59,24 @@ class AnalyzingTripWrapper implements TripWrapper {
     double probability = await _legWrapper.calculateEndProbability();
     if (probability > 0.95) {
       Logging.info("Leg finished at ${position.timestamp.toIso8601String()}");
-      _legs.add(await _legWrapper.get());
-      _legWrapper = AnalyzingLegWrapper();
+      WrapperResult<Leg> result = await _legWrapper.get();
+      _legs.add(result.getResult());
+      List<Position> unusedDataPoints = result.getUnusedDataPoints();
+      _legWrapper = AnalyzingLegWrapper(unusedDataPoints);
     }
   }
 
   @override
-  Future<Trip> get({bool preliminary = false}) async {
+  Future<WrapperResult<Trip>> get({bool preliminary = false}) async {
     List<Leg> legs = List.from(_legs);
+    List<Position> unusedDataPoints = [];
     if (preliminary) {
-      Leg lastLeg = await _legWrapper.get(preliminary: true);
+      WrapperResult<Leg> result = await _legWrapper.get(preliminary: true);
+      unusedDataPoints = result.getUnusedDataPoints();
+      Leg lastLeg = result.getResult();
       legs.add(lastLeg);
     }
-    return Trip.withData(legs);
+    return WrapperResult(Trip.withData(legs), unusedDataPoints);
   }
 
   @override

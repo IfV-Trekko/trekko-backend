@@ -4,6 +4,7 @@ import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/weighted_transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
@@ -14,8 +15,10 @@ class AnalyzingLegWrapper implements LegWrapper {
   static const Duration _stayDuration = Duration(minutes: 3);
   static Distance _stayDistance = meters(50);
 
-  List<Position> _positions = List.empty(growable: true);
+  List<Position> _positions;
   Position? _startedMoving;
+
+  AnalyzingLegWrapper(this._positions);
 
   Future<double> _calculateProbability(
       List<Position> positions, TransportTypeData data) {
@@ -92,11 +95,14 @@ class AnalyzingLegWrapper implements LegWrapper {
   }
 
   @override
-  Future<Leg> get({bool preliminary = false}) async {
+  Future<WrapperResult<Leg>> get({bool preliminary = false}) async {
     return Future.microtask(() async {
       if (preliminary) {
-        return Leg.withData(await _calculateMaxProbability(_positions),
-            _positions.map(TrackedPoint.fromPosition).toList());
+
+        return WrapperResult(Leg.withData(await _calculateMaxProbability(_positions),
+            _positions.map(TrackedPoint.fromPosition).toList()),
+            []
+        );
       }
 
       if (_startedMoving == null) throw Exception("Not started moving");
@@ -118,8 +124,10 @@ class AnalyzingLegWrapper implements LegWrapper {
       }
 
       trimmedPositions.add(endCenter);
-      return Leg.withData(await _calculateMaxProbability(trimmedPositions),
-          trimmedPositions.map(TrackedPoint.fromPosition).toList());
+      return WrapperResult(Leg.withData(await _calculateMaxProbability(trimmedPositions),
+          trimmedPositions.map(TrackedPoint.fromPosition).toList()),
+          [] // todo return leg and not used data points
+      );
     });
   }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/controller/wrapper/position_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/trip/position_collection.dart';
@@ -24,9 +25,10 @@ class QueuedWrapperStream<R extends PositionCollection>
     await _currentWrapper.add(position);
     double endProb = await _currentWrapper.calculateEndProbability();
     if (endProb > END_PROBABILITY_THRESHOLD) {
-      R result = await _currentWrapper.get();
+      WrapperResult<R> result = await _currentWrapper.get();
       _currentWrapper = wrapperFactory.call();
-      _controller.add(result);
+      _controller.add(result.getResult());
+      //todo do something with unused data points.
     }
   }
 

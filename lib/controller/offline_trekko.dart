@@ -17,6 +17,7 @@ import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/cache/analyzer_cache.dart';
 import 'package:trekko_backend/model/cache/wrapper_type.dart';
@@ -201,15 +202,15 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
         legsSorted.expand((leg) => leg.trackedPoints).toList();
     positionsInOrder.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-    TripWrapper wrapper = AnalyzingTripWrapper();
-    positionsInOrder.forEach((point) => wrapper.add(point.toPosition()));
+    TripWrapper wrapper = AnalyzingTripWrapper(
+        positionsInOrder.map((e) => e.toPosition()).toList());
 
     Trip? mergedTrip;
+    WrapperResult<Trip>? result;
     try {
-      mergedTrip = await wrapper.get();
-    } catch (e) {}
-
-    if (mergedTrip == null) {
+      result = await wrapper.get(); //todo: do something with unused data points.
+      mergedTrip = result.getResult();
+    } catch (e) {
       mergedTrip = Trip.withData(legsSorted);
     }
 
