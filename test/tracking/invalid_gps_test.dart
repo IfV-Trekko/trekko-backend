@@ -1,6 +1,6 @@
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
@@ -44,12 +44,6 @@ void main() {
           latitude: lat,
           longitude: lon,
           accuracy: toModify.accuracy,
-          altitude: toModify.altitude,
-          altitudeAccuracy: toModify.altitudeAccuracy,
-          speed: toModify.speed,
-          speedAccuracy: toModify.speedAccuracy,
-          heading: toModify.heading,
-          headingAccuracy: toModify.headingAccuracy,
           timestamp: toModify.timestamp,
         );
         walkToShopAndBack[i] = modified;

@@ -12,12 +12,12 @@ import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
-import 'package:trekko_backend/model/cache/wrapper_type.dart';
+import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
-import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/onboarding_question.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/donation_state.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
@@ -200,8 +200,7 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  Future sendPosition(
-      Position position, Iterable<WrapperType<TripWrapper>> types) {
-    return _internal.sendPosition(position, types);
+  Future sendData(RawPhoneData data, Iterable<WrapperType> types) {
+    return _internal.sendData(data, types);
   }
 }

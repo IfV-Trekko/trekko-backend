@@ -1,5 +1,5 @@
 import 'package:isar/isar.dart';
-import 'package:trekko_backend/model/cache/wrapper_type.dart';
+import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
 
 part 'analyzer_cache.g.dart';
 

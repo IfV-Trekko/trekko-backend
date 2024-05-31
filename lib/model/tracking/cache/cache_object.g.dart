@@ -22,8 +22,14 @@ const CacheObjectSchema = CollectionSchema(
       name: r'timestamp',
       type: IsarType.long,
     ),
-    r'value': PropertySchema(
+    r'type': PropertySchema(
       id: 1,
+      name: r'type',
+      type: IsarType.byte,
+      enumMap: _CacheObjecttypeEnumValueMap,
+    ),
+    r'value': PropertySchema(
+      id: 2,
       name: r'value',
       type: IsarType.string,
     )
@@ -59,7 +65,8 @@ void _cacheObjectSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.timestamp);
-  writer.writeString(offsets[1], object.value);
+  writer.writeByte(offsets[1], object.type.index);
+  writer.writeString(offsets[2], object.value);
 }
 
 CacheObject _cacheObjectDeserialize(
@@ -69,7 +76,9 @@ CacheObject _cacheObjectDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = CacheObject(
-    reader.readString(offsets[1]),
+    _CacheObjecttypeValueEnumMap[reader.readByteOrNull(offsets[1])] ??
+        RawPhoneDataType.position,
+    reader.readString(offsets[2]),
     reader.readLong(offsets[0]),
   );
   object.id = id;
@@ -86,11 +95,25 @@ P _cacheObjectDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
+      return (_CacheObjecttypeValueEnumMap[reader.readByteOrNull(offset)] ??
+          RawPhoneDataType.position) as P;
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _CacheObjecttypeEnumValueMap = {
+  'position': 0,
+  'gyroscope': 1,
+  'accelerometer': 2,
+};
+const _CacheObjecttypeValueEnumMap = {
+  0: RawPhoneDataType.position,
+  1: RawPhoneDataType.gyroscope,
+  2: RawPhoneDataType.accelerometer,
+};
 
 Id _cacheObjectGetId(CacheObject object) {
   return object.id;
@@ -294,6 +317,59 @@ extension CacheObjectQueryFilter
     });
   }
 
+  QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition> typeEqualTo(
+      RawPhoneDataType value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition> typeGreaterThan(
+    RawPhoneDataType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition> typeLessThan(
+    RawPhoneDataType value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'type',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition> typeBetween(
+    RawPhoneDataType lower,
+    RawPhoneDataType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'type',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<CacheObject, CacheObject, QAfterFilterCondition> valueEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -447,6 +523,18 @@ extension CacheObjectQuerySortBy
     });
   }
 
+  QueryBuilder<CacheObject, CacheObject, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterSortBy> sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
+    });
+  }
+
   QueryBuilder<CacheObject, CacheObject, QAfterSortBy> sortByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -486,6 +574,18 @@ extension CacheObjectQuerySortThenBy
     });
   }
 
+  QueryBuilder<CacheObject, CacheObject, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QAfterSortBy> thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
+    });
+  }
+
   QueryBuilder<CacheObject, CacheObject, QAfterSortBy> thenByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
@@ -504,6 +604,12 @@ extension CacheObjectQueryWhereDistinct
   QueryBuilder<CacheObject, CacheObject, QDistinct> distinctByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'timestamp');
+    });
+  }
+
+  QueryBuilder<CacheObject, CacheObject, QDistinct> distinctByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'type');
     });
   }
 
@@ -526,6 +632,12 @@ extension CacheObjectQueryProperty
   QueryBuilder<CacheObject, int, QQueryOperations> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'timestamp');
+    });
+  }
+
+  QueryBuilder<CacheObject, RawPhoneDataType, QQueryOperations> typeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'type');
     });
   }
 

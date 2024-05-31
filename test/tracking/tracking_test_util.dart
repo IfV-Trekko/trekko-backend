@@ -7,9 +7,10 @@ import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/tracking_service.dart';
-import 'package:trekko_backend/model/cache/analyzer_cache.dart';
-import 'package:trekko_backend/model/cache/cache_object.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/analyzer/analyzer_cache.dart';
+import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
+import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
@@ -35,7 +36,7 @@ class TrackingTestUtil {
     Isar cache = (await Databases.cache.getInstance());
     await cache.writeTxn(() async {
       for (Position pos in positions) {
-        await cache.cacheObjects.put(CacheObject(
+        await cache.cacheObjects.put(CacheObject(RawPhoneDataType.position,
             jsonEncode(pos.toJson()), pos.timestamp.millisecondsSinceEpoch));
       }
     });

@@ -1,6 +1,6 @@
 import 'package:permission_handler/permission_handler.dart';
-import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 abstract class Tracking {
 
@@ -15,7 +15,7 @@ abstract class Tracking {
 
   Future<bool> isRunning();
 
-  Future<bool> start(BatteryUsageSetting setting, Future Function(List<Position>) callback);
+  Future<bool> start(BatteryUsageSetting setting, Future Function(List<RawPhoneData>) callback);
 
   Future readCache();
 
