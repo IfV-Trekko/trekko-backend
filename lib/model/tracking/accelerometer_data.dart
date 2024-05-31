@@ -18,6 +18,9 @@ class AccelerometerData extends RawPhoneData {
   @JsonKey(name: "time", toJson: _dateTimeToJson, fromJson: _dateTimeFromJson)
   final DateTime timestamp;
 
+  @JsonKey(name: RawPhoneDataType.type_loc, toJson: RawPhoneDataType.toJson, includeFromJson: false, includeToJson: true)
+  final RawPhoneDataType type = RawPhoneDataType.accelerometer;
+
   AccelerometerData(
       {required this.x, required this.y, required this.z, required this.timestamp});
 
@@ -40,6 +43,6 @@ class AccelerometerData extends RawPhoneData {
 
   @override
   RawPhoneDataType getType() {
-    return RawPhoneDataType.accelerometer;
+    return type;
   }
 }

@@ -19,6 +19,9 @@ class GyroscopeData implements RawPhoneData {
   @JsonKey(name: "time", toJson: _dateTimeToJson, fromJson: _dateTimeFromJson)
   final DateTime timestamp;
 
+  @JsonKey(name: RawPhoneDataType.type_loc, toJson: RawPhoneDataType.toJson, includeFromJson: false, includeToJson: true)
+  final RawPhoneDataType type = RawPhoneDataType.gyroscope;
+
   GyroscopeData(
       {required this.x, required this.y, required this.z, required this.timestamp});
 
@@ -41,6 +44,6 @@ class GyroscopeData implements RawPhoneData {
 
   @override
   RawPhoneDataType getType() {
-    return RawPhoneDataType.gyroscope;
+    return type;
   }
 }

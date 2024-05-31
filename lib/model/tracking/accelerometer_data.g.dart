@@ -21,4 +21,5 @@ Map<String, dynamic> _$AccelerometerDataToJson(AccelerometerData instance) =>
       'y': instance.y,
       'z': instance.z,
       'time': AccelerometerData._dateTimeToJson(instance.timestamp),
+      'type': RawPhoneDataType.toJson(instance.type),
     };
