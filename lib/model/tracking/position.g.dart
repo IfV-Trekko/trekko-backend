@@ -18,4 +18,5 @@ Map<String, dynamic> _$PositionToJson(Position instance) => <String, dynamic>{
       'longitude': instance.longitude,
       'time': Position._dateTimeToJson(instance.timestamp),
       'accuracy': instance.accuracy,
+      'type': RawPhoneDataType.toJson(instance.type),
     };

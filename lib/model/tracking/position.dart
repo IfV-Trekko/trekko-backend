@@ -19,6 +19,9 @@ class Position implements RawPhoneData {
   @JsonKey(name: "accuracy")
   final double accuracy;
 
+  @JsonKey(name: RawPhoneDataType.type_loc, toJson: RawPhoneDataType.toJson, includeFromJson: false, includeToJson: true)
+  final RawPhoneDataType type = RawPhoneDataType.position;
+
   Position(
       {required this.latitude,
       required this.longitude,
@@ -44,6 +47,6 @@ class Position implements RawPhoneData {
 
   @override
   RawPhoneDataType getType() {
-    return RawPhoneDataType.position;
+    return type;
   }
 }

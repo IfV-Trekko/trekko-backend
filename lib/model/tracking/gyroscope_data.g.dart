@@ -20,4 +20,5 @@ Map<String, dynamic> _$GyroscopeDataToJson(GyroscopeData instance) =>
       'y': instance.y,
       'z': instance.z,
       'time': GyroscopeData._dateTimeToJson(instance.timestamp),
+      'type': RawPhoneDataType.toJson(instance.type),
     };
