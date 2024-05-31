@@ -17,6 +17,14 @@ enum BatteryUsageSetting {
     return Duration(seconds: interval);
   }
 
+  Duration getAccelerometerInterval() {
+    return Duration(seconds: 1);
+  }
+
+  Duration getGyroscopeInterval() {
+    return Duration(seconds: 1);
+  }
+
   Distance getDistanceFilter() {
     return distanceFilterMeters.meters;
   }
