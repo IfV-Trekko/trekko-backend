@@ -4,7 +4,9 @@ import 'package:trekko_backend/controller/wrapper/analyzer/leg/analyzing_leg_wra
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
@@ -48,20 +50,22 @@ class AnalyzingTripWrapper implements TripWrapper {
   }
 
   @override
-  Future add(Position position) async {
-    if (newestTimestamp != null &&
-        position.timestamp.isBefore(newestTimestamp!))
-      throw Exception(
-          "Positions must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${position.timestamp}");
+  Future add(RawPhoneData data) async {
+    if (data.getType() != RawPhoneDataType.position) return; // TODO: Analyze other types
 
-    newestTimestamp = position.timestamp;
-    await _legWrapper.add(position);
+    if (newestTimestamp != null &&
+        (data as Position).timestamp.isBefore(newestTimestamp!))
+      throw Exception(
+          "Positions must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${data.timestamp}");
+
+    newestTimestamp = (data as Position).timestamp;
+    await _legWrapper.add(data);
     double probability = await _legWrapper.calculateEndProbability();
     if (probability > 0.95) {
-      Logging.info("Leg finished at ${position.timestamp.toIso8601String()}");
+      Logging.info("Leg finished at ${data.timestamp.toIso8601String()}");
       WrapperResult<Leg> result = await _legWrapper.get();
       _legs.add(result.getResult());
-      List<Position> unusedDataPoints = result.getUnusedDataPoints();
+      List<RawPhoneData> unusedDataPoints = result.getUnusedDataPoints();
       _legWrapper = AnalyzingLegWrapper(unusedDataPoints);
     }
   }
@@ -69,7 +73,7 @@ class AnalyzingTripWrapper implements TripWrapper {
   @override
   Future<WrapperResult<Trip>> get({bool preliminary = false}) async {
     List<Leg> legs = List.from(_legs);
-    List<Position> unusedDataPoints = [];
+    List<RawPhoneData> unusedDataPoints = [];
     if (preliminary) {
       WrapperResult<Leg> result = await _legWrapper.get(preliminary: true);
       unusedDataPoints = result.getUnusedDataPoints();
