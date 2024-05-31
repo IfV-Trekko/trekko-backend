@@ -4,7 +4,7 @@ import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/controller/wrapper/position_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/position_collection.dart';
 
 class QueuedWrapperStream<R extends PositionCollection>
@@ -21,7 +21,7 @@ class QueuedWrapperStream<R extends PositionCollection>
       : _controller = StreamController.broadcast(sync: sync),
         this._currentWrapper = initialWrapper;
 
-  Future<void> _process(Position position) async {
+  Future<void> _process(RawPhoneData position) async {
     await _currentWrapper.add(position);
     double endProb = await _currentWrapper.calculateEndProbability();
     if (endProb > END_PROBABILITY_THRESHOLD) {
@@ -33,7 +33,7 @@ class QueuedWrapperStream<R extends PositionCollection>
   }
 
   @override
-  add(Position data) {
+  add(RawPhoneData data) {
     _dataProcessor.add(() async => await _process(data));
   }
 

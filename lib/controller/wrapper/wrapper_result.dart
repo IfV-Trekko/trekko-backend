@@ -1,11 +1,9 @@
-import 'package:trekko_backend/controller/wrapper/position_wrapper.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/position_collection.dart';
-
-import '../../model/position.dart';
 
 class WrapperResult<R extends PositionCollection> {
   final R result;
-  final List<Position> unusedDataPoints;
+  final List<RawPhoneData> unusedDataPoints;
 
   WrapperResult(this.result, this.unusedDataPoints);
 
@@ -13,7 +11,7 @@ class WrapperResult<R extends PositionCollection> {
     return result;
   }
 
-  List<Position> getUnusedDataPoints() {
+  List<RawPhoneData> getUnusedDataPoints() {
     return unusedDataPoints;
   }
 }

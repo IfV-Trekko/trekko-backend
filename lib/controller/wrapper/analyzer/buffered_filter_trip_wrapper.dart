@@ -1,7 +1,8 @@
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
 import '../wrapper_result.dart';
@@ -43,7 +44,7 @@ class BufferedFilterTripWrapper implements TripWrapper {
   }
 
   @override
-  Future<void> add(Position position) async {
+  Future<void> add(RawPhoneData data) async {
     // Buffer positions and add them to the trip wrapper when the buffer is full
     // Throw away positions if they are off pattern, so the gps probably failed
 

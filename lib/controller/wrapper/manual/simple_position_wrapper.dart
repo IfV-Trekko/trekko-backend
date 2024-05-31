@@ -1,7 +1,9 @@
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/manual/manual_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
@@ -15,10 +17,11 @@ class SimplePositionWrapper implements ManualTripWrapper {
   bool _endSoon = false;
 
   @override
-  Future add(Position position) async {
-    if (this._type == null) return;
+  Future add(RawPhoneData position) async {
+    if (this._type == null || position.getType() != RawPhoneDataType.position)
+      return;
 
-    _positions.add(position);
+    _positions.add(position as Position);
     if (_nextType != null &&
         _positions.length > 1 &&
         PositionUtils.distanceBetweenPoints(_positions) > 0) {
@@ -37,7 +40,8 @@ class SimplePositionWrapper implements ManualTripWrapper {
 
   @override
   Future<WrapperResult<Trip>> get({bool preliminary = false}) async {
-    return WrapperResult(Trip.withData(_legs)..comment = "Tracked manually",[]);
+    return WrapperResult(
+        Trip.withData(_legs)..comment = "Tracked manually", []);
   }
 
   @override
