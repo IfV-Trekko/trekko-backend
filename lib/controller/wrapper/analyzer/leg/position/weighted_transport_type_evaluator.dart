@@ -1,9 +1,6 @@
-import 'dart:math';
-
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data_provider.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_evaluator.dart';
-import 'package:trekko_backend/model/trip/leg.dart';
-import 'package:fling_units/fling_units.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
   final TransportTypeDataProvider dataProvider;
@@ -11,15 +8,10 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
   WeightedTransportTypeEvaluator(this.dataProvider);
 
   @override
-  Future<double> evaluate(Leg leg) {
+  Future<double> evaluate(List<RawPhoneData> leg) {
     return Future.microtask(() async {
-      double providedSpeed =
-          (await dataProvider.getAverageSpeed()).as(kilo.meters, hours);
-      double legSpeed = leg.calculateSpeed().as(kilo.meters, hours);
-      double distanceBetweenSpeeds = (providedSpeed - legSpeed).abs();
-      // f(x) = -x^2 * 1 * 10^-6 + 1
-      double calculated = -pow(distanceBetweenSpeeds, 2) * pow(10, -6) + 1;
-      return max(calculated, 0);
+      // TODO: Implement weighted evaluation
+      return 1;
     });
   }
 }

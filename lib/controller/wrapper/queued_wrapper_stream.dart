@@ -27,7 +27,7 @@ class QueuedWrapperStream<R extends PositionCollection>
     if (endProb > END_PROBABILITY_THRESHOLD) {
       WrapperResult<R> result = await _currentWrapper.get();
       _currentWrapper = wrapperFactory.call();
-      _controller.add(result.getResult());
+      _controller.add(result.result);
       //todo do something with unused data points.
     }
   }

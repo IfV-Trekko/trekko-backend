@@ -1,15 +1,14 @@
+import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/analyzing_leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
-import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
-import 'package:fling_units/fling_units.dart';
 
 class AnalyzingTripWrapper implements TripWrapper {
   static const Duration _stayDuration = Duration(minutes: 25);
@@ -51,33 +50,30 @@ class AnalyzingTripWrapper implements TripWrapper {
 
   @override
   Future add(RawPhoneData data) async {
-    if (data.getType() != RawPhoneDataType.position) return; // TODO: Analyze other types
-
     if (newestTimestamp != null &&
-        (data as Position).timestamp.isBefore(newestTimestamp!))
+        data.getTimestamp().isBefore(newestTimestamp!))
       throw Exception(
-          "Positions must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${data.timestamp}");
+          "Data must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${data.getTimestamp()}");
 
-    newestTimestamp = (data as Position).timestamp;
+    newestTimestamp = data.getTimestamp();
     await _legWrapper.add(data);
     double probability = await _legWrapper.calculateEndProbability();
     if (probability > 0.95) {
-      Logging.info("Leg finished at ${data.timestamp.toIso8601String()}");
+      Logging.info("Leg finished at ${data.getTimestamp().toIso8601String()}");
       WrapperResult<Leg> result = await _legWrapper.get();
-      _legs.add(result.getResult());
-      List<RawPhoneData> unusedDataPoints = result.getUnusedDataPoints();
-      _legWrapper = AnalyzingLegWrapper(unusedDataPoints);
+      _legs.add(result.result);
+      _legWrapper = AnalyzingLegWrapper(result.unusedDataPoints.toList());
     }
   }
 
   @override
   Future<WrapperResult<Trip>> get({bool preliminary = false}) async {
     List<Leg> legs = List.from(_legs);
-    List<RawPhoneData> unusedDataPoints = [];
+    Iterable<RawPhoneData> unusedDataPoints = [];
     if (preliminary) {
       WrapperResult<Leg> result = await _legWrapper.get(preliminary: true);
-      unusedDataPoints = result.getUnusedDataPoints();
-      Leg lastLeg = result.getResult();
+      unusedDataPoints = result.unusedDataPoints;
+      Leg lastLeg = result.result;
       legs.add(lastLeg);
     }
     return WrapperResult(Trip.withData(legs), unusedDataPoints);

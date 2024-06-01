@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -209,7 +208,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     WrapperResult<Trip>? result;
     try {
       result = await wrapper.get(); //todo: do something with unused data points.
-      mergedTrip = result.getResult();
+      mergedTrip = result.result;
     } catch (e) {
       mergedTrip = Trip.withData(legsSorted);
     }

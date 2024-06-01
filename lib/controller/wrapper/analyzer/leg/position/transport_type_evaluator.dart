@@ -1,5 +1,5 @@
-import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 abstract class TransportTypeEvaluator {
-  Future<double> evaluate(Leg leg);
+  Future<double> evaluate(List<RawPhoneData> data);
 }
