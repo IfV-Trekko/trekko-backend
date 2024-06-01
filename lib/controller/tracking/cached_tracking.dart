@@ -9,7 +9,7 @@ import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/controller/utils/tracking_service.dart';
 import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
-import 'package:trekko_backend/model/tracking/position.dart';
+import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
@@ -62,7 +62,6 @@ class CachedTracking implements Tracking {
       }
     }
 
-
     _lastPosition = null;
     this._callback = callback;
     TrackingService.getLocationUpdates((pos) async => await _process([pos]));
@@ -91,10 +90,11 @@ class CachedTracking implements Tracking {
   Future readCache() async {
     Isar _cacheDb = await Databases.cache.getInstance();
     if (await _cacheDb.cacheObjects.where().isNotEmpty()) {
-      List<Position> send = [];
+      List<RawPhoneData> send = [];
       List<CacheObject> cached =
           await _cacheDb.cacheObjects.where().sortByTimestamp().findAll();
-      send.addAll(cached.map((e) => Position.fromJson(jsonDecode(e.value))));
+      send.addAll(
+          cached.map((e) => RawPhoneDataType.parseData(jsonDecode(e.value))));
       await _cacheDb.writeTxn(() => _cacheDb.cacheObjects.where().deleteAll());
       Logging.info("Sending ${send.length} cached positions");
       await _process(send);

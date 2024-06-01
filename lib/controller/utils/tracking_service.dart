@@ -5,13 +5,16 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:isar/isar.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/model/tracking/accelerometer_data.dart';
 import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
-import 'package:trekko_backend/model/tracking/position.dart' as Trekko;
+import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:trekko_backend/model/tracking/cache/tracking_options.dart';
+import 'package:trekko_backend/model/tracking/gyroscope_data.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class TrackingTask extends TaskHandler {
@@ -20,13 +23,13 @@ class TrackingTask extends TaskHandler {
 
   TrackingTask(this.options);
 
-  Future<void> _sendData(SendPort? sendPort, List<Trekko.Position> locs) async {
-    List<Trekko.Position> valids = [];
-    for (Trekko.Position p in locs) {
+  Future<void> _sendData(SendPort? sendPort, List<RawPhoneData> data) async {
+    List<RawPhoneData> valids = [];
+    for (RawPhoneData p in data) {
       if (lastTimestamp == null ||
-          (p.timestamp.isAfter(lastTimestamp!) &&
-              !p.timestamp.isAtSameMomentAs(lastTimestamp!))) {
-        lastTimestamp = p.timestamp;
+          (p.getTimestamp().isAfter(lastTimestamp!) &&
+              !p.getTimestamp().isAtSameMomentAs(lastTimestamp!))) {
+        lastTimestamp = p.getTimestamp();
         valids.add(p);
       } else {
         await Logging.warning("Skipping position: ${p.toJson()}");
@@ -59,6 +62,23 @@ class TrackingTask extends TaskHandler {
 
   @override
   void onStart(DateTime timestamp, SendPort? sendPort) async {
+    userAccelerometerEventStream(
+            samplingPeriod: options.getAccelerometerInterval())
+        .listen((event) async {
+      await _sendData(sendPort, [
+        AccelerometerData(
+            x: event.x, y: event.y, z: event.z, timestamp: DateTime.now())
+      ]);
+    });
+
+    gyroscopeEventStream(samplingPeriod: options.getGyroscopeInterval())
+        .listen((event) async {
+      await _sendData(sendPort, [
+        GyroscopeData(
+            x: event.x, y: event.y, z: event.z, timestamp: DateTime.now())
+      ]);
+    });
+
     Logging.warning("Tracking service started");
   }
 }
@@ -134,8 +154,7 @@ class TrackingService {
 
     receivePort!.listen((dynamic data) async {
       for (Future Function(RawPhoneData) callback in callbacks) {
-        // TODO: Implement RawPhoneData
-        await callback.call(Trekko.Position.fromJson(data));
+        await callback.call(RawPhoneDataType.parseData(data));
       }
     });
     return 0;
