@@ -6,5 +6,5 @@ abstract class TransportTypeDataProvider {
   Future<DerivedMeasurement<Measurement<Distance>, Measurement<Time>>>
       getAverageSpeed();
 
-  TransportType getTransportType();
+  TransportType? getTransportType();
 }

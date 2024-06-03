@@ -58,12 +58,12 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
 
   void _initStreams() {
     for (WrapperType type in WrapperType.values) {
-      TripWrapper initialWrapper = type.build();
+      TripWrapper initialWrapper = type.build([]);
       AnalyzerCache? cache =
           _cacheDb.analyzerCaches.filter().typeEqualTo(type).findFirstSync();
       if (cache != null) initialWrapper.load(jsonDecode(cache.value));
       _streams[type] =
-          QueuedWrapperStream(initialWrapper, () => type.build(), sync: true);
+          QueuedWrapperStream(initialWrapper, (i) => type.build(i), sync: true);
       _streams[type]!.getResults().listen(_tripReceive);
     }
   }
@@ -83,10 +83,8 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
 
   Future _sendData(
       List<RawPhoneData> dataPoints, Iterable<WrapperType> types) async {
-    for (RawPhoneData data in dataPoints) {
-      for (WrapperType type in types) {
-        _streams[type]!.add(data);
-      }
+    for (WrapperType type in types) {
+      _streams[type]!.add(dataPoints);
     }
 
     await _saveWrapper();
@@ -211,6 +209,10 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
           await wrapper.get(); //todo: do something with unused data points.
       mergedTrip = result.result;
     } catch (e) {
+      // Ignore errors
+    }
+
+    if (mergedTrip == null) {
       mergedTrip = Trip.withData(legsSorted);
     }
 

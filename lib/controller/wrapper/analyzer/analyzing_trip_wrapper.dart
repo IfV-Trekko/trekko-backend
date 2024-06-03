@@ -16,9 +16,8 @@ class AnalyzingTripWrapper implements TripWrapper {
 
   final List<Leg> _legs = List.empty(growable: true);
   LegWrapper _legWrapper;
-  DateTime? newestTimestamp;
 
-  AnalyzingTripWrapper(List<RawPhoneData> initialData)
+  AnalyzingTripWrapper(Iterable<RawPhoneData> initialData)
       : _legWrapper = AnalyzingLegWrapper(initialData);
 
   List<Position> _getPositionsInOrder() {
@@ -28,20 +27,34 @@ class AnalyzingTripWrapper implements TripWrapper {
         .toList();
   }
 
-  @override
-  Future<double> calculateEndProbability() {
+  Future<WrapperResult> _takeResults(List<Leg> legs) async {
+    WrapperResult newestResult = await _legWrapper.get();
+    if (newestResult.result != null && newestResult.confidence > 0.95) {
+      Logging.info(
+          "Leg finished at ${newestResult.result!.getTimestamp().toIso8601String()}");
+      legs.add(newestResult.result);
+      _legWrapper = AnalyzingLegWrapper(newestResult.unusedDataPoints.toList());
+      return await _takeResults(legs);
+    }
+
+    return newestResult;
+  }
+
+  Future<double> _calculateEndProbability(WrapperResult legResult) {
     return Future.microtask(() async {
+      Iterable<RawPhoneData> analysisData = await getAnalysisData();
+      DateTime? newestTimestamp =
+          analysisData.isEmpty ? null : analysisData.last.getTimestamp();
       if (_legs.isEmpty || newestTimestamp == null) return 0;
 
-      DateTime oldestLegStart = _legs.first.calculateStartTime();
-      if (newestTimestamp!.difference(oldestLegStart) < _stayDuration) return 0;
+      DateTime oldestLegStart = _legs.last.calculateEndTime();
+      if (newestTimestamp.difference(oldestLegStart) < _stayDuration) return 0;
 
-      Position? currentLegStart = await _legWrapper.getLegStart();
-      if (currentLegStart != null) return 0;
+      if (legResult.confidence > 0.4 && legResult.result != null) return 0;
 
       List<Position> positionsInOrder = _getPositionsInOrder();
       return PositionUtils.calculateSingleHoldProbability(
-          newestTimestamp!.subtract(_stayDuration),
+          newestTimestamp.subtract(_stayDuration),
           _stayDuration,
           _stayDistance,
           positionsInOrder);
@@ -49,41 +62,31 @@ class AnalyzingTripWrapper implements TripWrapper {
   }
 
   @override
-  Future add(RawPhoneData data) async {
-    if (newestTimestamp != null &&
-        data.getTimestamp().isBefore(newestTimestamp!))
-      throw Exception(
-          "Data must be added in chronological order. Newest timestamp: $newestTimestamp, new timestamp: ${data.getTimestamp()}");
-
-    newestTimestamp = data.getTimestamp();
+  Future add(Iterable<RawPhoneData> data) async {
     await _legWrapper.add(data);
-    double probability = await _legWrapper.calculateEndProbability();
-    if (probability > 0.95) {
-      Logging.info("Leg finished at ${data.getTimestamp().toIso8601String()}");
-      WrapperResult<Leg> result = await _legWrapper.get();
-      _legs.add(result.result);
-      _legWrapper = AnalyzingLegWrapper(result.unusedDataPoints.toList());
-    }
   }
 
   @override
   Future<WrapperResult<Trip>> get({bool preliminary = false}) async {
-    List<Leg> legs = List.from(_legs);
-    Iterable<RawPhoneData> unusedDataPoints = [];
-    if (preliminary) {
-      WrapperResult<Leg> result = await _legWrapper.get(preliminary: true);
-      unusedDataPoints = result.unusedDataPoints;
-      Leg lastLeg = result.result;
-      legs.add(lastLeg);
-    }
-    return WrapperResult(Trip.withData(legs), unusedDataPoints);
+    List<Leg> legs = List.from(_legs, growable: true);
+    WrapperResult newestResult = await _takeResults(legs);
+    double endProbability = await _calculateEndProbability(newestResult);
+    return WrapperResult(endProbability, Trip.withData(legs),
+        newestResult.unusedDataPoints.toList());
+  }
+
+  @override
+  Future<Iterable<RawPhoneData>> getAnalysisData() async {
+    return _legs
+        .expand((element) =>
+            element.trackedPoints.map((e) => e.toPosition() as RawPhoneData))
+        .followedBy(await _legWrapper.getAnalysisData());
   }
 
   @override
   Map<String, dynamic> save() {
     Map<String, dynamic> json = Map<String, dynamic>();
     json["legs"] = _legs.map((e) => e.toJson()).toList();
-    json["newestTimestamp"] = newestTimestamp?.toIso8601String();
     json["legWrapper"] = _legWrapper.save();
     return json;
   }
@@ -94,10 +97,6 @@ class AnalyzingTripWrapper implements TripWrapper {
 
     List<dynamic> legs = json["legs"];
     _legs.addAll(legs.map((e) => Leg.fromJson(e)));
-
-    newestTimestamp = json["newestTimestamp"] == null
-        ? null
-        : DateTime.parse(json["newestTimestamp"]);
     _legWrapper.load(json["legWrapper"]);
   }
 }

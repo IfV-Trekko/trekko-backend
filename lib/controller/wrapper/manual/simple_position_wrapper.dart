@@ -16,12 +16,18 @@ class SimplePositionWrapper implements ManualTripWrapper {
   TransportType? _nextType;
   bool _endSoon = false;
 
-  @override
-  Future add(RawPhoneData position) async {
-    if (this._type == null || position.getType() != RawPhoneDataType.position)
-      return;
+  SimplePositionWrapper(Iterable<RawPhoneData> initialData) {
+    this.add(initialData);
+  }
 
-    _positions.add(position as Position);
+  @override
+  Future add(Iterable<RawPhoneData> position) async {
+    if (this._type == null) return;
+
+    _positions.addAll(position
+        .where((p) => p.getType() == RawPhoneDataType.position)
+        .map((e) => e as Position));
+
     if (_nextType != null &&
         _positions.length > 1 &&
         PositionUtils.distanceBetweenPoints(_positions) > 0) {
@@ -34,14 +40,16 @@ class SimplePositionWrapper implements ManualTripWrapper {
   }
 
   @override
-  Future<double> calculateEndProbability() async {
-    return _endSoon ? 1 : 0;
+  Future<WrapperResult<Trip>> get() async {
+    return WrapperResult(_endSoon ? 1 : 0,
+        Trip.withData(_legs)..comment = "Tracked manually", []);
   }
 
   @override
-  Future<WrapperResult<Trip>> get({bool preliminary = false}) async {
-    return WrapperResult(
-        Trip.withData(_legs)..comment = "Tracked manually", []);
+  Future<Iterable<RawPhoneData>> getAnalysisData() async {
+    return _legs
+        .expand((element) => element.trackedPoints.map((e) => e.toPosition()))
+        .followedBy(_positions);
   }
 
   @override
