@@ -4,7 +4,7 @@ import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
-import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
 import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';

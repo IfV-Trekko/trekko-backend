@@ -1,7 +1,7 @@
 import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/manual/manual_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/manual/simple_position_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 enum WrapperType<T extends TripWrapper> {

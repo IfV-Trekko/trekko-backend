@@ -15,7 +15,7 @@ import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
-import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/tracking/analyzer/analyzer_cache.dart';
