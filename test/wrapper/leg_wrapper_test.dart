@@ -1,6 +1,7 @@
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/analyzing_leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
@@ -23,16 +24,15 @@ void main() {
         .stay(Duration(hours: 1))
         .collect();
 
-    for (TrackedPoint point in walkToShop) {
-      await legWrapper.add(point.toPosition());
-    }
-    double probability = await legWrapper.calculateEndProbability();
-    expect(probability, greaterThan(0.9));
+    await legWrapper.add(walkToShop.map((e) => e.toPosition()));
+    WrapperResult result = await legWrapper.get();
+    expect(result.confidence, greaterThan(0.95));
 
-    Leg wrapped = (await legWrapper.get()).result;
+    Leg wrapped = result.result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(495, 505));
     expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
-    expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
+    expect(wrapped.calculateSpeed().as(kilo.meters, hours),
+        inInclusiveRange(2, 4));
     expect(wrapped.transportType, equals(TransportType.by_foot));
   });
 
@@ -45,11 +45,10 @@ void main() {
         // stay for 1h
         .stay(Duration(hours: 1))
         .collect();
-    for (TrackedPoint point in points) {
-      await legWrapper.add(point.toPosition());
-    }
-    double probability = await legWrapper.calculateEndProbability();
-    expect(probability, lessThan(0.1));
+    await legWrapper.add(points.map((e) => e.toPosition()));
+    WrapperResult result = await legWrapper.get();
+    expect(result.confidence, greaterThan(0.9));
+    expect(result.result, isNull);
   });
 
   test("Staying approx. at the same location: no leg", () async {
@@ -58,11 +57,10 @@ void main() {
         .move_r(Duration(minutes: 1), 49.meters)
         .stay(Duration(hours: 1))
         .collect();
-    for (TrackedPoint point in points) {
-      await legWrapper.add(point.toPosition());
-    }
-    double probability = await legWrapper.calculateEndProbability();
-    expect(probability, lessThan(0.4));
+    await legWrapper.add(points.map((e) => e.toPosition()));
+    WrapperResult result = await legWrapper.get();
+    expect(result.confidence, greaterThan(0.6));
+    expect(result.result, isNull);
   });
 
   test("Moving wildly in start and end center, only one leg", () async {
@@ -77,16 +75,16 @@ void main() {
         .move(true, Duration(seconds: 50), 30.meters)
         .stay(Duration(seconds: 20))
         .collect();
-    for (TrackedPoint point in points) {
-      await legWrapper.add(point.toPosition());
-    }
-    double probability = await legWrapper.calculateEndProbability();
-    expect(probability, greaterThan(0.95));
 
-    Leg wrapped = (await legWrapper.get()).result;
+    await legWrapper.add(points.map((e) => e.toPosition()));
+    WrapperResult result = await legWrapper.get();
+    expect(result.confidence, greaterThan(0.95));
+
+    Leg wrapped = result.result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(485, 501));
     expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
-    expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
+    expect(wrapped.calculateSpeed().as(kilo.meters, hours),
+        inInclusiveRange(2, 4));
     expect(wrapped.transportType, equals(TransportType.by_foot));
   });
 
@@ -100,16 +98,16 @@ void main() {
         .move(true, Duration(minutes: 10), 500.meters)
         .stay(Duration(seconds: 115))
         .collect();
-    for (TrackedPoint point in points) {
-      await legWrapper.add(point.toPosition());
-    }
-    double probability = await legWrapper.calculateEndProbability();
-    expect(probability, greaterThan(0.95));
 
-    Leg wrapped = (await legWrapper.get()).result;
+    await legWrapper.add(points.map((e) => e.toPosition()));
+    WrapperResult result = await legWrapper.get();
+    expect(result.confidence, greaterThan(0.95));
+
+    Leg wrapped = result.result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(497, 502));
     expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
-    expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
+    expect(wrapped.calculateSpeed().as(kilo.meters, hours),
+        inInclusiveRange(2, 4));
     expect(wrapped.transportType, equals(TransportType.by_foot));
   });
 }
