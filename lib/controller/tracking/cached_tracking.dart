@@ -20,7 +20,7 @@ class CachedTracking implements Tracking {
   DateTime? _lastPosition;
   Future Function(List<RawPhoneData>)? _callback;
 
-  Future _process(List<RawPhoneData> positions) async {
+  _process(List<RawPhoneData> positions) {
     _dataProcessor.add(() async {
       // Check if the position is older than the last position
       for (RawPhoneData pos in positions) {
@@ -28,13 +28,13 @@ class CachedTracking implements Tracking {
             pos.getTimestamp().isAfter(_lastPosition!) ||
             pos.getTimestamp().isAtSameMomentAs(_lastPosition!)) {
           _lastPosition = pos.getTimestamp();
+          await _callback!(positions);
         } else if (_lastPosition != null &&
             pos.getTimestamp().isBefore(_lastPosition!)) {
-          throw Exception("Position is older than last position");
+          await Logging.info(
+              "Skipped data: ${pos.getTimestamp().toIso8601String()}");
         }
       }
-
-      await _callback!(positions);
     });
   }
 
@@ -64,7 +64,7 @@ class CachedTracking implements Tracking {
 
     _lastPosition = null;
     this._callback = callback;
-    TrackingService.getLocationUpdates((pos) async => await _process([pos]));
+    TrackingService.getLocationUpdates((pos) => _process([pos]));
     _trackingId = await TrackingService.startLocationService(setting);
     await readCache();
 
@@ -92,7 +92,7 @@ class CachedTracking implements Tracking {
     if (await _cacheDb.cacheObjects.where().isNotEmpty()) {
       List<RawPhoneData> send = [];
       List<CacheObject> cached =
-          await _cacheDb.cacheObjects.where().sortByTimestamp().findAll();
+      await _cacheDb.cacheObjects.where().sortByTimestamp().findAll();
       send.addAll(
           cached.map((e) => RawPhoneDataType.parseData(jsonDecode(e.value))));
       await _cacheDb.writeTxn(() => _cacheDb.cacheObjects.where().deleteAll());

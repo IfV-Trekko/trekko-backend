@@ -18,8 +18,8 @@ class AnalyzingTripWrapper implements TripWrapper {
   LegWrapper _legWrapper;
   DateTime? newestTimestamp;
 
-  AnalyzingTripWrapper(List<Position> oldPositions)
-      : _legWrapper = AnalyzingLegWrapper(oldPositions);
+  AnalyzingTripWrapper(List<RawPhoneData> initialData)
+      : _legWrapper = AnalyzingLegWrapper(initialData);
 
   List<Position> _getPositionsInOrder() {
     return _legs

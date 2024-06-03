@@ -37,8 +37,8 @@ class TrackingTask extends TaskHandler {
     }
 
     if (valids.isEmpty) return;
-    Isar cache = (await Databases.cache.getInstance());
     if (!await FlutterForegroundTask.isAppOnForeground) {
+      Isar cache = (await Databases.cache.getInstance());
       await Logging.info("Sending ${valids.length} positions to cache");
       List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
       await cache.writeTxn(() async => await cache.cacheObjects
@@ -94,7 +94,7 @@ void startCallback() async {
 class TrackingService {
   static String debugIsolateName = "tracking_service";
   static bool debug = false;
-  static List<Future Function(RawPhoneData)> callbacks = [];
+  static List<Function(RawPhoneData)> callbacks = [];
   static ReceivePort? receivePort;
 
   static void init(BatteryUsageSetting options) {
@@ -152,9 +152,9 @@ class TrackingService {
       if (!register) throw Exception("Failed to register port");
     }
 
-    receivePort!.listen((dynamic data) async {
-      for (Future Function(RawPhoneData) callback in callbacks) {
-        await callback.call(RawPhoneDataType.parseData(data));
+    receivePort!.listen((dynamic data) {
+      for (Function(RawPhoneData) callback in callbacks) {
+        callback.call(RawPhoneDataType.parseData(data));
       }
     });
     return 0;
@@ -172,8 +172,7 @@ class TrackingService {
     callbacks.clear();
   }
 
-  static void getLocationUpdates(
-      Future Function(RawPhoneData) locationCallback) {
+  static void getLocationUpdates(Function(RawPhoneData) locationCallback) {
     callbacks.add(locationCallback);
   }
 }

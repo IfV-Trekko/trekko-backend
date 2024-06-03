@@ -29,10 +29,10 @@ class AnalyzingLegWrapper implements LegWrapper {
         .toList();
   }
 
-  Future<double> _calculateProbability(
-      List<RawPhoneData> data, TransportTypeData dataType) {
+  Future<double> _calculateProbability(List<RawPhoneData> data,
+      TransportTypeData dataType) {
     WeightedTransportTypeEvaluator evaluator =
-        WeightedTransportTypeEvaluator(dataType);
+    WeightedTransportTypeEvaluator(dataType);
     return evaluator.evaluate(data);
   }
 
@@ -92,7 +92,8 @@ class AnalyzingLegWrapper implements LegWrapper {
     if (_data.isNotEmpty &&
         (data as Position).timestamp.isBefore(_data.last.getTimestamp())) {
       throw Exception(
-          "Positions must be added in chronological order. Last timestamp: ${_data.last.getTimestamp()}, new timestamp: ${data.timestamp}");
+          "Positions must be added in chronological order. Last timestamp: ${_data
+              .last.getTimestamp()}, new timestamp: ${data.timestamp}");
     }
 
     _data.add(data);
@@ -152,9 +153,11 @@ class AnalyzingLegWrapper implements LegWrapper {
 
   @override
   void load(Map<String, dynamic> json) {
-    List<dynamic> positions = json["positions"];
+    List<dynamic> positions = json["data"];
     _data.clear();
-    _data.addAll(positions.map((e) => RawPhoneDataType.parseData(e)));
+    _data.addAll(
+        positions.map((e) => RawPhoneDataType.parseData(e)).toList() as Iterable<
+            RawPhoneData>);
     if (json.containsKey("startedMoving")) {
       _startedMoving = Position.fromJson(json["startedMoving"]);
     }

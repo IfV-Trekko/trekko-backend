@@ -207,7 +207,8 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     Trip? mergedTrip;
     WrapperResult<Trip>? result;
     try {
-      result = await wrapper.get(); //todo: do something with unused data points.
+      result =
+          await wrapper.get(); //todo: do something with unused data points.
       mergedTrip = result.result;
     } catch (e) {
       mergedTrip = Trip.withData(legsSorted);
