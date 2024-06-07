@@ -72,7 +72,7 @@ class AnalyzingTripWrapper implements TripWrapper {
     WrapperResult newestResult = await _takeResults(legs);
     double endProbability = await _calculateEndProbability(newestResult);
     return WrapperResult(endProbability * newestResult.confidence,
-        Trip.withData(legs), newestResult.unusedDataPoints.toList());
+        Trip.withData(legs), newestResult.unusedDataPoints.toList()); // TODO: Filter and buffer
   }
 
   @override

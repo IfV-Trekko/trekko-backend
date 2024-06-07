@@ -1,9 +1,9 @@
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data_provider.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data_provider.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
 
 enum TransportTypeData implements TransportTypeDataProvider {
-  none(null, 0, 0, 5),
+  stationary(null, 0, 0, 5),
   by_foot(TransportType.by_foot, 13, 5, 10),
   bicycle(TransportType.bicycle, 30, 16, 30),
   car(TransportType.car, 200, 45, 60),

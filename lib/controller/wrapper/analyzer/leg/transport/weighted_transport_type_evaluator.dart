@@ -1,5 +1,5 @@
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_evaluator.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_part.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_part.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';

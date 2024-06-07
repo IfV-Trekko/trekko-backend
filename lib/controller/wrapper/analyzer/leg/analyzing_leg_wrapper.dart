@@ -1,10 +1,11 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_evaluator.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_part.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/weighted_transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_part.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/weighted_transport_type_evaluator.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/tracking/position.dart';
@@ -50,10 +51,10 @@ class AnalyzingLegWrapper implements LegWrapper {
       Iterable<TransportTypePart> analysis) {
     // Get first TransportTypePart where the duration is longer than _minTransportUsage
     return analysis
-        .where((e) => e.transportType != TransportTypeData.none)
+        .where((e) => e.transportType != TransportTypeData.stationary)
         .firstWhere((element) => element.duration > _minTransportUsage,
             orElse: () => TransportTypePart(analysis.first.start,
-                analysis.last.end, TransportTypeData.none));
+                analysis.last.end, TransportTypeData.stationary));
   }
 
   @override
@@ -74,7 +75,7 @@ class AnalyzingLegWrapper implements LegWrapper {
           (element) => element!.end.isAfter(mainPart.end),
           orElse: () => null);
 
-      if (mainPart == TransportTypeData.none || endPart == null)
+      if (mainPart == TransportTypeData.stationary || endPart == null)
         return WrapperResult(0, null, analysisData);
 
       List<TrackedPoint> positions = analysisData
@@ -86,7 +87,7 @@ class AnalyzingLegWrapper implements LegWrapper {
           .toList();
 
       Leg leg = Leg.withData(mainPart.transportType.transportType!, positions);
-      return WrapperResult(result.confidence, leg,
+      return WrapperResult(max(result.confidence * 1.5, 1), leg,
           analysisData.where((e) => e.getTimestamp().isAfter(mainPart.end)));
     });
   }
