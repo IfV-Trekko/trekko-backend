@@ -62,8 +62,8 @@ class AnalyzingTripWrapper implements TripWrapper {
   }
 
   @override
-  Future add(Iterable<RawPhoneData> data) async {
-    await _legWrapper.add(data);
+  add(Iterable<RawPhoneData> data) {
+    _legWrapper.add(data);
   }
 
   @override

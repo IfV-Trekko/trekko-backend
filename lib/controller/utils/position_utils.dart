@@ -91,10 +91,15 @@ final class PositionUtils {
         accuracy: 0);
   }
 
-  static double distanceBetweenPoints(List<Position> positions) {
+  static double distanceBetweenPoints(Iterable<Position> positions) {
+    if (positions.length < 2) return 0;
     double distance = 0;
-    for (int i = 1; i < positions.length; i++) {
-      distance += distanceBetween(positions[i - 1], positions[i]);
+    Position? last;
+    for (Position current in positions) {
+      if (last != null) {
+        distance += distanceBetween(last, current);
+      }
+      last = current;
     }
     return distance;
   }

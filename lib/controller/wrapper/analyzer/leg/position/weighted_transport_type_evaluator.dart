@@ -1,5 +1,5 @@
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_part.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
@@ -10,13 +10,13 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
   WeightedTransportTypeEvaluator(this._data);
 
   @override
-  Future add(Iterable<RawPhoneData> data) async {
+  add(Iterable<RawPhoneData> data) {
     _data.addAll(data);
   }
 
   @override
-  Future<WrapperResult<Map<DateTime, TransportTypeData>>> get() {
-    // TODO: implement get, so that it returns the result of the evaluation
+  Future<WrapperResult<List<TransportTypePart>>> get() {
+    // TODO: implement get, so that it returns the result of the evaluation (needs to be sorted!)
     throw UnimplementedError();
   }
 

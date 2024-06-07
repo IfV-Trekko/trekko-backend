@@ -1,55 +1,92 @@
 import 'dart:async';
 
-import 'package:fling_units/fling_units.dart';
-import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_part.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/weighted_transport_type_evaluator.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
+import 'package:trekko_backend/model/trip/tracked_point.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
-  static const Duration _stayDuration = Duration(minutes: 3);
-  static Distance _stayDistance = meters(50);
+  static const Duration _minTransportUsage = Duration(minutes: 3);
+  static const Duration _transportTypeThreshold = Duration(minutes: 2);
 
   TransportTypeEvaluator _evaluator;
 
   AnalyzingLegWrapper(Iterable<RawPhoneData> initialData)
       : _evaluator = WeightedTransportTypeEvaluator(initialData.toList());
 
-  Future<Iterable<Position>> _getAnalysisPositions() async {
-    return (await _evaluator.getAnalysisData())
-        .where((element) => element.getType() == RawPhoneDataType.position)
-        .cast<Position>();
+  Iterable<TransportTypePart> _smoothData(List<TransportTypePart> data) {
+    TransportTypePart? firstRemove = data.cast<TransportTypePart?>().firstWhere(
+        (element) => element!.duration > _transportTypeThreshold,
+        orElse: () => null);
+
+    if (firstRemove != null) {
+      int indexOfRemove = data.indexOf(firstRemove);
+      if (indexOfRemove > 0 && indexOfRemove < data.length - 1) {
+        TransportTypePart before = data[indexOfRemove - 1];
+        TransportTypePart after = data[indexOfRemove + 1];
+
+        // Connect the two parts if transport type is the same
+        if (before.transportType == after.transportType) {
+          data[indexOfRemove - 1] =
+              TransportTypePart(before.start, after.end, before.transportType);
+          data.removeAt(indexOfRemove);
+          data.removeAt(indexOfRemove + 1);
+          return _smoothData(data);
+        }
+      }
+    }
+    return data;
   }
 
-  Future<double> _calculateEndProbability(DateTime? startedMoving) {
-    return Future.microtask(() async {
-      if (startedMoving == null) return 0;
-      Iterable<Position> positions = await _getAnalysisPositions();
-      DateTime last = positions.last.timestamp;
-      DateTime from = last.subtract(_stayDuration);
-      // Check if last point is longer than _stayDuration away from _startedMoving
-      if (last.difference(startedMoving) < _stayDuration) return 0;
-      return await PositionUtils.calculateSingleHoldProbability(
-          from, _stayDuration, _stayDistance, positions);
-    });
+  TransportTypePart _calculateFirstMainTransportPart(
+      Iterable<TransportTypePart> analysis) {
+    // Get first TransportTypePart where the duration is longer than _minTransportUsage
+    return analysis
+        .where((e) => e.transportType != TransportTypeData.none)
+        .firstWhere((element) => element.duration > _minTransportUsage,
+            orElse: () => TransportTypePart(analysis.first.start,
+                analysis.last.end, TransportTypeData.none));
   }
 
   @override
-  add(Iterable<RawPhoneData> data) async {
+  add(Iterable<RawPhoneData> data) {
     _evaluator.add(data);
   }
 
   @override
   Future<WrapperResult<Leg>> get() async {
     return Future.microtask(() async {
-      // TODO: Analyse transport type, if transport type analyze is confident calculate end probability and return
-      return WrapperResult(await _calculateEndProbability(null), null,
-          await this._evaluator.getAnalysisData());
+      WrapperResult result = await _evaluator.get();
+      List<RawPhoneData> analysisData = (await this.getAnalysisData()).toList();
+      if (result.result == null) return WrapperResult(0, null, analysisData);
+
+      Iterable<TransportTypePart> data = _smoothData(result.result);
+      TransportTypePart mainPart = _calculateFirstMainTransportPart(data);
+      TransportTypePart? endPart = data.cast<TransportTypePart?>().firstWhere(
+          (element) => element!.end.isAfter(mainPart.end),
+          orElse: () => null);
+
+      if (mainPart == TransportTypeData.none || endPart == null)
+        return WrapperResult(0, null, analysisData);
+
+      List<TrackedPoint> positions = analysisData
+          .where((e) => e.getType() == RawPhoneDataType.position)
+          .cast<Position>()
+          .where((element) => element.getTimestamp().isAfter(mainPart.start))
+          .where((element) => element.getTimestamp().isBefore(mainPart.end))
+          .map(TrackedPoint.fromPosition)
+          .toList();
+
+      Leg leg = Leg.withData(mainPart.transportType.transportType!, positions);
+      return WrapperResult(result.confidence, leg,
+          analysisData.where((e) => e.getTimestamp().isAfter(mainPart.end)));
     });
   }
 
