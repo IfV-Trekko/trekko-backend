@@ -14,7 +14,6 @@ import 'package:trekko_backend/model/trip/tracked_point.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
   static const Duration _minTransportUsage = Duration(minutes: 3);
-  static const Duration _transportTypeThreshold = Duration(minutes: 2);
 
   TransportTypeEvaluator _evaluator;
 
@@ -23,7 +22,9 @@ class AnalyzingLegWrapper implements LegWrapper {
 
   Iterable<TransportTypePart> _smoothData(List<TransportTypePart> data) {
     TransportTypePart? firstRemove = data.cast<TransportTypePart?>().firstWhere(
-        (element) => element!.duration > _transportTypeThreshold,
+        (element) =>
+            element!.duration.inSeconds <
+            element.transportType.maximumHoldTimeSeconds,
         orElse: () => null);
 
     if (firstRemove != null) {

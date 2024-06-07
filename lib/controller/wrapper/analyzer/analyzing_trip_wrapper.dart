@@ -71,8 +71,8 @@ class AnalyzingTripWrapper implements TripWrapper {
     List<Leg> legs = List.from(_legs, growable: true);
     WrapperResult newestResult = await _takeResults(legs);
     double endProbability = await _calculateEndProbability(newestResult);
-    return WrapperResult(endProbability, Trip.withData(legs),
-        newestResult.unusedDataPoints.toList());
+    return WrapperResult(endProbability * newestResult.confidence,
+        Trip.withData(legs), newestResult.unusedDataPoints.toList());
   }
 
   @override

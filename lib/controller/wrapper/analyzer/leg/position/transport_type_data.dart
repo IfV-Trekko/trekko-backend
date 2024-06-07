@@ -3,21 +3,21 @@ import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
 
 enum TransportTypeData implements TransportTypeDataProvider {
-
-  none(0, 0, null),
-  by_foot(13, 5, TransportType.by_foot),
-  bicycle(30, 16, TransportType.bicycle),
-  car(200, 45, TransportType.car),
+  none(null, 0, 0, 5),
+  by_foot(TransportType.by_foot, 13, 5, 10),
+  bicycle(TransportType.bicycle, 30, 16, 30),
+  car(TransportType.car, 200, 45, 60),
   // publicTransport(300, 30, TransportType.publicTransport),
   // ship(50, 20, TransportType.ship),
-  plane(1000, 800, TransportType.plane);
+  plane(TransportType.plane, 1000, 800, 60 * 10);
 
   final double maximumSpeed;
   final double averageSpeed;
+  final double maximumHoldTimeSeconds;
   final TransportType? transportType;
 
-  const TransportTypeData(
-      this.maximumSpeed, this.averageSpeed, this.transportType);
+  const TransportTypeData(this.transportType, this.maximumSpeed,
+      this.averageSpeed, this.maximumHoldTimeSeconds);
 
   @override
   Future<DerivedMeasurement<Measurement<Distance>, Measurement<Time>>>
