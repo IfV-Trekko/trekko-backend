@@ -1,4 +1,5 @@
 import 'package:trekko_backend/model/tracking/accelerometer_data.dart';
+import 'package:trekko_backend/model/tracking/activity_data.dart';
 import 'package:trekko_backend/model/tracking/gyroscope_data.dart';
 import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
@@ -7,7 +8,8 @@ enum RawPhoneDataType {
 
   position._("position", Position.fromJson),
   gyroscope._("gyroscope", GyroscopeData.fromJson),
-  accelerometer._("accelerometer", AccelerometerData.fromJson);
+  accelerometer._("accelerometer", AccelerometerData.fromJson),
+  activity._("activity", ActivityData.fromJson);
 
   static const String type_loc = "type";
 

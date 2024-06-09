@@ -36,8 +36,8 @@ class AnalyzingLegWrapper implements LegWrapper {
 
         // Connect the two parts if transport type is the same
         if (before.transportType == after.transportType) {
-          data[indexOfRemove - 1] =
-              TransportTypePart(before.start, after.end, before.transportType);
+          data[indexOfRemove - 1] = TransportTypePart(before.start, after.end,
+              (before.confidence + after.confidence) / 2, before.transportType);
           data.removeAt(indexOfRemove);
           data.removeAt(indexOfRemove + 1);
           return _smoothData(data);
@@ -54,7 +54,7 @@ class AnalyzingLegWrapper implements LegWrapper {
         .where((e) => e.transportType != TransportTypeData.stationary)
         .firstWhere((element) => element.duration > _minTransportUsage,
             orElse: () => TransportTypePart(analysis.first.start,
-                analysis.last.end, TransportTypeData.stationary));
+                analysis.last.end, 0, TransportTypeData.stationary));
   }
 
   @override
@@ -75,8 +75,8 @@ class AnalyzingLegWrapper implements LegWrapper {
           (element) => element!.end.isAfter(mainPart.end),
           orElse: () => null);
 
-      if (mainPart == TransportTypeData.stationary || endPart == null)
-        return WrapperResult(0, null, analysisData);
+      if (mainPart.transportType == TransportTypeData.stationary ||
+          endPart == null) return WrapperResult(0, null, analysisData);
 
       List<TrackedPoint> positions = analysisData
           .where((e) => e.getType() == RawPhoneDataType.position)
@@ -87,7 +87,7 @@ class AnalyzingLegWrapper implements LegWrapper {
           .toList();
 
       Leg leg = Leg.withData(mainPart.transportType.transportType!, positions);
-      return WrapperResult(max(result.confidence * 1.5, 1), leg,
+      return WrapperResult(max(mainPart.confidence * 1.5, 1), leg,
           analysisData.where((e) => e.getTimestamp().isAfter(mainPart.end)));
     });
   }
