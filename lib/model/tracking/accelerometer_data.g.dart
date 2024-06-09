@@ -11,8 +11,7 @@ AccelerometerData _$AccelerometerDataFromJson(Map<String, dynamic> json) =>
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
       z: (json['z'] as num).toDouble(),
-      timestamp:
-          AccelerometerData._dateTimeFromJson((json['time'] as num).toInt()),
+      timestamp: dateTimeFromJson((json['time'] as num).toInt()),
     );
 
 Map<String, dynamic> _$AccelerometerDataToJson(AccelerometerData instance) =>
@@ -20,6 +19,6 @@ Map<String, dynamic> _$AccelerometerDataToJson(AccelerometerData instance) =>
       'x': instance.x,
       'y': instance.y,
       'z': instance.z,
-      'time': AccelerometerData._dateTimeToJson(instance.timestamp),
+      'time': dateTimeToJson(instance.timestamp),
       'type': RawPhoneDataType.toJson(instance.type),
     };

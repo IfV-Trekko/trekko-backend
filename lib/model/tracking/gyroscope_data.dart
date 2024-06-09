@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:trekko_backend/controller/utils/serialize_utils.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
@@ -16,7 +17,7 @@ class GyroscopeData implements RawPhoneData {
   @JsonKey(name: "z")
   final double z;
 
-  @JsonKey(name: "time", toJson: _dateTimeToJson, fromJson: _dateTimeFromJson)
+  @JsonKey(name: "time", toJson: dateTimeToJson, fromJson: dateTimeFromJson)
   final DateTime timestamp;
 
   @JsonKey(name: RawPhoneDataType.type_loc, toJson: RawPhoneDataType.toJson, includeFromJson: false, includeToJson: true)
@@ -28,14 +29,6 @@ class GyroscopeData implements RawPhoneData {
   factory GyroscopeData.fromJson(dynamic json) => _$GyroscopeDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$GyroscopeDataToJson(this);
-
-  static DateTime _dateTimeFromJson(int value) {
-    return DateTime.fromMillisecondsSinceEpoch(value);
-  }
-
-  static int _dateTimeToJson(DateTime value) {
-    return value.millisecondsSinceEpoch.toInt();
-  }
 
   @override
   DateTime getTimestamp() {

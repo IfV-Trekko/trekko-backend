@@ -11,7 +11,7 @@ GyroscopeData _$GyroscopeDataFromJson(Map<String, dynamic> json) =>
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
       z: (json['z'] as num).toDouble(),
-      timestamp: GyroscopeData._dateTimeFromJson((json['time'] as num).toInt()),
+      timestamp: dateTimeFromJson((json['time'] as num).toInt()),
     );
 
 Map<String, dynamic> _$GyroscopeDataToJson(GyroscopeData instance) =>
@@ -19,6 +19,6 @@ Map<String, dynamic> _$GyroscopeDataToJson(GyroscopeData instance) =>
       'x': instance.x,
       'y': instance.y,
       'z': instance.z,
-      'time': GyroscopeData._dateTimeToJson(instance.timestamp),
+      'time': dateTimeToJson(instance.timestamp),
       'type': RawPhoneDataType.toJson(instance.type),
     };

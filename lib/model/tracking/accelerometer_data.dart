@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:trekko_backend/controller/utils/serialize_utils.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
@@ -15,7 +16,7 @@ class AccelerometerData extends RawPhoneData {
   @JsonKey(name: "z")
   final double z;
 
-  @JsonKey(name: "time", toJson: _dateTimeToJson, fromJson: _dateTimeFromJson)
+  @JsonKey(name: "time", toJson: dateTimeToJson, fromJson: dateTimeFromJson)
   final DateTime timestamp;
 
   @JsonKey(name: RawPhoneDataType.type_loc, toJson: RawPhoneDataType.toJson, includeFromJson: false, includeToJson: true)
@@ -27,14 +28,6 @@ class AccelerometerData extends RawPhoneData {
   factory AccelerometerData.fromJson(dynamic json) => _$AccelerometerDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$AccelerometerDataToJson(this);
-
-  static DateTime _dateTimeFromJson(int value) {
-    return DateTime.fromMillisecondsSinceEpoch(value);
-  }
-
-  static int _dateTimeToJson(DateTime value) {
-    return value.millisecondsSinceEpoch.toInt();
-  }
 
   @override
   DateTime getTimestamp() {
