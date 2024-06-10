@@ -4,11 +4,11 @@ import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 abstract class Tracking {
   static final List<Permission> perms = [
+    Permission.notification,
+    Permission.activityRecognition,
+    Permission.ignoreBatteryOptimizations,
     Permission.locationWhenInUse,
     Permission.locationAlways,
-    Permission.notification,
-    Permission.ignoreBatteryOptimizations,
-    Permission.activityRecognition
   ];
 
   Future init(BatteryUsageSetting options);
