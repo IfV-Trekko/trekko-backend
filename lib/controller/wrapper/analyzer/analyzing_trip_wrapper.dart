@@ -46,8 +46,11 @@ class AnalyzingTripWrapper implements TripWrapper {
           .where((p) => p.getTimestamp().isBefore(end));
 
       double distance = PositionUtils.distanceBetweenPoints(positions);
-      double distanceToHoldProbability =
-          max(1, _stayDistance.as(meters) / distance);
+      double distanceToHoldProbability = _stayDistance.as(meters) / distance;
+      if (distanceToHoldProbability >= 1) {
+        return 1;
+      }
+
       probabilities.add(distanceToHoldProbability);
     }
 
