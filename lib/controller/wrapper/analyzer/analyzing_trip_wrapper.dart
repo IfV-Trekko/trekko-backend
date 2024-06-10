@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
