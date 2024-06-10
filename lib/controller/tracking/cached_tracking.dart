@@ -96,7 +96,7 @@ class CachedTracking implements Tracking {
       send.addAll(
           cached.map((e) => RawPhoneDataType.parseData(jsonDecode(e.value))));
       await _cacheDb.writeTxn(() => _cacheDb.cacheObjects.where().deleteAll());
-      Logging.info("Sending ${send.length} cached positions");
+      Logging.info("Sending ${send.length} cached data points");
       await _process(send);
     }
   }
