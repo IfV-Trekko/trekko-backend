@@ -32,19 +32,20 @@ class TrackingTask extends TaskHandler {
         lastTimestamp = p.getTimestamp();
         valids.add(p);
       } else {
-        await Logging.warning("Skipping position: ${p.toJson()}");
+        await Logging.warning(
+            "Skipping data point: ${p.toJson()} of type ${p.getType()}");
       }
     }
 
     if (valids.isEmpty) return;
     if (!await FlutterForegroundTask.isAppOnForeground) {
       Isar cache = (await Databases.cache.getInstance());
-      await Logging.info("Sending ${valids.length} positions to cache");
+      await Logging.info("Sending ${valids.length} data points to cache");
       List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
       await cache.writeTxn(() async => await cache.cacheObjects
           .putAll(data.map(CacheObject.fromJson).toList()));
     } else {
-      await Logging.info("Sending ${valids.length} positions directly");
+      await Logging.info("Sending ${valids.length} data points directly");
       valids.forEach((element) => sendPort!.send(element.toJson()));
     }
   }
