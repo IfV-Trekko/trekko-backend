@@ -53,8 +53,11 @@ class AnalyzingLegWrapper implements LegWrapper {
     return analysis
         .where((e) => e.transportType != TransportTypeData.stationary)
         .firstWhere((element) => element.duration > _minTransportUsage,
-            orElse: () => TransportTypePart(analysis.first.start,
-                analysis.last.end, 0, TransportTypeData.stationary));
+            orElse: () => TransportTypePart(
+                DateTime.fromMicrosecondsSinceEpoch(0),
+                DateTime.now(),
+                0,
+                TransportTypeData.stationary));
   }
 
   @override

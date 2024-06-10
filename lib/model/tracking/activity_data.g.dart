@@ -9,14 +9,15 @@ part of 'activity_data.dart';
 ActivityData _$ActivityDataFromJson(Map<String, dynamic> json) => ActivityData(
       timestamp: dateTimeFromJson((json['time'] as num).toInt()),
       confidence: $enumDecode(_$ActivityConfidenceEnumMap, json['confidence']),
-      activity: $enumDecode(_$ActivityTypeEnumMap, json['type']),
+      activity: $enumDecode(_$ActivityTypeEnumMap, json['activityType']),
     );
 
 Map<String, dynamic> _$ActivityDataToJson(ActivityData instance) =>
     <String, dynamic>{
-      'type': _$ActivityTypeEnumMap[instance.activity]!,
+      'activityType': _$ActivityTypeEnumMap[instance.activity]!,
       'time': dateTimeToJson(instance.timestamp),
       'confidence': _$ActivityConfidenceEnumMap[instance.confidence]!,
+      'type': RawPhoneDataType.toJson(instance.type),
     };
 
 const _$ActivityConfidenceEnumMap = {

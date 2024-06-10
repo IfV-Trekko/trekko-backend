@@ -9,7 +9,7 @@ part 'activity_data.g.dart';
 
 @JsonSerializable()
 class ActivityData implements RawPhoneData {
-  @JsonKey(name: "type")
+  @JsonKey(name: "activityType")
   final ActivityType activity;
 
   @JsonKey(name: "time", toJson: dateTimeToJson, fromJson: dateTimeFromJson)
@@ -17,6 +17,13 @@ class ActivityData implements RawPhoneData {
 
   @JsonKey(name: "confidence")
   final ActivityConfidence confidence;
+
+  @JsonKey(
+      name: RawPhoneDataType.type_loc,
+      toJson: RawPhoneDataType.toJson,
+      includeFromJson: false,
+      includeToJson: true)
+  final RawPhoneDataType type = RawPhoneDataType.activity;
 
   ActivityData(
       {required this.timestamp,

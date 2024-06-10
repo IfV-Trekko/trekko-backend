@@ -9,7 +9,6 @@ import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
   List<RawPhoneData> _data;
-  ActivityData? _lastActivity;
 
   WeightedTransportTypeEvaluator(this._data);
 
@@ -22,7 +21,9 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
   }
 
   double avg(Iterable<double> list) {
-    return list.reduce((value, element) => value + element) / list.length;
+    return list.isEmpty
+        ? 0
+        : list.reduce((value, element) => value + element) / list.length;
   }
 
   List<List<ActivityData>> joinDataOnType() {
@@ -58,18 +59,10 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
             activity.activity == ActivityType.UNKNOWN) {
           continue;
         }
-
-        if (_lastActivity != null) {
-          if (activity.activity != _lastActivity!.activity ||
-              activity.confidence != _lastActivity!.confidence) {
-            _data.add(_lastActivity!);
-          }
-        }
-        _lastActivity = activity;
       }
-    }
 
-    _data.addAll(data);
+      _data.add(phoneData);
+    }
   }
 
   @override
@@ -110,7 +103,6 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
   Map<String, dynamic> save() {
     Map<String, dynamic> json = Map<String, dynamic>();
     json["data"] = _data.map((e) => e.toJson()).toList();
-    json["lastActivity"] = _lastActivity?.toJson();
     return json;
   }
 
@@ -119,8 +111,5 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
     List<dynamic> positions = json["data"];
     _data.clear();
     _data.addAll(positions.map((e) => RawPhoneDataType.parseData(e)));
-    _lastActivity = json["lastActivity"] != null
-        ? ActivityData.fromJson(json["lastActivity"])
-        : null;
   }
 }
