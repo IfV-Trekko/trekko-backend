@@ -13,10 +13,9 @@ class PositionFilter<T> implements DataWrapper<T> {
 
   @override
   add(Iterable<RawPhoneData> data) {
-    _internal.add(data
-        .where((e) => e.getType() == RawPhoneDataType.position)
-        .cast<Position>()
-        .where((p) => p.accuracy < desiredAccuracyMeters));
+    _internal.add(data.where((e) =>
+        e.getType() != RawPhoneDataType.position ||
+        (e as Position).accuracy <= desiredAccuracyMeters));
   }
 
   @override
