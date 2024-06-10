@@ -30,9 +30,10 @@ class AnalyzingTripWrapper implements TripWrapper {
   Future<WrapperResult> _takeResults(List<Leg> legs) async {
     WrapperResult newestResult = await _legWrapper.get();
     if (newestResult.result != null && newestResult.confidence > 0.95) {
+      Leg resultLeg = newestResult.result!;
       Logging.info(
-          "Leg finished at ${newestResult.result!.getTimestamp().toIso8601String()}");
-      legs.add(newestResult.result);
+          "Leg finished at ${resultLeg.calculateEndTime().toIso8601String()}");
+      legs.add(resultLeg);
       _legWrapper = AnalyzingLegWrapper(newestResult.unusedDataPoints.toList());
       return await _takeResults(legs);
     }
@@ -71,8 +72,10 @@ class AnalyzingTripWrapper implements TripWrapper {
     List<Leg> legs = List.from(_legs, growable: true);
     WrapperResult newestResult = await _takeResults(legs);
     double endProbability = await _calculateEndProbability(newestResult);
-    return WrapperResult(endProbability * newestResult.confidence,
-        Trip.withData(legs), newestResult.unusedDataPoints.toList()); // TODO: Filter and buffer
+    return WrapperResult(
+        endProbability * newestResult.confidence,
+        Trip.withData(legs),
+        newestResult.unusedDataPoints.toList()); // TODO: Filter and buffer
   }
 
   @override
