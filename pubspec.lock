@@ -247,10 +247,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_foreground_task
-      sha256: "3e0a70e61bf13428b6b531b428230f7c6e626d604410508c08f860497bec7551"
+      sha256: "1f9974fa9b322cca33d091857926165f5be46387f489d2335395b3cf6ac91b74"
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.0"
+    version: "6.4.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter

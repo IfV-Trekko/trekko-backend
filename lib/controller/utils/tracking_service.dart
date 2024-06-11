@@ -120,10 +120,6 @@ class TrackingService {
         channelImportance: NotificationChannelImportance.NONE,
         priority: NotificationPriority.MIN,
         isSticky: true,
-        foregroundServiceTypes: [
-          AndroidForegroundServiceType.LOCATION,
-          AndroidForegroundServiceType.HEALTH
-        ],
         visibility: NotificationVisibility.VISIBILITY_SECRET,
         showWhen: false,
         playSound: false,
