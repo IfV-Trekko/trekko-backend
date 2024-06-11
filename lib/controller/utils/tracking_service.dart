@@ -9,17 +9,20 @@ import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/model/tracking/activity_data.dart';
 import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:trekko_backend/model/tracking/cache/tracking_options.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class TrackingTask extends TaskHandler {
   final BatteryUsageSetting options;
   DateTime? lastTimestamp;
   List<StreamSubscription> _subscriptions = [];
+  QueuedExecutor executor = QueuedExecutor();
 
   TrackingTask(this.options);
 
@@ -57,21 +60,35 @@ class TrackingTask extends TaskHandler {
   }
 
   @override
-  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
-    PositionUtils.getPosition(options.accuracy)
-        .then((value) => _sendData(sendPort, [value!]));
+  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) {
+    executor.add(() async => await _sendData(
+        sendPort, [(await PositionUtils.getPosition(options.accuracy))!]));
   }
 
   @override
-  void onStart(DateTime timestamp, SendPort? sendPort) async {
+  void onStart(DateTime timestamp, SendPort? sendPort) {
     _subscriptions.add(FlutterActivityRecognition.instance.activityStream
         .listen((event) async {
-      await _sendData(sendPort, [
-        ActivityData(
-            activity: event.type,
-            confidence: event.confidence,
-            timestamp: DateTime.now())
-      ]);
+      executor.add(() async {
+        DateTime now = DateTime.now();
+        Position? pos = await PositionUtils.getPosition(options.accuracy);
+        await _sendData(sendPort, [
+          Position(
+              latitude: pos!.latitude,
+              longitude: pos.longitude,
+              timestamp: now.add(Duration(seconds: -1)),
+              accuracy: pos.accuracy),
+          ActivityData(
+              activity: event.type,
+              confidence: event.confidence,
+              timestamp: now),
+          Position(
+              latitude: pos.latitude,
+              longitude: pos.longitude,
+              timestamp: now.add(Duration(seconds: 1)),
+              accuracy: pos.accuracy),
+        ]);
+      });
     }));
 
     Logging.warning("Tracking service started");
