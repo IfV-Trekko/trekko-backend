@@ -1,13 +1,14 @@
-import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
-import 'package:trekko_backend/model/trip/tracked_point.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
 import '../trekko_test_utils.dart';
+import '../utils/data_builder.dart';
+import '../utils/tracking_test_util.dart';
 
 void main() {
   late TripWrapper tripWrapper;
@@ -17,20 +18,7 @@ void main() {
   });
 
   test("Analyze walk to shop and back", () async {
-    List<TrackedPoint> walkToShopAndBack = TripBuilder()
-        // stay for 1h
-        .stay(Duration(hours: 1))
-        // walk 500m
-        .move(true, Duration(minutes: 10), 500.meters)
-        // stay for 5min
-        .stay(Duration(minutes: 5))
-        // walk 500m back
-        .move(false, Duration(minutes: 10), 500.meters)
-        // stay for 1h
-        .stay(Duration(hours: 1))
-        .collect();
-
-    await tripWrapper.add(walkToShopAndBack.map((e) => e.toPosition()));
+    await tripWrapper.add(walkToShopAndBack);
     WrapperResult result = await tripWrapper.get();
     expect(result.confidence, greaterThan(0.9));
 
@@ -43,16 +31,16 @@ void main() {
   });
 
   test("Staying at the same location: no trip", () async {
-    List<TrackedPoint> points = TripBuilder()
+    List<RawPhoneData> points = DataBuilder()
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         .collect();
 
-    await tripWrapper.add(points.map((e) => e.toPosition()));
+    await tripWrapper.add(points);
     WrapperResult? result = (await tripWrapper.get());
     expect(result.confidence, greaterThan(0.9));
     expect(result.result, isNull);

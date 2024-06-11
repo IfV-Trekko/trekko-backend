@@ -1,34 +1,60 @@
-import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 import 'package:trekko_backend/model/tracking/position.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
+
+import 'data_builder.dart';
 
 void main() {
   setUp(() async {});
 
   test("Check if tripbuilder trips are in right order date wise", () async {
-    List<Position> walkToShopAndBack = TripBuilder()
+    List<RawPhoneData> walkToShopAndBack = DataBuilder()
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         // walk 500m
-        .move(true, Duration(minutes: 10), 500.meters)
+        .walk(500.meters)
         // stay for 5min
-        .stay(Duration(minutes: 5))
+        .stay(5.minutes)
         // walk 500m back
-        .move(false, Duration(minutes: 10), 500.meters)
+        .walk(forward: false, 500.meters)
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         .collect()
-        .map((e) => e.toPosition())
         .toList();
 
     int newestTime = 0;
-    for (Position position in walkToShopAndBack) {
-      if (newestTime > position.timestamp.millisecondsSinceEpoch) {
+    for (RawPhoneData data in walkToShopAndBack) {
+      if (newestTime > data.getTimestamp().millisecondsSinceEpoch) {
         fail(
-            "Newest time is not in right order, expected: $newestTime, got: ${position.timestamp.toString()}");
+            "Newest time is not in right order, expected: $newestTime, got: ${data.getTimestamp().toString()}");
       }
-      newestTime = position.timestamp.millisecondsSinceEpoch;
+      newestTime = data.getTimestamp().millisecondsSinceEpoch;
     }
+  });
+
+  test("Check if tripbuilder trips are precise", () async {
+    List<RawPhoneData> walkToShopAndBack = DataBuilder()
+        // stay for 1h
+        .stay(1.hours)
+        // walk 500m
+        .walk(500.meters)
+        // stay for 5min
+        .stay(5.minutes)
+        // walk 500m back
+        .walk(forward: false, 500.meters)
+        // stay for 1h
+        .stay(1.hours)
+        .collect()
+        .toList();
+
+    DateTime start = walkToShopAndBack.first.getTimestamp();
+    DateTime end = walkToShopAndBack.last.getTimestamp();
+    expect(end.difference(start).inMinutes, inExclusiveRange(130, 140));
+
+    double distance = PositionUtils.distanceBetweenPoints(
+        walkToShopAndBack.where((e) => e is Position).cast());
+    expect(distance, inExclusiveRange(998, 1002));
   });
 }

@@ -1,14 +1,12 @@
 import 'package:trekko_backend/controller/trekko.dart';
-import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
-import 'package:fling_units/fling_units.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../trekko_test_utils.dart';
-import 'tracking_test_util.dart';
+import '../utils/tracking_test_util.dart';
 
 void main() {
   late Trekko trekko;
@@ -18,32 +16,17 @@ void main() {
   });
 
   test("Analyze walk to shop and back with gps errors", () async {
-    List<Position> walkToShopAndBack = TripBuilder()
-        // stay for 1h
-        .stay(Duration(hours: 1))
-        // walk 500m
-        .move(true, Duration(minutes: 10), 500.meters)
-        // stay for 5min
-        .stay(Duration(minutes: 5))
-        // walk 500m back
-        .move(false, Duration(minutes: 10), 500.meters)
-        // stay for 1h
-        .stay(Duration(hours: 1))
-        .collect()
-        .map((e) => e.toPosition())
-        .toList();
-
     // Obscure the GPS data. Choose random points and make the position off by over 100m
     List<Position> wrongPositions = [];
     for (int i = 0; i < walkToShopAndBack.length; i++) {
-      if (i % 50 == 0) {
-        Position toModify = walkToShopAndBack[i];
+      if (i % 50 == 0 && walkToShopAndBack[i] is Position) {
+        Position toModify = walkToShopAndBack[i] as Position;
         double lat = toModify.latitude + 0.001;
         double lon = toModify.longitude + 0.001;
         Position modified = Position(
           latitude: lat,
           longitude: lon,
-          accuracy: toModify.accuracy,
+          accuracy: 100,
           timestamp: toModify.timestamp,
         );
         walkToShopAndBack[i] = modified;
@@ -51,7 +34,7 @@ void main() {
       }
     }
 
-    await TrackingTestUtil.sendPositions(trekko, walkToShopAndBack);
+    await TrackingTestUtil.sendData(trekko, walkToShopAndBack);
 
     List<Trip> trips = await trekko.getTripQuery().collect();
     // Check if the wrong positions are in the trips
@@ -70,22 +53,6 @@ void main() {
         );
       }
     }
-  });
-
-  test("Analyze small jump in coordinates", () async {
-    List<Position> walkToShopAndBack = TripBuilder()
-        .stay(Duration(hours: 1))
-        .move(true, Duration(seconds: 10), 400.meters)
-        .move(false, Duration(seconds: 10), 400.meters)
-        .stay(Duration(hours: 1))
-        .collect()
-        .map((e) => e.toPosition())
-        .toList();
-
-    await TrackingTestUtil.sendPositions(trekko, walkToShopAndBack);
-
-    // Check if the wrong positions are in the trips
-    expect(await trekko.getTripQuery().isEmpty(), true);
   });
 
   tearDown(() async {

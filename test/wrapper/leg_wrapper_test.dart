@@ -1,12 +1,14 @@
-import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/analyzing_leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
-import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
+
+import '../utils/data_builder.dart';
+import '../utils/tracking_test_util.dart';
 
 void main() {
   late LegWrapper legWrapper;
@@ -15,68 +17,56 @@ void main() {
   });
 
   test("Analyze walk to shop", () async {
-    List<TrackedPoint> walkToShop = TripBuilder()
-        // stay for 1h
-        .stay(Duration(hours: 1))
-        // walk 500m
-        .move(true, Duration(minutes: 10), 500.meters)
-        // stay for 5min
-        .stay(Duration(hours: 1))
-        .collect();
-
-    await legWrapper.add(walkToShop.map((e) => e.toPosition()));
+    await legWrapper.add(walkToShop);
     WrapperResult result = await legWrapper.get();
     expect(result.confidence, greaterThan(0.95));
 
     Leg wrapped = result.result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(495, 505));
-    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
+    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(5, 6));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours),
-        inInclusiveRange(2, 4));
+        inInclusiveRange(4, 6));
     expect(wrapped.transportType, equals(TransportType.by_foot));
   });
 
   test("Staying at the same location: no leg", () async {
-    List<TrackedPoint> points = TripBuilder()
+    List<RawPhoneData> points = DataBuilder()
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         .collect();
-    await legWrapper.add(points.map((e) => e.toPosition()));
+    await legWrapper.add(points);
     WrapperResult result = await legWrapper.get();
     expect(result.confidence, greaterThan(0.9));
     expect(result.result, isNull);
   });
 
   test("Staying approx. at the same location: no leg", () async {
-    List<TrackedPoint> points = TripBuilder()
-        .stay(Duration(hours: 1))
-        .move_r(Duration(minutes: 1), 49.meters)
-        .stay(Duration(hours: 1))
-        .collect();
-    await legWrapper.add(points.map((e) => e.toPosition()));
+    List<RawPhoneData> points =
+        DataBuilder().stay(1.hours).walk(49.meters).stay(1.hours).collect();
+    await legWrapper.add(points);
     WrapperResult result = await legWrapper.get();
     expect(result.confidence, greaterThan(0.6));
     expect(result.result, isNull);
   });
 
   test("Moving wildly in start and end center, only one leg", () async {
-    List<TrackedPoint> points = TripBuilder()
-        .stay(Duration(hours: 1))
-        .move(true, Duration(minutes: 1), 49.meters)
-        .stay(Duration(minutes: 3))
-        .move(false, Duration(minutes: 1), 49.meters)
-        .stay(Duration(hours: 1))
-        .move(true, Duration(minutes: 10), 500.meters)
-        .move(false, Duration(seconds: 50), 30.meters)
-        .move(true, Duration(seconds: 50), 30.meters)
-        .stay(Duration(seconds: 20))
+    List<RawPhoneData> points = DataBuilder()
+        .stay(1.hours)
+        .walk(49.meters)
+        .stay(3.minutes)
+        .walk(forward: false, 49.meters)
+        .stay(1.hours)
+        .walk(500.meters)
+        .walk(forward: false, 30.meters)
+        .walk(30.meters)
+        .stay(20.seconds)
         .collect();
 
-    await legWrapper.add(points.map((e) => e.toPosition()));
+    await legWrapper.add(points);
     WrapperResult result = await legWrapper.get();
     expect(result.confidence, greaterThan(0.95));
 
@@ -89,17 +79,17 @@ void main() {
   });
 
   test("Moving wildly in start and end center, only one leg", () async {
-    List<TrackedPoint> points = TripBuilder()
-        .stay(Duration(hours: 1))
-        .move(true, Duration(minutes: 1), 49.meters)
-        .stay(Duration(minutes: 3))
-        .move(false, Duration(minutes: 1), 49.meters)
-        .stay(Duration(hours: 1))
-        .move(true, Duration(minutes: 10), 500.meters)
-        .stay(Duration(seconds: 115))
+    List<RawPhoneData> points = DataBuilder()
+        .stay(1.hours)
+        .walk(49.meters)
+        .stay(3.minutes)
+        .walk(forward: false, 49.meters)
+        .stay(1.hours)
+        .walk(500.meters)
+        .stay(115.seconds)
         .collect();
 
-    await legWrapper.add(points.map((e) => e.toPosition()));
+    await legWrapper.add(points);
     WrapperResult result = await legWrapper.get();
     expect(result.confidence, greaterThan(0.95));
 

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 
-import '../trekko_test_utils.dart';
+import 'trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;

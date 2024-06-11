@@ -15,7 +15,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
-import 'tracking/tracking_test_util.dart';
+import 'utils/tracking_test_util.dart';
 
 class MockPathProvider extends Mock
     with MockPlatformInterfaceMixin
