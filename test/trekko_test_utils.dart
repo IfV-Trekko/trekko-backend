@@ -12,7 +12,9 @@ import 'package:mockito/mockito.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/trip_builder.dart';
+import 'package:trekko_backend/model/log/log_level.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
 import 'utils/tracking_test_util.dart';
@@ -94,6 +96,10 @@ class TrekkoTestUtils {
     PathProviderPlatform.instance = MockPathProvider();
     PermissionHandlerPlatform.instance = CustomPermissionHandlerPlatform();
     await TrackingTestUtil.init();
+    Logging.loggingHooks.add((e) {
+      if (e.key != LogLevel.error) return;
+      fail("Received error: ${e.value}");
+    });
   }
 
   static Future<Trekko> initTrekko(
