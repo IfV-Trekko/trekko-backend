@@ -68,7 +68,7 @@ class TrackingTask extends TaskHandler {
   @override
   void onStart(DateTime timestamp, SendPort? sendPort) {
     _subscriptions.add(FlutterActivityRecognition.instance.activityStream
-        .listen((event) async {
+        .listen((event) {
       executor.add(() async {
         DateTime now = DateTime.now();
         Position? pos = await PositionUtils.getPosition(options.accuracy);
