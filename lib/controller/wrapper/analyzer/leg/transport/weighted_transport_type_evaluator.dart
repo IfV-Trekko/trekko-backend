@@ -1,4 +1,5 @@
 import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
+import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_evaluator.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_part.dart';
@@ -69,8 +70,9 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
       // Check if data is in order
       if (_data.isNotEmpty &&
           phoneData.getTimestamp().isBefore(_data.last.getTimestamp())) {
-        throw Exception(
+        Logging.error(
             "Data is not in order; ${phoneData.getTimestamp()} is before ${_data.last.getTimestamp()}");
+        continue;
       }
 
       _data.add(phoneData);
