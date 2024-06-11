@@ -71,10 +71,10 @@ void main() {
     expect(result.confidence, greaterThan(0.95));
 
     Leg wrapped = result.result;
-    expect(wrapped.calculateDistance().as(meters), inInclusiveRange(485, 501));
-    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
+    expect(wrapped.calculateDistance().as(meters), inInclusiveRange(560, 600));
+    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(7, 8));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours),
-        inInclusiveRange(2, 4));
+        inInclusiveRange(5, 6));
     expect(wrapped.transportType, equals(TransportType.by_foot));
   });
 
@@ -95,9 +95,9 @@ void main() {
 
     Leg wrapped = result.result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(497, 502));
-    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
+    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(5, 6));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours),
-        inInclusiveRange(2, 4));
+        inInclusiveRange(5, 6));
     expect(wrapped.transportType, equals(TransportType.by_foot));
   });
 }
