@@ -46,6 +46,11 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
         }
       }
     }
+
+    if (!currentType.isEmpty) {
+      joinedData.add(currentType);
+    }
+
     return joinedData;
   }
 
@@ -98,7 +103,9 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
       analysis.add(TransportTypePart(start, end, confidence, data));
     }
 
-    return WrapperResult(avg(analysis.map((e) => e.confidence)), analysis, []);
+    double conf =
+        analysis.length == 0 ? 1 : avg(analysis.map((e) => e.confidence));
+    return WrapperResult(conf, analysis, []);
   }
 
   @override
