@@ -82,7 +82,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   Future _sendData(
-      List<RawPhoneData> dataPoints, Iterable<WrapperType> types) async {
+      Iterable<RawPhoneData> dataPoints, Iterable<WrapperType> types) async {
     for (WrapperType type in types) {
       _streams[type]!.add(dataPoints);
     }
@@ -90,7 +90,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     await _saveWrapper();
   }
 
-  Future _processTrackedPositions(List<RawPhoneData> positions) async {
+  Future _processTrackedPositions(Iterable<RawPhoneData> positions) async {
     return await _sendData(positions,
         WrapperType.values.where((element) => element.needsRealPositionData));
   }

@@ -16,7 +16,7 @@ abstract class Tracking {
   Future<bool> isRunning();
 
   Future<bool> start(BatteryUsageSetting setting,
-      Future Function(List<RawPhoneData>) callback);
+      Future Function(Iterable<RawPhoneData>) callback);
 
   Future readCache();
 

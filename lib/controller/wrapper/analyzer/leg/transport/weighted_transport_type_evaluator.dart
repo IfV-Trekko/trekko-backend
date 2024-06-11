@@ -71,7 +71,7 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
       if (_data.isNotEmpty &&
           phoneData.getTimestamp().isBefore(_data.last.getTimestamp())) {
         Logging.error(
-            "Data is not in order; ${phoneData.getTimestamp()} is before ${_data.last.getTimestamp()}");
+            "Data is not in order: ${phoneData.getTimestamp()} is before ${_data.last.getTimestamp()}");
         continue;
       }
 

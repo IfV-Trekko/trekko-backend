@@ -1,19 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:isar/isar.dart';
-import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
+import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:trekko_backend/model/tracking/activity_data.dart';
 import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
-import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:trekko_backend/model/tracking/cache/tracking_options.dart';
 import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
@@ -49,7 +50,8 @@ class TrackingTask extends TaskHandler {
           .putAll(data.map(CacheObject.fromJson).toList()));
     } else {
       await Logging.info("Sending ${valids.length} data points directly");
-      valids.forEach((element) => sendPort!.send(element.toJson()));
+      String encode = jsonEncode(valids.map((e) => e.toJson()).toList());
+      sendPort!.send(encode);
     }
   }
 
@@ -67,8 +69,8 @@ class TrackingTask extends TaskHandler {
 
   @override
   void onStart(DateTime timestamp, SendPort? sendPort) {
-    _subscriptions.add(FlutterActivityRecognition.instance.activityStream
-        .listen((event) {
+    _subscriptions
+        .add(FlutterActivityRecognition.instance.activityStream.listen((event) {
       executor.add(() async {
         DateTime now = DateTime.now();
         Position? pos = await PositionUtils.getPosition(options.accuracy);
@@ -106,7 +108,7 @@ void startCallback() async {
 class TrackingService {
   static String debugIsolateName = "tracking_service";
   static bool debug = false;
-  static List<Function(RawPhoneData)> callbacks = [];
+  static List<Function(Iterable<RawPhoneData>)> callbacks = [];
   static ReceivePort? receivePort;
 
   static void init(BatteryUsageSetting options) {
@@ -164,8 +166,10 @@ class TrackingService {
     }
 
     receivePort!.listen((dynamic data) {
-      for (Function(RawPhoneData) callback in callbacks) {
-        callback.call(RawPhoneDataType.parseData(data));
+      List<dynamic> strings = jsonDecode(data);
+      Iterable<RawPhoneData> parsed = strings.map(RawPhoneDataType.parseData);
+      for (Function(Iterable<RawPhoneData>) callback in callbacks) {
+        callback.call(parsed);
       }
     });
     return 0;
@@ -183,7 +187,8 @@ class TrackingService {
     callbacks.clear();
   }
 
-  static void getLocationUpdates(Function(RawPhoneData) locationCallback) {
+  static void getLocationUpdates(
+      Function(Iterable<RawPhoneData>) locationCallback) {
     callbacks.add(locationCallback);
   }
 }
