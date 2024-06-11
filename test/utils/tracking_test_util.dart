@@ -7,7 +7,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
-import 'package:trekko_backend/controller/utils/tracking_service.dart';
+import 'package:trekko_backend/controller/tracking/tracking_service.dart';
 import 'package:trekko_backend/model/tracking/analyzer/analyzer_cache.dart';
 import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';

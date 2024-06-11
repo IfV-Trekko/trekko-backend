@@ -7,7 +7,7 @@ import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
-import 'package:trekko_backend/controller/utils/tracking_service.dart';
+import 'package:trekko_backend/controller/tracking/tracking_service.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
 import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
