@@ -25,8 +25,8 @@ class AnalyzingLegWrapper implements LegWrapper {
 
   Iterable<TransportTypePart> _smoothData(List<TransportTypePart> data) {
     TransportTypePart? firstRemove = data.cast<TransportTypePart?>().firstWhere(
-        (element) =>
-            element!.duration.inSeconds <
+            (element) =>
+        element!.duration.inSeconds <
             element.transportType.maximumHoldTimeSeconds,
         orElse: () => null);
 
@@ -88,12 +88,12 @@ class AnalyzingLegWrapper implements LegWrapper {
 
       Iterable<TransportTypePart> data = _smoothData(result.result);
       TransportTypePart? mainPart =
-          await _calculateFirstMainTransportPart(data);
+      await _calculateFirstMainTransportPart(data);
 
       if (mainPart == null) return invalid;
 
       TransportTypePart? endPart = data.cast<TransportTypePart?>().firstWhere(
-          (element) => element!.end.isAfter(mainPart.end),
+              (element) => element!.end.isAfter(mainPart.end),
           orElse: () => null);
 
       if (endPart == null) return invalid;
