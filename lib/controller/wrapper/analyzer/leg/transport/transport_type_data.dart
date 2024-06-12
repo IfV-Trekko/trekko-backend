@@ -9,7 +9,7 @@ enum TransportTypeData implements TransportTypeDataProvider {
       activityType: ActivityType.STILL,
       maximumSpeed: 0,
       averageSpeed: 0,
-      maximumHoldTimeSeconds: 5),
+      maximumHoldTimeSeconds: 15),
   walking(
       transportType: TransportType.by_foot,
       activityType: ActivityType.WALKING,
@@ -21,13 +21,13 @@ enum TransportTypeData implements TransportTypeDataProvider {
       activityType: ActivityType.RUNNING,
       maximumSpeed: 16,
       averageSpeed: 8,
-      maximumHoldTimeSeconds: 10),
+      maximumHoldTimeSeconds: 15),
   bicycle(
       transportType: TransportType.bicycle,
       activityType: ActivityType.ON_BICYCLE,
       maximumSpeed: 30,
       averageSpeed: 16,
-      maximumHoldTimeSeconds: 30),
+      maximumHoldTimeSeconds: 15),
   car(
       transportType: TransportType.car,
       activityType: null,

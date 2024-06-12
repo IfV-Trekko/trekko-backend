@@ -4,6 +4,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/utils/time_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/p_transport_type_part.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_evaluator.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_part.dart';
@@ -24,53 +25,55 @@ class AnalyzingLegWrapper implements LegWrapper {
   AnalyzingLegWrapper(Iterable<RawPhoneData> initialData)
       : _evaluator = WeightedTransportTypeEvaluator(initialData.toList());
 
-  Iterable<TransportTypePart> _smoothData(List<TransportTypePart> data) {
-    TransportTypePart? firstRemove = data.cast<TransportTypePart?>().firstWhere(
-        (element) =>
-            element!.duration.inSeconds <
-            element.transportType.maximumHoldTimeSeconds,
-        orElse: () => null);
-
-    if (firstRemove != null) {
-      int indexOfRemove = data.indexOf(firstRemove);
-      data.removeAt(indexOfRemove);
-      if (indexOfRemove > 0 && indexOfRemove < data.length) {
-        TransportTypePart before = data[indexOfRemove - 1];
-        TransportTypePart after = data[indexOfRemove];
-
-        // Connect the two parts if transport type is the same
-        if (before.transportType == after.transportType) {
-          data[indexOfRemove - 1] = TransportTypePart(before.start, after.end,
-              (before.confidence + after.confidence) / 2, before.transportType);
-          data.removeAt(indexOfRemove);
-        }
-      }
-      return _smoothData(data);
-    }
-    return data;
+  Iterable<PTransportTypePart> _getPositions(
+      Iterable<TransportTypePart> parts, Iterable<Position> positions) {
+    return parts.map((p) => PTransportTypePart(p,
+        positions.where((pos) => pos.timestamp.isInInclusive(p.start, p.end))));
   }
 
-  bool _isTransportPartValid(TransportTypePart part, List<Position> positions) {
-    Iterable<Position> positionsInTime = positions
-        .where((e) => e.getTimestamp().isInInclusive(part.start, part.end));
+  Iterable<PTransportTypePart> _smoothData(List<PTransportTypePart> data) {
+    PTransportTypePart? firstRemove = data
+        .cast<PTransportTypePart?>()
+        .firstWhere(
+            (element) =>
+                element!.duration.inSeconds <
+                    element.transportType.maximumHoldTimeSeconds &&
+                PositionUtils.maxDistance(element.included) <
+                    _minDistance.as(meters),
+            orElse: () => null);
 
+    if (firstRemove == null) return data;
+
+    int indexOfRemove = data.indexOf(firstRemove);
+    data.removeAt(indexOfRemove);
+    if (indexOfRemove > 0 && indexOfRemove < data.length) {
+      PTransportTypePart before = data[indexOfRemove - 1];
+      PTransportTypePart after = data[indexOfRemove];
+
+      // Connect the two parts if transport type is the same
+      if (before.transportType == after.transportType) {
+        TransportTypePart part = TransportTypePart(before.start, after.end,
+            (before.confidence + after.confidence) / 2, before.transportType);
+        data[indexOfRemove - 1] = PTransportTypePart(
+            part, before.included.followedBy(after.included));
+        data.removeAt(indexOfRemove);
+      }
+    }
+    return _smoothData(data);
+  }
+
+  bool _isTransportPartValid(PTransportTypePart part) {
     // Get first TransportTypePart where the duration is longer than _minTransportUsage
-    double distance = PositionUtils.distanceBetweenPoints(positionsInTime);
+    double distance = PositionUtils.distanceBetweenPoints(part.included);
     return part.transportType != TransportTypeData.stationary &&
-        positionsInTime.length >= 2 &&
+        part.included.length >= 2 &&
         part.duration > _minTransportUsage &&
         distance > _minDistance.as(meters);
   }
 
-  Future<TransportTypePart?> _calculateFirstMainTransportPart(
-      Iterable<TransportTypePart> analysis) async {
-    List<Position> positions = (await getAnalysisData())
-        .where((e) => e.getType() == RawPhoneDataType.position)
-        .cast<Position>()
-        .toList();
-    return analysis
-        .where((e) => _isTransportPartValid(e, positions))
-        .firstOrNull;
+  Future<PTransportTypePart?> _calculateFirstMainTransportPart(
+      Iterable<PTransportTypePart> analysis) async {
+    return analysis.where(_isTransportPartValid).firstOrNull;
   }
 
   @override
@@ -81,34 +84,35 @@ class AnalyzingLegWrapper implements LegWrapper {
   @override
   Future<WrapperResult<Leg>> get() async {
     return Future.microtask(() async {
-      WrapperResult result = await _evaluator.get();
+      WrapperResult<List<TransportTypePart>> result = await _evaluator.get();
       List<RawPhoneData> analysisData = (await this.getAnalysisData()).toList();
       WrapperResult<Leg> invalid = WrapperResult(result.confidence, null, []);
 
       if (result.result == null) return invalid;
 
-      Iterable<TransportTypePart> data = _smoothData(result.result);
-      TransportTypePart? mainPart =
+      Iterable<Position> positions = analysisData
+          .where((e) => e.getType() == RawPhoneDataType.position)
+          .cast<Position>();
+
+      Iterable<PTransportTypePart> data =
+          _smoothData(_getPositions(result.result!, positions).toList());
+
+      PTransportTypePart? mainPart =
           await _calculateFirstMainTransportPart(data);
 
       if (mainPart == null) return invalid;
 
-      TransportTypePart? endPart = data.cast<TransportTypePart?>().firstWhere(
+      PTransportTypePart? endPart = data.cast<PTransportTypePart?>().firstWhere(
           (element) => element!.end.isAfter(mainPart.end),
           orElse: () => null);
 
       if (endPart == null) return invalid;
 
-      List<TrackedPoint> positions = analysisData
-          .where((e) => e.getType() == RawPhoneDataType.position)
-          .cast<Position>()
-          .where((element) => element
-              .getTimestamp()
-              .isInInclusive(mainPart.start, mainPart.end))
-          .map(TrackedPoint.fromPosition)
-          .toList();
+      List<TrackedPoint> positionsInTime =
+          mainPart.included.map(TrackedPoint.fromPosition).toList();
 
-      Leg leg = Leg.withData(mainPart.transportType.transportType!, positions);
+      Leg leg =
+          Leg.withData(mainPart.transportType.transportType!, positionsInTime);
       return WrapperResult(
           1, // TODO: Linear confidence growth instead of 1
           // mainPart.confidence,
