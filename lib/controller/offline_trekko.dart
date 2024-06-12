@@ -13,11 +13,9 @@ import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/tracking/analyzer/analyzer_cache.dart';
 import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
@@ -27,7 +25,6 @@ import 'package:trekko_backend/model/profile/profile.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
-import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
 class OfflineTrekko with WidgetsBindingObserver implements Trekko {
@@ -201,27 +198,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     legsSorted.sort(
         (a, b) => a.calculateStartTime().compareTo(b.calculateStartTime()));
 
-    List<TrackedPoint> positionsInOrder =
-        legsSorted.expand((leg) => leg.trackedPoints).toList();
-    positionsInOrder.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-    TripWrapper wrapper = AnalyzingTripWrapper(
-        positionsInOrder.map((e) => e.toPosition()).toList());
-
-    Trip? mergedTrip;
-    WrapperResult<Trip>? result;
-    try {
-      result =
-          await wrapper.get(); //todo: do something with unused data points.
-      mergedTrip = result.result;
-    } catch (e) {
-      // Ignore errors
-    }
-
-    if (mergedTrip == null) {
-      mergedTrip = Trip.withData(legsSorted);
-    }
-
+    Trip mergedTrip = Trip.withData(legsSorted);
     await deleteTrip(tripsQuery);
     await saveTrip(mergedTrip);
     return mergedTrip;
