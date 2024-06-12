@@ -21,31 +21,31 @@ enum TransportTypeData implements TransportTypeDataProvider {
       activityType: ActivityType.RUNNING,
       maximumSpeed: 16,
       averageSpeed: 8,
-      maximumHoldTimeSeconds: 15),
+      maximumHoldTimeSeconds: 10),
   bicycle(
       transportType: TransportType.bicycle,
       activityType: ActivityType.ON_BICYCLE,
       maximumSpeed: 30,
       averageSpeed: 16,
-      maximumHoldTimeSeconds: 15),
+      maximumHoldTimeSeconds: 30),
   car(
       transportType: TransportType.car,
       activityType: null,
       maximumSpeed: 200,
       averageSpeed: 45,
-      maximumHoldTimeSeconds: 60),
+      maximumHoldTimeSeconds: 60 * 3),
   publicTransport(
       transportType: TransportType.publicTransport,
       activityType: null,
       maximumSpeed: 300,
       averageSpeed: 30,
-      maximumHoldTimeSeconds: 120),
+      maximumHoldTimeSeconds: 60 * 5),
   plane(
       transportType: TransportType.plane,
       activityType: null,
       maximumSpeed: 1000,
       averageSpeed: 800,
-      maximumHoldTimeSeconds: 60 * 10);
+      maximumHoldTimeSeconds: 60 * 5);
 
   final TransportType? transportType;
   final ActivityType? activityType;

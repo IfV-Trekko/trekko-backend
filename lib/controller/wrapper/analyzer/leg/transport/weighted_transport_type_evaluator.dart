@@ -1,11 +1,13 @@
 import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
+import 'package:trekko_backend/controller/utils/time_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_evaluator.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_part.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/tracking/activity_data.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
@@ -84,12 +86,17 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
     List<List<ActivityData>> joinedData = joinDataOnType();
 
     List<TransportTypePart> analysis = [];
+    Iterable<Position> positions = _data
+        .where((d) => d.getType() == RawPhoneDataType.position)
+        .cast<Position>();
     for (int i = 0; i < joinedData.length; i++) {
       List<ActivityData> activities = joinedData[i];
       DateTime start = activities.first.getTimestamp();
       DateTime end = i == joinedData.length - 1
           ? getLatestTimestamp()
           : joinedData[i + 1].first.getTimestamp();
+      Iterable<Position> partPos =
+          positions.where((p) => p.timestamp.isInInclusive(start, end));
 
       ActivityType type = activities.first.activity;
       double confidence = avg(activities.map((e) => confidenceFromActivity(e)));
@@ -102,7 +109,7 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
         data = TransportTypeData.fromActivityType(type)!;
       }
 
-      analysis.add(TransportTypePart(start, end, confidence, data));
+      analysis.add(TransportTypePart(start, end, confidence, data, partPos));
     }
 
     double conf =
