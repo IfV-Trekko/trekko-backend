@@ -1,3 +1,4 @@
+import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
 import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
@@ -13,9 +14,16 @@ class PositionFilter<T> implements DataWrapper<T> {
 
   @override
   add(Iterable<RawPhoneData> data) {
-    _internal.add(data.where((e) =>
+    Iterable<RawPhoneData> filteredData = data.where((e) =>
         e.getType() != RawPhoneDataType.position ||
-        (e as Position).accuracy <= desiredAccuracyMeters));
+        (e as Position).accuracy <= desiredAccuracyMeters);
+
+    if (filteredData.length != data.length) {
+      Logging.info(
+          "Filtered out ${data.length - filteredData.length} positions");
+    }
+
+    _internal.add(filteredData);
   }
 
   @override

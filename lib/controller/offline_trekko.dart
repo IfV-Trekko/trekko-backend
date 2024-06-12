@@ -14,6 +14,7 @@ import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
@@ -30,6 +31,11 @@ import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
 class OfflineTrekko with WidgetsBindingObserver implements Trekko {
+  static const List<WrapperType> _usedWrappers = [
+    WrapperType.MANUAL,
+    WrapperType.FILTERED_ANALYZER
+  ];
+
   final Tracking _tracking;
   final Map<WrapperType, WrapperStream<Trip>> _streams;
   late int _profileId;
@@ -57,8 +63,8 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   void _initStreams() {
-    for (WrapperType type in WrapperType.values) {
-      TripWrapper initialWrapper = type.build([]);
+    for (WrapperType type in _usedWrappers) {
+      DataWrapper<Trip> initialWrapper = type.build([]);
       AnalyzerCache? cache =
           _cacheDb.analyzerCaches.filter().typeEqualTo(type).findFirstSync();
       if (cache != null) initialWrapper.load(jsonDecode(cache.value));
@@ -69,7 +75,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   Future _saveWrapper() async {
-    Map<WrapperType<TripWrapper>, String> wrapper =
+    Map<WrapperType<DataWrapper<Trip>>, String> wrapper =
         _streams.map((k, e) => MapEntry(k, jsonEncode(e.getWrapper().save())));
     await _cacheDb.writeTxn(() => _cacheDb.analyzerCaches.putAll(
         wrapper.keys.map((k) => AnalyzerCache(k, wrapper[k]!)).toList()));
@@ -92,7 +98,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
 
   Future _processTrackedPositions(Iterable<RawPhoneData> positions) async {
     return await _sendData(positions,
-        WrapperType.values.where((element) => element.needsRealPositionData));
+        _usedWrappers.where((element) => element.needsRealPositionData));
   }
 
   Future<bool> _startTracking(Profile profile) async {
