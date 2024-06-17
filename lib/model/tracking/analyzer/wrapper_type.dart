@@ -9,7 +9,7 @@ import 'package:trekko_backend/model/trip/trip.dart';
 enum WrapperType<T extends DataWrapper<Trip>> {
   ANALYZER<DataWrapper<Trip>>(true, buildAnalyzer),
   MANUAL<ManualTripWrapper>(true, buildManual),
-  FILTERED_ANALYZER<DataWrapper<Trip>>(false, buildFilteredAnalyzer);
+  FILTERED_ANALYZER<DataWrapper<Trip>>(true, buildFilteredAnalyzer);
 
   final bool needsRealPositionData;
   final T Function(Iterable<RawPhoneData>) builder;
