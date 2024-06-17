@@ -113,11 +113,13 @@ const _AnalyzerCachetypeEnumValueMap = {
   'ANALYZER': 0,
   'MANUAL': 1,
   'FILTERED_ANALYZER': 2,
+  'BLACK_HOLE': 3,
 };
 const _AnalyzerCachetypeValueEnumMap = {
   0: WrapperType.ANALYZER,
   1: WrapperType.MANUAL,
   2: WrapperType.FILTERED_ANALYZER,
+  3: WrapperType.BLACK_HOLE,
 };
 
 Id _analyzerCacheGetId(AnalyzerCache object) {
