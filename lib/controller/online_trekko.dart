@@ -11,7 +11,7 @@ import 'package:trekko_backend/controller/request/url_trekko_server.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
 import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:trekko_backend/model/profile/onboarding_question.dart';
@@ -195,7 +195,7 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  Stream<T> getWrapper<T extends TripWrapper>(WrapperType<T> type) {
+  Stream<T> getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type) {
     return _internal.getWrapper(type);
   }
 

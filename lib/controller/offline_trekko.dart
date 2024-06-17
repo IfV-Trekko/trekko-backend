@@ -15,7 +15,6 @@ import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
 import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/tracking/analyzer/analyzer_cache.dart';
 import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
@@ -30,7 +29,8 @@ import 'package:trekko_backend/model/trip/trip.dart';
 class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   static const List<WrapperType> _usedWrappers = [
     WrapperType.MANUAL,
-    WrapperType.FILTERED_ANALYZER
+    WrapperType.FILTERED_ANALYZER,
+    WrapperType.BLACK_HOLE
   ];
 
   final Tracking _tracking;
@@ -292,7 +292,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   @override
-  Stream<T> getWrapper<T extends TripWrapper>(WrapperType<T> type) {
+  Stream<T> getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type) {
     WrapperStream<Trip> stream = _streams[type]!;
     StreamController<T> controller = StreamController();
     void Function() addFunc = () {

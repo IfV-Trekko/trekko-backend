@@ -4,7 +4,7 @@ import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
 import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
@@ -74,7 +74,7 @@ abstract class Trekko {
   /// Logs out the user.
   Future signOut({bool delete = false});
 
-  Stream<T> getWrapper<T extends TripWrapper>(WrapperType<T> type);
+  Stream<T> getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type);
 
   Future sendData(RawPhoneData data, Iterable<WrapperType> types);
 }
