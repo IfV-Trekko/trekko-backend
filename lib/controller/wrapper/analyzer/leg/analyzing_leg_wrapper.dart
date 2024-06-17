@@ -13,7 +13,6 @@ import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
-  static const Duration _minTransportUsage = Duration(minutes: 3);
   static Distance _minDistance = 50.meters;
 
   TransportTypeEvaluator _evaluator;
@@ -26,8 +25,7 @@ class AnalyzingLegWrapper implements LegWrapper {
     TransportTypePart? firstRemove =
         data.cast<TransportTypePart?>().firstWhere((element) {
       if (element!.duration.inSeconds < previous.maximumHoldTimeSeconds &&
-          PositionUtils.maxDistance(element.included) <
-              _minDistance.as(meters)) {
+          PositionUtils.maxDistance(element.included).meters < _minDistance) {
         return true;
       }
       previous = element.transportType;
@@ -62,8 +60,7 @@ class AnalyzingLegWrapper implements LegWrapper {
     double distance = PositionUtils.distanceBetweenPoints(part.included);
     return part.transportType != TransportTypeData.stationary &&
         part.included.length >= 2 &&
-        part.duration > _minTransportUsage &&
-        distance > _minDistance.as(meters);
+        distance.meters > _minDistance;
   }
 
   Future<TransportTypePart?> _calculateFirstMainTransportPart(
