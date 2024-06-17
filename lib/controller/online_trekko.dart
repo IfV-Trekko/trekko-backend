@@ -195,7 +195,7 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  Stream<T> getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type) {
+  Stream<T>? getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type) {
     return _internal.getWrapper(type);
   }
 

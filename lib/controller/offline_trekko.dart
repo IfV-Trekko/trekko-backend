@@ -292,8 +292,9 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   @override
-  Stream<T> getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type) {
-    WrapperStream<Trip> stream = _streams[type]!;
+  Stream<T>? getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type) {
+    WrapperStream<Trip>? stream = _streams[type];
+    if (stream == null) return null;
     StreamController<T> controller = StreamController();
     void Function() addFunc = () {
       controller.add(stream.getWrapper() as T);

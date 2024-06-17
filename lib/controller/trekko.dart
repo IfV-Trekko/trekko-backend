@@ -74,7 +74,7 @@ abstract class Trekko {
   /// Logs out the user.
   Future signOut({bool delete = false});
 
-  Stream<T> getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type);
+  Stream<T>? getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type);
 
   Future sendData(RawPhoneData data, Iterable<WrapperType> types);
 }
