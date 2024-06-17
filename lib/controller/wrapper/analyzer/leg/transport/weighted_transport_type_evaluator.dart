@@ -2,6 +2,7 @@ import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/time_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data_provider.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_evaluator.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_part.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
@@ -101,12 +102,21 @@ class WeightedTransportTypeEvaluator implements TransportTypeEvaluator {
       ActivityType type = activities.first.activity;
       double confidence = avg(activities.map((e) => confidenceFromActivity(e)));
 
-      TransportTypeData data;
-      if (type == ActivityType.IN_VEHICLE) {
-        // TODO: Further analysis to check if car or publicTransport
-        data = TransportTypeData.car;
-      } else {
-        data = TransportTypeData.fromActivityType(type)!;
+      Iterable<TransportTypeDataProvider> possibleData =
+          TransportTypeData.fromActivityType(type);
+      if (possibleData.isEmpty) {
+        Logging.error("No data for activity type $type");
+        continue;
+      }
+
+      TransportTypeDataProvider data = TransportTypeData.stationary;
+      double highestProb = 0;
+      for (TransportTypeDataProvider maybeData in possibleData) {
+        double prob = maybeData.getPatternizer().hasPattern(partPos);
+        if (prob > highestProb) {
+          highestProb = prob;
+          data = maybeData;
+        }
       }
 
       analysis.add(TransportTypePart(start, end, confidence, data, partPos));

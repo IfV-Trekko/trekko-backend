@@ -1,11 +1,11 @@
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data_provider.dart';
 import 'package:trekko_backend/model/tracking/position.dart';
 
 class TransportTypePart {
   final DateTime start;
   final DateTime end;
   final double confidence;
-  final TransportTypeData transportType;
+  final TransportTypeDataProvider transportType;
   final Iterable<Position> included;
 
   TransportTypePart(

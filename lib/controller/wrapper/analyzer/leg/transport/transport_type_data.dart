@@ -1,4 +1,6 @@
 import 'package:flutter_activity_recognition/models/activity_type.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/position/patternizer.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/position/repeating_stops_patternizer.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data_provider.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:fling_units/fling_units.dart';
@@ -30,16 +32,17 @@ enum TransportTypeData implements TransportTypeDataProvider {
       maximumHoldTimeSeconds: 30),
   car(
       transportType: TransportType.car,
-      activityType: null,
+      activityType: ActivityType.IN_VEHICLE,
       maximumSpeed: 200,
       averageSpeed: 45,
       maximumHoldTimeSeconds: 60 * 3),
   publicTransport(
       transportType: TransportType.publicTransport,
-      activityType: null,
+      activityType: ActivityType.IN_VEHICLE,
       maximumSpeed: 300,
       averageSpeed: 30,
-      maximumHoldTimeSeconds: 60 * 5),
+      maximumHoldTimeSeconds: 60 * 5,
+      patternizer: RepeatingStopsPatternizer()),
   plane(
       transportType: TransportType.plane,
       activityType: null,
@@ -52,6 +55,7 @@ enum TransportTypeData implements TransportTypeDataProvider {
   final double maximumSpeed;
   final double averageSpeed;
   final double maximumHoldTimeSeconds;
+  final Patternizer? patternizer;
 
   const TransportTypeData({
     required this.transportType,
@@ -59,12 +63,23 @@ enum TransportTypeData implements TransportTypeDataProvider {
     required this.maximumSpeed,
     required this.averageSpeed,
     required this.maximumHoldTimeSeconds,
+    this.patternizer = null,
   });
 
   @override
-  Future<DerivedMeasurement<Measurement<Distance>, Measurement<Time>>>
+  DerivedMeasurement<Measurement<Distance>, Measurement<Time>>
       getAverageSpeed() {
-    return Future.value(averageSpeed.kilo.meters.per(1.hours));
+    return averageSpeed.kilo.meters.per(1.hours);
+  }
+
+  @override
+  Time getMaximumStopTime() {
+    return maximumHoldTimeSeconds.seconds;
+  }
+
+  @override
+  Patternizer getPatternizer() {
+    return patternizer != null ? patternizer! : Patternizer.static(0.5);
   }
 
   @override
@@ -72,9 +87,9 @@ enum TransportTypeData implements TransportTypeDataProvider {
     return transportType;
   }
 
-  static TransportTypeData? fromActivityType(ActivityType activityType) {
-    return TransportTypeData.values.cast<TransportTypeData?>().firstWhere(
-        (element) => element!.activityType == activityType,
-        orElse: () => null);
+  static Iterable<TransportTypeData> fromActivityType(
+      ActivityType activityType) {
+    return TransportTypeData.values
+        .where((element) => element.activityType == activityType);
   }
 }

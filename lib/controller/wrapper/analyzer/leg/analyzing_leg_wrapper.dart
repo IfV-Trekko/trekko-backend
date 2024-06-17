@@ -4,6 +4,7 @@ import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data_provider.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_evaluator.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_part.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/weighted_transport_type_evaluator.dart';
@@ -21,10 +22,11 @@ class AnalyzingLegWrapper implements LegWrapper {
       : _evaluator = WeightedTransportTypeEvaluator(initialData.toList());
 
   Iterable<TransportTypePart> _smoothData(List<TransportTypePart> data) {
-    TransportTypeData previous = TransportTypeData.stationary;
+    TransportTypeDataProvider previous = TransportTypeData.stationary;
     TransportTypePart? firstRemove =
         data.cast<TransportTypePart?>().firstWhere((element) {
-      if (element!.duration.inSeconds < previous.maximumHoldTimeSeconds &&
+      if (element!.duration.inSeconds <
+              previous.getMaximumStopTime().as(seconds) &&
           PositionUtils.maxDistance(element.included).meters < _minDistance) {
         return true;
       }
@@ -58,7 +60,7 @@ class AnalyzingLegWrapper implements LegWrapper {
   bool _isTransportPartValid(TransportTypePart part) {
     // Get first TransportTypePart where the duration is longer than _minTransportUsage
     double distance = PositionUtils.distanceBetweenPoints(part.included);
-    return part.transportType != TransportTypeData.stationary &&
+    return part.transportType.getTransportType() != null &&
         part.included.length >= 2 &&
         distance.meters > _minDistance;
   }
@@ -98,8 +100,8 @@ class AnalyzingLegWrapper implements LegWrapper {
       List<TrackedPoint> positionsInTime =
           mainPart.included.map(TrackedPoint.fromPosition).toList();
 
-      Leg leg =
-          Leg.withData(mainPart.transportType.transportType!, positionsInTime);
+      Leg leg = Leg.withData(
+          mainPart.transportType.getTransportType()!, positionsInTime);
       return WrapperResult(
           1, // TODO: Linear confidence growth instead of 1
           // mainPart.confidence,
