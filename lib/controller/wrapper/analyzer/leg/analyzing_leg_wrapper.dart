@@ -25,9 +25,9 @@ class AnalyzingLegWrapper implements LegWrapper {
     TransportTypeDataProvider previous = TransportTypeData.stationary;
     TransportTypePart? firstRemove =
         data.cast<TransportTypePart?>().firstWhere((element) {
-      if (element!.duration.inSeconds <
+      if (element!.included.length < 2 || (element.duration.inSeconds <
               previous.getMaximumStopTime().as(seconds) &&
-          PositionUtils.maxDistance(element.included).meters < _minDistance) {
+          PositionUtils.maxDistance(element.included).meters < _minDistance)) {
         return true;
       }
       previous = element.transportType;
