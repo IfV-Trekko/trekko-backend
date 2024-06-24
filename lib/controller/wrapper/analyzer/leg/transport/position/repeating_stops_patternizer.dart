@@ -7,7 +7,6 @@ import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class RepeatingStopsPatternizer implements Patternizer {
-
   const RepeatingStopsPatternizer();
 
   @override
@@ -28,7 +27,8 @@ class RepeatingStopsPatternizer implements Patternizer {
 
     int stopStartIndex = -1;
     int lastStopEndIndex = 0;
-    for (int i = 1; i < positions.length; i++) { // TODO: Check if works
+    for (int i = 1; i < positions.length; i++) {
+      // TODO: Check if works
       if (isStopped(positions[i - 1], positions[i], distanceThreshold)) {
         // Stopped
         if (stopStartIndex == -1) {
@@ -81,7 +81,8 @@ class RepeatingStopsPatternizer implements Patternizer {
 
   double calculateSpeed(Position p1, Position p2) {
     double distance = PositionUtils.distanceBetween(p1, p2);
-    double timeDiff = p2.timestamp.difference(p1.timestamp).inSeconds as double;
+    double timeDiff =
+        p2.timestamp.difference(p1.timestamp).inSeconds.toDouble();
     return distance / timeDiff; // speed in meters per second
   }
 
