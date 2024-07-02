@@ -45,7 +45,7 @@ class OnlineTrekko implements Trekko {
   }
 
   @override
-  bool isProcessingLocationData() {
+  Stream<bool> isProcessingLocationData() {
     return _internal.isProcessingLocationData();
   }
 

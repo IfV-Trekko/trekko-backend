@@ -79,9 +79,9 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   Future _tripReceive(Trip trip) async {
+    await saveTrip(trip);
     await Logging.info(
         "Saving trip from ${trip.calculateStartTime().toIso8601String()} to ${trip.calculateEndTime().toIso8601String()}");
-    await saveTrip(trip);
   }
 
   Future _sendData(
@@ -99,14 +99,28 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   Future<bool> _startTracking(Profile profile) async {
-    return await _tracking.start(
-        profile.preferences.batteryUsageSetting, _processTrackedPositions);
+    return await _tracking.start(profile.preferences.batteryUsageSetting,
+        (p) async => _processTrackedPositions);
   }
 
   @override
-  bool isProcessingLocationData() {
-    return _tracking.isProcessing() ||
+  Stream<bool> isProcessingLocationData() {
+    // Check periodically if the tracking is processing data and send one event immediately
+    bool Function() isProcessing = () =>
+        _tracking.isProcessing() ||
         _streams.values.any((element) => element.isProcessing());
+
+    StreamController<bool> controller = StreamController();
+    Timer? timer;
+    controller.onListen = () {
+      controller.add(isProcessing());
+      timer = Timer.periodic(Duration(seconds: 5), (timer) {
+        controller.add(isProcessing());
+      });
+    };
+
+    controller.onCancel = () => timer?.cancel();
+    return controller.stream;
   }
 
   @override
@@ -256,7 +270,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
 
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
-    if (await isProcessingLocationData()) {
+    if (await isProcessingLocationData().first) {
       throw Exception("Cannot terminate while processing location data");
     }
 
@@ -308,6 +322,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed && await _tracking.isRunning()) {
+      print("Reading cache");
       await _tracking.readCache();
     }
   }
