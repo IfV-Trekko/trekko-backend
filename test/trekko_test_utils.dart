@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/builder/build_exception.dart';
+import 'package:trekko_backend/controller/builder/last_login_builder.dart';
 import 'package:trekko_backend/controller/builder/login_builder.dart';
 import 'package:trekko_backend/controller/builder/login_result.dart';
+import 'package:trekko_backend/controller/builder/offline_builder.dart';
 import 'package:trekko_backend/controller/builder/registration_builder.dart';
 import 'package:trekko_backend/controller/trekko.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,13 +67,17 @@ class TrekkoTestUtils {
   static Future<void> clear() async {
     late String ip = getAddress();
     try {
+      Trekko lastLogin = await LastLoginBuilder().build();
+      lastLogin.signOut(delete: true);
+
       Trekko loggedIn = await LoginBuilder.withData(
               projectUrl: ip, email: email, password: password)
           .build();
       await loggedIn.signOut(delete: true);
     } catch (e) {
       if (e is BuildException) {
-        if (e.reason == LoginResult.failedNoSuchUser) {
+        if (e.reason == LoginResult.failedNoSuchUser ||
+            e.reason == LoginResult.failedNoConnection) {
           return;
         }
       }
@@ -103,10 +109,14 @@ class TrekkoTestUtils {
   }
 
   static Future<Trekko> initTrekko(
-      {bool signOut = true, bool initAll = true}) async {
+      {bool signOut = true, bool initAll = true, online = false}) async {
     if (initAll && signOut) {
       await init();
     }
+    if (!online) {
+      return OfflineBuilder().build();
+    }
+
     late String ip = getAddress();
     try {
       Trekko loggedIn = await LoginBuilder.withData(

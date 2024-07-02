@@ -12,7 +12,7 @@ void main() {
   late Trekko trekko;
 
   setUpAll(() async {
-    trekko = await TrekkoTestUtils.initTrekko();
+    trekko = await TrekkoTestUtils.initTrekko(online: true);
   });
 
   test("Donate empty query", () async {

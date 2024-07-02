@@ -10,7 +10,7 @@ import 'trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
-  setUpAll(() async => trekko = await TrekkoTestUtils.initTrekko());
+  setUpAll(() async => trekko = await TrekkoTestUtils.initTrekko(online: true));
 
   test("Profile data correct", () async {
     Profile profile = await trekko.getProfile().first;

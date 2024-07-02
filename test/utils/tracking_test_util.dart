@@ -74,7 +74,7 @@ class TrackingTestUtil {
     print("Waiting for processing to finish...");
     do {
       await Future.delayed(Duration(milliseconds: 50));
-    } while (trekko.isProcessingLocationData());
+    } while (await trekko.isProcessingLocationData().first);
     await Future.delayed(Duration(milliseconds: 3000));
     print("Finished processing");
   }

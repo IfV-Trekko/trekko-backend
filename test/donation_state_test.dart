@@ -6,7 +6,7 @@ import 'trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
-  setUpAll(() async => trekko = await TrekkoTestUtils.initTrekko());
+  setUpAll(() async => trekko = await TrekkoTestUtils.initTrekko(online: true));
 
   test("Setting unchanged tracking state", () async {
     // Paused by default

@@ -9,7 +9,7 @@ import 'trekko_test_utils.dart';
 void main() {
   late Trekko trekko;
   setUp(() async {
-    trekko = await TrekkoTestUtils.initTrekko();
+    trekko = await TrekkoTestUtils.initTrekko(online: true);
   });
 
   // Create 2 ways which are after each other
