@@ -68,7 +68,7 @@ class AnalyzingTripWrapper implements TripWrapper {
     if (analysisData.isEmpty) return WrapperResult(0, null, []);
 
     WrapperResult result;
-    while ((result = await _legWrapper.get()).confidence > 0.95) {
+    while ((result = await _legWrapper.get()).confidence >= 0.75) {
       if (result.result == null) {
         break;
       }
@@ -82,7 +82,10 @@ class AnalyzingTripWrapper implements TripWrapper {
             .where((d) => d.getTimestamp().isBefore(upperBound)));
         if (endProbability > 0.90) {
           return WrapperResult(
-              endProbability, Trip.withData(_legs), dataSinceLastLeg);
+              endProbability,
+              Trip.withData(_legs),
+              dataSinceLastLeg
+                  .where((d) => d.getTimestamp().isAfter(upperBound)));
         }
       }
 
@@ -95,9 +98,9 @@ class AnalyzingTripWrapper implements TripWrapper {
       return WrapperResult(0, null, []);
     }
 
-    DateTime lowerBound = _legs.last.calculateEndTime();
+    DateTime upperBound = _legs.last.calculateEndTime();
     Iterable<RawPhoneData> endData =
-        analysisData.where((d) => d.getTimestamp().isAfter(lowerBound));
+        analysisData.where((d) => d.getTimestamp().isAfter(upperBound));
     double endProbability = await _calculateEndProbability(endData);
     return WrapperResult(endProbability, Trip.withData(_legs), endData);
   }
