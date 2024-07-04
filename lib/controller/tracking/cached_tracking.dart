@@ -20,7 +20,7 @@ class CachedTracking implements Tracking {
   Future Function(Iterable<RawPhoneData>)? _callback;
 
   _process(Iterable<RawPhoneData> positions) {
-    _dataProcessor.add(() => _callback!(positions));
+    _dataProcessor.add(() async => await _callback!(positions));
   }
 
   @override
@@ -79,8 +79,8 @@ class CachedTracking implements Tracking {
           await _cacheDb.cacheObjects.where().sortByTimestamp().findAll();
       send.addAll(
           cached.map((e) => RawPhoneDataType.parseData(jsonDecode(e.value))));
-      await _cacheDb.writeTxn(() => _cacheDb.cacheObjects.where().deleteAll());
       Logging.info("Sending ${send.length} cached data points");
+      _cacheDb.writeTxn(() => _cacheDb.cacheObjects.where().deleteAll());
       await _process(send);
     }
   }
