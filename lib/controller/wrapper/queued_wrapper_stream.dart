@@ -7,7 +7,7 @@ import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
 import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class QueuedWrapperStream<R> implements WrapperStream<R> {
-  static const double CONFIDENCE_THRESHOLD = 0.95;
+  static const double CONFIDENCE_THRESHOLD = 0.75;
 
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   final StreamController<R> _controller;
@@ -19,13 +19,18 @@ class QueuedWrapperStream<R> implements WrapperStream<R> {
       : _controller = StreamController.broadcast(sync: sync),
         this._currentWrapper = initialWrapper;
 
-  Future<void> _process(Iterable<RawPhoneData> position) async {
-    await _currentWrapper.add(position);
+  Future<void> _checkWrapper() async {
     WrapperResult<R> result = await _currentWrapper.get();
     if (result.confidence > CONFIDENCE_THRESHOLD && result.result != null) {
-      _currentWrapper = wrapperFactory.call(result.unusedDataPoints);
       _controller.add(result.result!);
+      _currentWrapper = wrapperFactory.call(result.unusedDataPoints);
+      await _checkWrapper();
     }
+  }
+
+  Future<void> _process(Iterable<RawPhoneData> position) async {
+    await _currentWrapper.add(position);
+    await _checkWrapper();
   }
 
   @override
