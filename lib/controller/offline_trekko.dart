@@ -99,8 +99,8 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   Future<bool> _startTracking(Profile profile) async {
-    return await _tracking.start(profile.preferences.batteryUsageSetting,
-        (p) async => _processTrackedPositions);
+    return await _tracking.start(
+        profile.preferences.batteryUsageSetting, _processTrackedPositions);
   }
 
   @override
@@ -136,7 +136,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     Profile profile = (await getProfile().first);
     await _tracking.init(profile.preferences.batteryUsageSetting);
     if (profile.trackingState == TrackingState.running) {
-      await _startTracking(profile);
+      _startTracking(profile);
     }
 
     WidgetsBinding.instance.addObserver(this);
