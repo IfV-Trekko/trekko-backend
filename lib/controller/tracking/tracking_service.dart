@@ -160,6 +160,7 @@ class TrackingService {
       receivePort = FlutterForegroundTask.receivePort!;
     } else {
       receivePort = ReceivePort();
+      IsolateNameServer.removePortNameMapping(debugIsolateName);
       bool register = IsolateNameServer.registerPortWithName(
           receivePort!.sendPort, debugIsolateName);
       if (!register) throw Exception("Failed to register port");
