@@ -46,12 +46,9 @@ class TrackingTestUtil {
   static Future<void> sendToCache(List<RawPhoneData> data) async {
     print("Sending " + data.length.toString() + " data to cache");
     Isar cache = (await Databases.cache.getInstance());
-    await cache.writeTxn(() async {
-      for (RawPhoneData pos in data) {
-        await cache.cacheObjects.put(CacheObject(jsonEncode(pos.toJson()),
-            pos.getTimestamp().millisecondsSinceEpoch));
-      }
-    });
+    List<Map<String, dynamic>> dataParsed = data.map((e) => e.toJson()).toList();
+    await cache.writeTxn(() async => await cache.cacheObjects
+        .putAll(dataParsed.map(CacheObject.fromJson).toList()));
     print("Finished sending " + data.length.toString() + " data to cache");
   }
 
@@ -61,10 +58,8 @@ class TrackingTestUtil {
     print("Sending " +
         data.length.toString() +
         " positions to ${send!.nativePort}");
-    // if (send == null) throw Exception("No send port");
-    for (RawPhoneData pos in data) {
-      send.send(pos.toJson());
-    }
+
+    send.send(jsonEncode(data.map((e) => e.toJson()).toList()));
 
     print("Finished sending " + data.length.toString() + " positions");
     await waitForFinishProcessing(trekko);
