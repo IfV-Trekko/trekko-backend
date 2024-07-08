@@ -57,4 +57,22 @@ void main() {
         walkToShopAndBack.where((e) => e is Position).cast());
     expect(distance, inExclusiveRange(998, 1002));
   });
+
+  test("Check distance of trip builder", () {
+    List<RawPhoneData> shortWalk = DataBuilder()
+        .stay(1.hours)
+        .walk(49.meters)
+        .stay(1.hours)
+        .collect()
+        .toList();
+
+    double distance = PositionUtils.distanceBetweenPoints(
+        shortWalk.where((e) => e is Position).cast());
+    expect(distance, inInclusiveRange(48, 50));
+
+    double maxDistance =
+        PositionUtils.maxDistance(shortWalk.where((e) => e is Position).cast());
+
+    expect(maxDistance, inInclusiveRange(48, 50));
+  });
 }
