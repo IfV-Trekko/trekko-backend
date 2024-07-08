@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/controller/utils/time_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data_provider.dart';
@@ -25,11 +26,15 @@ class AnalyzingLegWrapper implements LegWrapper {
     TransportTypeDataProvider previous = TransportTypeData.stationary;
     TransportTypePart? firstRemove =
         data.cast<TransportTypePart?>().firstWhere((element) {
-      if (element!.included.length < 2 || (element.duration.inSeconds <
-              previous.getMaximumStopTime().as(seconds) &&
-          PositionUtils.maxDistance(element.included).meters < _minDistance)) {
+      if (element!.included.length < 2) return true;
+
+      if (element.duration.inSeconds <
+          previous.getMaximumStopTime().as(seconds)) return true;
+
+      if (element.transportType != TransportTypeData.stationary &&
+          PositionUtils.maxDistance(element.included).meters < _minDistance)
         return true;
-      }
+
       previous = element.transportType;
       return false;
     }, orElse: () => null);
@@ -106,7 +111,8 @@ class AnalyzingLegWrapper implements LegWrapper {
           1, // TODO: Linear confidence growth instead of 1
           // mainPart.confidence,
           leg,
-          analysisData.where((e) => e.getTimestamp().isAfter(mainPart.end)));
+          analysisData
+              .where((e) => e.getTimestamp().isAfterIncluding(mainPart.end)));
     });
   }
 
