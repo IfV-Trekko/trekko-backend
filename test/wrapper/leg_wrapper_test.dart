@@ -49,7 +49,7 @@ void main() {
         DataBuilder().stay(1.hours).walk(49.meters).stay(1.hours).collect();
     await legWrapper.add(points);
     WrapperResult result = await legWrapper.get();
-    expect(result.confidence, greaterThan(0.6));
+    expect(result.confidence, greaterThan(0.7));
     expect(result.result, isNull);
   });
 
@@ -72,7 +72,7 @@ void main() {
 
     Leg wrapped = result.result;
     expect(wrapped.calculateDistance().as(meters), inInclusiveRange(560, 600));
-    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(7, 8));
+    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(6, 7));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours),
         inInclusiveRange(5, 6));
     expect(wrapped.transportType, equals(TransportType.by_foot));
