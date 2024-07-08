@@ -93,25 +93,44 @@ void main() {
   test("Analyze walk with some wild movements", () async {
     List<RawPhoneData> points = DataBuilder()
         .stay(1.hours)
-        .walk(49.meters)
-        .walk(forward: false, 49.meters)
+        .walk(24.meters)
+        .walk(forward: false, 24.meters)
         .stay(1.hours)
         .walk(500.meters)
         .walk(30.meters)
         .walk(forward: false, 32.meters)
-        .stay(24.minutes)
+        .stay(27.minutes)
         .collect();
 
     await TrackingTestUtil.sendDataDiverse(points, (trips) {
       expect(trips.length, 1);
       expect(trips.first.legs.length, 1);
       Leg wrapped = trips.first.legs.first;
+      print(wrapped.calculateStartTime());
+      print(wrapped.calculateEndTime());
       expect(
-          wrapped.calculateDistance().as(meters), inInclusiveRange(485, 501));
-      expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
+          wrapped.calculateDistance().as(meters), inInclusiveRange(560, 565));
+      expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(6, 7));
       expect(wrapped.calculateSpeed().as(kilo.meters, hours),
-          inInclusiveRange(2, 4));
+          inInclusiveRange(4, 6));
       expect(wrapped.transportType, equals(TransportType.by_foot));
+    });
+  });
+
+  test("Analyze walk with some wild movements, 2 trips", () async {
+    List<RawPhoneData> points = DataBuilder()
+        .stay(1.hours)
+        .walk(50.meters)
+        .walk(forward: false, 50.meters)
+        .stay(1.hours)
+        .walk(500.meters)
+        .walk(30.meters)
+        .walk(forward: false, 32.meters)
+        .stay(27.minutes)
+        .collect();
+
+    await TrackingTestUtil.sendDataDiverse(points, (trips) {
+      expect(trips.length, 2);
     });
   });
 }
