@@ -5,5 +5,5 @@ class WrapperResult<R> {
   final R? result;
   final Iterable<RawPhoneData> unusedDataPoints;
 
-  WrapperResult(this.confidence, this.result, this.unusedDataPoints);
+  const WrapperResult(this.confidence, this.result, this.unusedDataPoints);
 }
