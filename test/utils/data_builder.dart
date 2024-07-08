@@ -38,7 +38,7 @@ class DataBuilder {
         timestamp: _position.timestamp.add(Duration(seconds: 1)),
         accuracy: _position.accuracy));
 
-    for (int i = 0; i < steps; i++) {
+    for (int i = 0; i < steps.floor(); i++) {
       _position = Position(
           latitude: _position.latitude + latDegreesPerMeter * metersPerStep,
           longitude: _position.longitude,
@@ -49,9 +49,9 @@ class DataBuilder {
 
     var restStep = steps - steps.floor();
     if (restStep != 0) {
-      Position(
+      _position = Position(
           latitude: _position.latitude +
-              latDegreesPerMeter * metersPerStep * restStep,
+              latDegreesPerMeter * (metersPerStep * restStep),
           longitude: _position.longitude,
           timestamp: _position.timestamp.add(positionInterval * restStep),
           accuracy: 5);
