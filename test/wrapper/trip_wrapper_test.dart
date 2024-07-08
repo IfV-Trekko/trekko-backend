@@ -24,10 +24,10 @@ void main() {
 
     Trip wrapped = result.result;
     expect(wrapped.legs.length, equals(2));
-    expect(wrapped.calculateDistance().as(meters), inInclusiveRange(700, 1000));
-    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(20, 25));
+    expect(wrapped.calculateDistance().as(meters), inInclusiveRange(970, 1030));
+    expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(15, 20));
     expect(wrapped.calculateSpeed().as(kilo.meters, hours).round(),
-        inInclusiveRange(1, 3));
+        inInclusiveRange(3, 4));
   });
 
   test("Staying at the same location: no trip", () async {
