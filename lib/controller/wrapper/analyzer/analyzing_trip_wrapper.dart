@@ -1,6 +1,7 @@
 import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/controller/utils/time_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/analyzing_leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/trip_wrapper.dart';
@@ -85,7 +86,7 @@ class AnalyzingTripWrapper implements TripWrapper {
               endProbability,
               Trip.withData(_legs),
               dataSinceLastLeg
-                  .where((d) => d.getTimestamp().isAfter(upperBound)));
+                  .where((d) => d.getTimestamp().isAfterIncluding(upperBound)));
         }
       }
 
