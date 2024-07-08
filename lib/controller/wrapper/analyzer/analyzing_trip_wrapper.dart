@@ -66,7 +66,7 @@ class AnalyzingTripWrapper implements TripWrapper {
   @override
   Future<WrapperResult<Trip>> get() async {
     Iterable<RawPhoneData> analysisData = await getAnalysisData();
-    if (analysisData.isEmpty) return WrapperResult(0, null, []);
+    if (analysisData.isEmpty) return WrapperResult(1, null, []);
 
     WrapperResult result;
     while ((result = await _legWrapper.get()).confidence >= 0.75) {
@@ -96,7 +96,7 @@ class AnalyzingTripWrapper implements TripWrapper {
     }
 
     if (_legs.isEmpty) {
-      return WrapperResult(0, null, []);
+      return WrapperResult(1, null, []);
     }
 
     DateTime upperBound = _legs.last.calculateEndTime();
