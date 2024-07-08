@@ -68,7 +68,7 @@ class TrackingTestUtil {
   static Future<void> waitForFinishProcessing(Trekko trekko) async {
     print("Waiting for processing to finish...");
     do {
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(Duration(milliseconds: 300));
     } while (await trekko.isProcessingLocationData().first);
     await Future.delayed(Duration(milliseconds: 3000));
     print("Finished processing");
