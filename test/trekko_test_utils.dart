@@ -68,7 +68,7 @@ class TrekkoTestUtils {
     late String ip = getAddress();
     try {
       Trekko lastLogin = await LastLoginBuilder().build();
-      lastLogin.signOut(delete: true);
+      await lastLogin.signOut(delete: true);
 
       Trekko loggedIn = await LoginBuilder.withData(
               projectUrl: ip, email: email, password: password)
