@@ -48,10 +48,9 @@ class CachedTracking implements Tracking {
     }
 
     this._callback = callback;
+    await readCache();
     TrackingService.getLocationUpdates(_process);
     _trackingId = await TrackingService.startLocationService(setting);
-    await readCache();
-
     _trackingRunning = true;
     return true;
   }
@@ -80,8 +79,8 @@ class CachedTracking implements Tracking {
       send.addAll(
           cached.map((e) => RawPhoneDataType.parseData(jsonDecode(e.value))));
       Logging.info("Sending ${send.length} cached data points");
-      _cacheDb.writeTxn(() => _cacheDb.cacheObjects.where().deleteAll());
-      await _process(send);
+      await _cacheDb.writeTxn(() => _cacheDb.cacheObjects.where().deleteAll());
+      _process(send);
     }
   }
 }

@@ -136,7 +136,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     Profile profile = (await getProfile().first);
     await _tracking.init(profile.preferences.batteryUsageSetting);
     if (profile.trackingState == TrackingState.running) {
-      _startTracking(profile);
+      await _startTracking(profile);
     }
 
     WidgetsBinding.instance.addObserver(this);
@@ -322,7 +322,6 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed && await _tracking.isRunning()) {
-      print("Reading cache");
       await _tracking.readCache();
     }
   }
