@@ -31,8 +31,9 @@ class AnalyzingLegWrapper implements LegWrapper {
       if (element.duration.inSeconds <
           previous.getMaximumStopTime().as(seconds)) return true;
 
+      double distance = PositionUtils.maxDistance(element.included);
       if (element.transportType != TransportTypeData.stationary &&
-          PositionUtils.maxDistance(element.included).meters < _minDistance)
+          distance.meters < _minDistance)
         return true;
 
       previous = element.transportType;
