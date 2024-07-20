@@ -121,15 +121,9 @@ class TrackingService {
         channelDescription: 'Trekko Tracking Service',
         channelImportance: NotificationChannelImportance.NONE,
         priority: NotificationPriority.MIN,
-        isSticky: true,
         visibility: NotificationVisibility.VISIBILITY_SECRET,
         showWhen: false,
         playSound: false,
-        iconData: const NotificationIconData(
-          resType: ResourceType.mipmap,
-          resPrefix: ResourcePrefix.ic,
-          name: 'launcher',
-        ),
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: true,
@@ -151,11 +145,11 @@ class TrackingService {
 
     if (!debug) {
       if (!await FlutterForegroundTask.isRunningService) {
-        bool service = await FlutterForegroundTask.startService(
+        ServiceRequestResult service = await FlutterForegroundTask.startService(
             notificationTitle: "Trekko",
             notificationText: "Trekko verfolgt dich... Gib acht!",
             callback: startCallback);
-        if (!service) throw Exception("Failed to start service");
+        if (!service.success) throw Exception("Failed to start service");
       }
       receivePort = FlutterForegroundTask.receivePort!;
     } else {
