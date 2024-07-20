@@ -5,7 +5,7 @@ import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../trekko_test_utils.dart';
+import '../utils/trekko_test_utils.dart';
 import '../utils/tracking_test_util.dart';
 
 void main() {

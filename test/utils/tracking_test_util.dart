@@ -14,7 +14,7 @@ import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
-import '../trekko_test_utils.dart';
+import 'trekko_test_utils.dart';
 import 'data_builder.dart';
 
 List<RawPhoneData> walkToShop =

@@ -5,7 +5,7 @@ import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar/isar.dart';
 
-import '../trekko_test_utils.dart';
+import '../utils/trekko_test_utils.dart';
 
 void main() {
   setUp(() async {

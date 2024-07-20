@@ -8,7 +8,7 @@ import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
-import '../trekko_test_utils.dart';
+import '../utils/trekko_test_utils.dart';
 import '../utils/tracking_test_util.dart';
 
 void main() {

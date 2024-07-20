@@ -5,7 +5,7 @@ import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:test/test.dart';
 
-import 'trekko_test_utils.dart';
+import 'utils/trekko_test_utils.dart';
 
 Trip trip1 = Trip.withData([
       Leg.withData(TransportType.bicycle, [

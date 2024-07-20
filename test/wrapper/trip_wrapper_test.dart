@@ -6,7 +6,7 @@ import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
-import '../trekko_test_utils.dart';
+import '../utils/trekko_test_utils.dart';
 import '../utils/data_builder.dart';
 import '../utils/tracking_test_util.dart';
 

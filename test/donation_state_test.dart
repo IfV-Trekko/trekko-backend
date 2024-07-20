@@ -2,7 +2,7 @@ import 'package:trekko_backend/controller/trekko.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:test/test.dart';
 
-import 'trekko_test_utils.dart';
+import 'utils/trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
