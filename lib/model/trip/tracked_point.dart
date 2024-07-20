@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:isar/isar.dart';
 
 part 'tracked_point.g.dart';
@@ -35,17 +35,10 @@ class TrackedPoint {
   /// Returns the position of the tracked point
   Position toPosition() {
     return Position(
-      latitude: latitude,
-      longitude: longitude,
-      timestamp: timestamp,
-      accuracy: 0,
-      altitude: 0,
-      altitudeAccuracy: 0,
-      heading: 0,
-      headingAccuracy: 0,
-      speedAccuracy: 0,
-      speed: 0,
-    );
+        latitude: latitude,
+        longitude: longitude,
+        timestamp: timestamp,
+        accuracy: 0);
   }
 
   Map<String, dynamic> toJson() => _$TrackedPointToJson(this);

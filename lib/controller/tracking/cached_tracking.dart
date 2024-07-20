@@ -7,34 +7,20 @@ import 'package:trekko_backend/controller/tracking/tracking.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/queued_executor.dart';
-import 'package:trekko_backend/controller/utils/tracking_service.dart';
-import 'package:trekko_backend/model/cache/cache_object.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/controller/tracking/tracking_service.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
+import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
+import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class CachedTracking implements Tracking {
   final QueuedExecutor _dataProcessor = QueuedExecutor();
   int _trackingId = 0;
   bool _trackingRunning = false;
-  DateTime? _lastPosition;
-  Future Function(List<Position>)? _callback;
+  Future Function(Iterable<RawPhoneData>)? _callback;
 
-  Future _process(List<Position> positions) async {
-    _dataProcessor.add(() async {
-      // Check if the position is older than the last position
-      for (Position pos in positions) {
-        if (_lastPosition == null ||
-            pos.timestamp.isAfter(_lastPosition!) ||
-            pos.timestamp.isAtSameMomentAs(_lastPosition!)) {
-          _lastPosition = pos.timestamp;
-        } else if (_lastPosition != null &&
-            pos.timestamp.isBefore(_lastPosition!)) {
-          throw Exception("Position is older than last position");
-        }
-      }
-
-      await _callback!(positions);
-    });
+  _process(Iterable<RawPhoneData> positions) {
+    _dataProcessor.add(() async => await _callback!(positions));
   }
 
   @override
@@ -49,7 +35,7 @@ class CachedTracking implements Tracking {
 
   @override
   Future<bool> start(BatteryUsageSetting setting,
-      Future Function(List<Position>) callback) async {
+      Future Function(Iterable<RawPhoneData>) callback) async {
     if (_trackingRunning) return false;
     for (Permission perm in Tracking.perms) {
       PermissionStatus status = await perm.status;
@@ -61,13 +47,10 @@ class CachedTracking implements Tracking {
       }
     }
 
-
-    _lastPosition = null;
     this._callback = callback;
-    TrackingService.getLocationUpdates((pos) async => await _process([pos]));
-    _trackingId = await TrackingService.startLocationService(setting);
     await readCache();
-
+    TrackingService.getLocationUpdates(_process);
+    _trackingId = await TrackingService.startLocationService(setting);
     _trackingRunning = true;
     return true;
   }
@@ -90,13 +73,14 @@ class CachedTracking implements Tracking {
   Future readCache() async {
     Isar _cacheDb = await Databases.cache.getInstance();
     if (await _cacheDb.cacheObjects.where().isNotEmpty()) {
-      List<Position> send = [];
+      List<RawPhoneData> send = [];
       List<CacheObject> cached =
           await _cacheDb.cacheObjects.where().sortByTimestamp().findAll();
-      send.addAll(cached.map((e) => Position.fromJson(jsonDecode(e.value))));
+      send.addAll(
+          cached.map((e) => RawPhoneDataType.parseData(jsonDecode(e.value))));
+      Logging.info("Sending ${send.length} cached data points");
       await _cacheDb.writeTxn(() => _cacheDb.cacheObjects.where().deleteAll());
-      Logging.info("Sending ${send.length} cached positions");
-      await _process(send);
+      _process(send);
     }
   }
 }

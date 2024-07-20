@@ -6,13 +6,13 @@ import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
-import 'trekko_test_utils.dart';
+import 'utils/trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
 
   setUpAll(() async {
-    trekko = await TrekkoTestUtils.initTrekko();
+    trekko = await TrekkoTestUtils.initTrekko(online: true);
   });
 
   test("Donate empty query", () async {

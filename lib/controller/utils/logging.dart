@@ -4,7 +4,11 @@ import 'package:trekko_backend/model/log/log_entry.dart';
 import 'package:trekko_backend/model/log/log_level.dart';
 
 class Logging {
+  static List<Function(MapEntry<LogLevel, String>)> loggingHooks = [];
+
   static Future<void> write(LogLevel level, String message) async {
+    MapEntry<LogLevel, String> e = MapEntry(level, message);
+    loggingHooks.forEach((l) => l.call(e));
     Isar _logs = await Databases.logs.getInstance();
     await _logs.writeTxn(() {
       return _logs.logEntrys.put(LogEntry(level, message, DateTime.now()));
@@ -33,7 +37,10 @@ class Logging {
 
   static Future<Stream<List<LogEntry>>> read() async {
     Isar _logs = await Databases.logs.getInstance();
-    return _logs.logEntrys.where().sortByTimestampDesc().watch(fireImmediately: true);
+    return _logs.logEntrys
+        .where()
+        .sortByTimestampDesc()
+        .watch(fireImmediately: true);
   }
 
   static Future<void> clear() async {

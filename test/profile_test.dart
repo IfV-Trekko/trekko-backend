@@ -6,11 +6,11 @@ import 'package:trekko_backend/model/profile/profile.dart';
 import 'package:trekko_backend/model/profile/question_type.dart';
 import 'package:test/test.dart';
 
-import 'trekko_test_utils.dart';
+import 'utils/trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
-  setUpAll(() async => trekko = await TrekkoTestUtils.initTrekko());
+  setUpAll(() async => trekko = await TrekkoTestUtils.initTrekko(online: true));
 
   test("Profile data correct", () async {
     Profile profile = await trekko.getProfile().first;

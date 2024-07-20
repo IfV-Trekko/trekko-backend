@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:geolocator/geolocator.dart' as Geoloc;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:trekko_backend/controller/analysis/average.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/model/position_accuracy.dart';
 
@@ -19,7 +19,11 @@ final class PositionUtils {
 
     return await Geoloc.Geolocator.getCurrentPosition(
             desiredAccuracy: accuracy.accuracy)
-        .then((value) => Position.fromGeoPosition(value));
+        .then((value) => Position(
+            longitude: value.longitude,
+            latitude: value.latitude,
+            accuracy: value.accuracy,
+            timestamp: value.timestamp));
   }
 
   static double calculateDistance(
@@ -84,28 +88,27 @@ final class PositionUtils {
         latitude: AverageCalculation()
             .calculate(centerPositions.map((e) => e.latitude))!,
         timestamp: centerPositions.last.timestamp,
-        accuracy: 0,
-        altitude: 0,
-        altitudeAccuracy: 0,
-        heading: 0,
-        headingAccuracy: 0,
-        speed: 0,
-        speedAccuracy: 0);
+        accuracy: 0);
   }
 
-  static double distanceBetweenPoints(List<Position> positions) {
+  static double distanceBetweenPoints(Iterable<Position> positions) {
+    if (positions.length < 2) return 0;
     double distance = 0;
-    for (int i = 1; i < positions.length; i++) {
-      distance += distanceBetween(positions[i - 1], positions[i]);
+    Position? last;
+    for (Position current in positions) {
+      if (last != null) {
+        distance += distanceBetween(last, current);
+      }
+      last = current;
     }
     return distance;
   }
 
-  static double maxDistance(List<Position> positions) {
+  static double maxDistance(Iterable<Position> positions) {
     double max = 0;
-    Position anchor = positions[positions.length - 1];
-    for (int i = 0; i < positions.length - 1; i++) {
-      double distance = distanceBetween(anchor, positions[i]);
+    Position anchor = positions.last;
+    for (Position position in positions) {
+      double distance = distanceBetween(anchor, position);
       if (distance > max) max = distance;
     }
     return max;
@@ -126,16 +129,15 @@ final class PositionUtils {
     return result;
   }
 
-  static List<Position> getPositionIn(
-      DateTime start, DateTime end, List<Position> positions) {
+  static Iterable<Position> getPositionIn(
+      DateTime start, DateTime end, Iterable<Position> positions) {
     return positions
-        .where((p) => p.timestamp.isAfter(start) && p.timestamp.isBefore(end))
-        .toList();
+        .where((p) => p.timestamp.isAfter(start) && p.timestamp.isBefore(end));
   }
 
   static double holdProbPerRadius(DateTime start, DateTime end,
-      Distance expectedDistance, List<Position> positions) {
-    List<Position> lastPositions = getPositionIn(start, end, positions);
+      Distance expectedDistance, Iterable<Position> positions) {
+    Iterable<Position> lastPositions = getPositionIn(start, end, positions);
     double moved = 0;
     if (lastPositions.length != 0)
       moved = PositionUtils.maxDistance(lastPositions);
@@ -143,8 +145,11 @@ final class PositionUtils {
     return min(expectedDistance.as(meters) / moved, 1);
   }
 
-  static double calculateSingleHoldProbability(DateTime start,
-      Duration duration, Distance expectedDistance, List<Position> positions) {
+  static double calculateSingleHoldProbability(
+      DateTime start,
+      Duration duration,
+      Distance expectedDistance,
+      Iterable<Position> positions) {
     if (positions.length == 0) return 0;
     DateTime minEnd = start.add(duration);
     return holdProbPerRadius(start, minEnd, expectedDistance, positions);

@@ -4,12 +4,12 @@ import 'package:trekko_backend/controller/analysis/calculation.dart';
 import 'package:trekko_backend/controller/request/bodies/response/project_metadata_response.dart';
 import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
-import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
-import 'package:trekko_backend/model/cache/wrapper_type.dart';
+import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
+import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
-import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
@@ -57,7 +57,7 @@ abstract class Trekko {
   Future<int> revoke(TripQuery query);
 
   /// Returns whether the tracking is currently processing data.
-  bool isProcessingLocationData();
+  Stream<bool> isProcessingLocationData();
 
   /// Returns a stream of the current tracking state.
   Stream<TrackingState> getTrackingState();
@@ -74,7 +74,7 @@ abstract class Trekko {
   /// Logs out the user.
   Future signOut({bool delete = false});
 
-  Stream<T> getWrapper<T extends TripWrapper>(WrapperType<T> type);
+  Stream<T>? getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type);
 
-  Future sendPosition(Position position, Iterable<WrapperType> types);
+  Future sendData(RawPhoneData data, Iterable<WrapperType> types);
 }

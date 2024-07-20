@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -14,22 +13,26 @@ import 'package:trekko_backend/controller/trekko_state.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/trip_query.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/analyzing_trip_wrapper.dart';
+import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/queued_wrapper_stream.dart';
-import 'package:trekko_backend/controller/wrapper/trip_wrapper.dart';
 import 'package:trekko_backend/controller/wrapper/wrapper_stream.dart';
-import 'package:trekko_backend/model/cache/analyzer_cache.dart';
-import 'package:trekko_backend/model/cache/wrapper_type.dart';
+import 'package:trekko_backend/model/tracking/analyzer/analyzer_cache.dart';
+import 'package:trekko_backend/model/tracking/analyzer/wrapper_type.dart';
 import 'package:trekko_backend/model/onboarding_text_type.dart';
-import 'package:trekko_backend/model/position.dart';
 import 'package:trekko_backend/model/profile/preferences.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/tracking_state.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
-import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 
 class OfflineTrekko with WidgetsBindingObserver implements Trekko {
+  static const List<WrapperType> _usedWrappers = [
+    WrapperType.MANUAL,
+    WrapperType.FILTERED_ANALYZER,
+    WrapperType.BLACK_HOLE
+  ];
+
   final Tracking _tracking;
   final Map<WrapperType, WrapperStream<Trip>> _streams;
   late int _profileId;
@@ -57,44 +60,42 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   void _initStreams() {
-    for (WrapperType type in WrapperType.values) {
-      TripWrapper initialWrapper = type.build();
+    for (WrapperType type in _usedWrappers) {
+      DataWrapper<Trip> initialWrapper = type.build([]);
       AnalyzerCache? cache =
           _cacheDb.analyzerCaches.filter().typeEqualTo(type).findFirstSync();
       if (cache != null) initialWrapper.load(jsonDecode(cache.value));
       _streams[type] =
-          QueuedWrapperStream(initialWrapper, () => type.build(), sync: true);
+          QueuedWrapperStream(initialWrapper, (i) => type.build(i), sync: true);
       _streams[type]!.getResults().listen(_tripReceive);
     }
   }
 
   Future _saveWrapper() async {
-    Map<WrapperType<TripWrapper>, String> wrapper =
+    Map<WrapperType<DataWrapper<Trip>>, String> wrapper =
         _streams.map((k, e) => MapEntry(k, jsonEncode(e.getWrapper().save())));
     await _cacheDb.writeTxn(() => _cacheDb.analyzerCaches.putAll(
         wrapper.keys.map((k) => AnalyzerCache(k, wrapper[k]!)).toList()));
   }
 
   Future _tripReceive(Trip trip) async {
+    await saveTrip(trip);
     await Logging.info(
         "Saving trip from ${trip.calculateStartTime().toIso8601String()} to ${trip.calculateEndTime().toIso8601String()}");
-    await saveTrip(trip);
   }
 
-  Future _sendPositions(
-      List<Position> positions, Iterable<WrapperType> types) async {
-    for (Position position in positions) {
-      for (WrapperType type in types) {
-        _streams[type]!.add(position);
-      }
+  Future _sendData(
+      Iterable<RawPhoneData> dataPoints, Iterable<WrapperType> types) async {
+    for (WrapperType type in types) {
+      _streams[type]!.add(dataPoints);
     }
 
     await _saveWrapper();
   }
 
-  Future _processTrackedPositions(List<Position> positions) async {
-    return await _sendPositions(positions,
-        WrapperType.values.where((element) => element.needsRealPositionData));
+  Future _processTrackedPositions(Iterable<RawPhoneData> positions) async {
+    return await _sendData(positions,
+        _usedWrappers.where((element) => element.needsRealPositionData));
   }
 
   Future<bool> _startTracking(Profile profile) async {
@@ -103,9 +104,23 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   @override
-  bool isProcessingLocationData() {
-    return _tracking.isProcessing() ||
+  Stream<bool> isProcessingLocationData() {
+    // Check periodically if the tracking is processing data and send one event immediately
+    bool Function() isProcessing = () =>
+        _tracking.isProcessing() ||
         _streams.values.any((element) => element.isProcessing());
+
+    StreamController<bool> controller = StreamController();
+    Timer? timer;
+    controller.onListen = () {
+      controller.add(isProcessing());
+      timer = Timer.periodic(Duration(seconds: 5), (timer) {
+        controller.add(isProcessing());
+      });
+    };
+
+    controller.onCancel = () => timer?.cancel();
+    return controller.stream;
   }
 
   @override
@@ -197,22 +212,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
     legsSorted.sort(
         (a, b) => a.calculateStartTime().compareTo(b.calculateStartTime()));
 
-    List<TrackedPoint> positionsInOrder =
-        legsSorted.expand((leg) => leg.trackedPoints).toList();
-    positionsInOrder.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-    TripWrapper wrapper = AnalyzingTripWrapper();
-    positionsInOrder.forEach((point) => wrapper.add(point.toPosition()));
-
-    Trip? mergedTrip;
-    try {
-      mergedTrip = await wrapper.get();
-    } catch (e) {}
-
-    if (mergedTrip == null) {
-      mergedTrip = Trip.withData(legsSorted);
-    }
-
+    Trip mergedTrip = Trip.withData(legsSorted);
     await deleteTrip(tripsQuery);
     await saveTrip(mergedTrip);
     return mergedTrip;
@@ -270,7 +270,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
 
   @override
   Future<void> terminate({keepServiceOpen = false}) async {
-    if (await isProcessingLocationData()) {
+    if (await isProcessingLocationData().first) {
       throw Exception("Cannot terminate while processing location data");
     }
 
@@ -306,8 +306,9 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   @override
-  Stream<T> getWrapper<T extends TripWrapper>(WrapperType<T> type) {
-    WrapperStream<Trip> stream = _streams[type]!;
+  Stream<T>? getWrapper<T extends DataWrapper<Trip>>(WrapperType<T> type) {
+    WrapperStream<Trip>? stream = _streams[type];
+    if (stream == null) return null;
     StreamController<T> controller = StreamController();
     void Function() addFunc = () {
       controller.add(stream.getWrapper() as T);
@@ -326,8 +327,7 @@ class OfflineTrekko with WidgetsBindingObserver implements Trekko {
   }
 
   @override
-  Future sendPosition(
-      Position position, Iterable<WrapperType<TripWrapper>> types) async {
-    await _sendPositions([position], types);
+  Future sendData(RawPhoneData data, Iterable<WrapperType> types) async {
+    await _sendData([data], types);
   }
 }

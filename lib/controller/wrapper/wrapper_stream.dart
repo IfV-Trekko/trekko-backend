@@ -1,14 +1,13 @@
-import 'package:trekko_backend/controller/wrapper/position_wrapper.dart';
-import 'package:trekko_backend/model/position.dart';
-import 'package:trekko_backend/model/trip/position_collection.dart';
+import 'package:trekko_backend/controller/wrapper/data_wrapper.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
-abstract class WrapperStream<R extends PositionCollection> {
+abstract class WrapperStream<R> {
 
   Stream<R> getResults();
 
-  void add(Position data);
+  void add(Iterable<RawPhoneData> data);
 
-  PositionWrapper<R> getWrapper();
+  DataWrapper<R> getWrapper();
 
   bool isProcessing();
 

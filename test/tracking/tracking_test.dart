@@ -1,46 +1,32 @@
-import 'package:trekko_backend/controller/utils/trip_builder.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
-import '../trekko_test_utils.dart';
-import 'tracking_test_util.dart';
-
-List<Position> composeBuilder(
-    TripBuilder Function(TripBuilder) mod, int times) {
-  TripBuilder builder = TripBuilder();
-  for (int i = 0; i < times; i++) {
-    builder = mod(builder);
-  }
-  return builder.collect().map((e) => e.toPosition()).toList();
-}
+import '../utils/trekko_test_utils.dart';
+import '../utils/data_builder.dart';
+import '../utils/tracking_test_util.dart';
 
 void main() {
+  List<RawPhoneData> composeBuilder(
+      DataBuilder Function(DataBuilder) mod, int times) {
+    DataBuilder builder = DataBuilder();
+    for (int i = 0; i < times; i++) {
+      builder = mod(builder);
+    }
+    return builder.collect();
+  }
+
   setUp(() async {
     await TrekkoTestUtils.init();
     await TrekkoTestUtils.clear();
   });
 
   test("Analyze walk to shop and back", () async {
-    int compose = 1;
-    List<Position> walkToShopAndBack = composeBuilder(
-        (p0) => p0
-            .stay(Duration(hours: 1))
-            // walk 500m
-            .move(true, Duration(minutes: 10), 500.meters)
-            // stay for 5min
-            .stay(Duration(minutes: 5))
-            // walk 500m back
-            .move(false, Duration(minutes: 10), 500.meters)
-            // stay for 1h
-            .stay(Duration(hours: 1)),
-        compose);
-
-    await TrackingTestUtil.sendPositionsDiverse(walkToShopAndBack, (trips) {
-      expect(trips.length, compose);
+    await TrackingTestUtil.sendDataDiverse(walkToShopAndBack, (trips) {
+      expect(trips.length, 1);
       for (Trip trip in trips) {
         expect(trip.legs.length, 2);
         expect(trip.legs.first.transportType, TransportType.by_foot);
@@ -51,20 +37,16 @@ void main() {
 
   test("Analyze walk to shop and back, multiple", () async {
     int compose = 4;
-    List<Position> walkToShopAndBack = composeBuilder(
+    List<RawPhoneData> walkToShopAndBack = composeBuilder(
         (p0) => p0
-            .stay(Duration(hours: 1))
-            // walk 500m
-            .move(true, Duration(minutes: 10), 500.meters)
-            // stay for 5min
-            .stay(Duration(minutes: 5))
-            // walk 500m back
-            .move(false, Duration(minutes: 10), 500.meters)
-            // stay for 1h
-            .stay(Duration(hours: 1)),
+            .stay(1.hours)
+            .walk(500.meters)
+            .stay(5.minutes)
+            .walk(forward: false, 500.meters)
+            .stay(1.hours),
         4);
 
-    await TrackingTestUtil.sendPositionsDiverse(walkToShopAndBack, (trips) {
+    await TrackingTestUtil.sendDataDiverse(walkToShopAndBack, (trips) {
       expect(trips.length, compose);
       for (Trip trip in trips) {
         expect(trip.legs.length, 2);
@@ -75,70 +57,80 @@ void main() {
   });
 
   test("Analyze walk to shop and back and only stay for 90 sec", () async {
-    List<Position> walkToShopAndBack = TripBuilder()
+    List<RawPhoneData> walkToShopAndBack = DataBuilder()
         // stay for 1h
-        .stay(Duration(hours: 1))
+        .stay(1.hours)
         // walk 500m
-        .move(true, Duration(minutes: 10), 500.meters)
+        .walk(500.meters)
         // stay for 1min
-        .stay(Duration(seconds: 90))
+        .stay(90.seconds)
         // walk 500m back
-        .move(false, Duration(minutes: 10), 500.meters)
+        .walk(forward: false, 500.meters)
         // stay for 1h
-        .stay(Duration(minutes: 20))
-        .collect()
-        .map((e) => e.toPosition())
-        .toList();
+        .stay(20.minutes)
+        .collect();
 
-    await TrackingTestUtil.sendPositionsDiverse(walkToShopAndBack, (trips) {
+    await TrackingTestUtil.sendDataDiverse(walkToShopAndBack, (trips) {
       expect(trips.length, 0);
     });
   });
 
   test("Analyze walk to shop and back and only stay 15 min at the end",
       () async {
-    List<Position> walkToShopAndBack = TripBuilder()
-        // stay for 1h
-        .stay(Duration(hours: 1))
-        // walk 500m
-        .move(true, Duration(minutes: 10), 500.meters)
-        // stay for 2min
-        .stay(Duration(minutes: 2))
-        // walk 500m back
-        .move(false, Duration(minutes: 10), 500.meters)
-        // stay for 15m
-        .stay(Duration(minutes: 15))
-        .collect()
-        .map((e) => e.toPosition())
-        .toList();
+    List<RawPhoneData> walkToShopAndBack = DataBuilder()
+        .stay(1.hours)
+        .walk(500.meters)
+        .stay(2.minutes)
+        .walk(forward: false, 500.meters)
+        .stay(15.minutes)
+        .collect();
 
-    await TrackingTestUtil.sendPositionsDiverse(walkToShopAndBack, (trips) {
+    await TrackingTestUtil.sendDataDiverse(walkToShopAndBack, (trips) {
       expect(trips.length, 0);
     });
   });
 
   test("Analyze walk with some wild movements", () async {
-    List<Position> points = TripBuilder()
-        .stay(Duration(hours: 1))
-        .move(true, Duration(minutes: 1), 49.meters)
-        .move(false, Duration(minutes: 1), 49.meters)
-        .stay(Duration(hours: 1))
-        .move(true, Duration(minutes: 10), 500.meters)
-        .move(false, Duration(seconds: 50), 30.meters)
-        .move(true, Duration(seconds: 50), 32.meters)
-        .stay(Duration(minutes: 24))
-        .collect()
-        .map((e) => e.toPosition())
-        .toList();
+    List<RawPhoneData> points = DataBuilder()
+        .stay(1.hours)
+        .walk(24.meters)
+        .walk(forward: false, 24.meters)
+        .stay(1.hours)
+        .walk(500.meters)
+        .walk(30.meters)
+        .walk(forward: false, 32.meters)
+        .stay(27.minutes)
+        .collect();
 
-    await TrackingTestUtil.sendPositionsDiverse(points, (trips) {
+    await TrackingTestUtil.sendDataDiverse(points, (trips) {
       expect(trips.length, 1);
       expect(trips.first.legs.length, 1);
       Leg wrapped = trips.first.legs.first;
-      expect(wrapped.calculateDistance().as(meters), inInclusiveRange(485, 501));
-      expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(9, 10));
-      expect(wrapped.calculateSpeed().as(kilo.meters, hours), inInclusiveRange(2, 4));
+      print(wrapped.calculateStartTime());
+      print(wrapped.calculateEndTime());
+      expect(
+          wrapped.calculateDistance().as(meters), inInclusiveRange(560, 565));
+      expect(wrapped.calculateDuration().inMinutes, inInclusiveRange(6, 7));
+      expect(wrapped.calculateSpeed().as(kilo.meters, hours),
+          inInclusiveRange(4, 6));
       expect(wrapped.transportType, equals(TransportType.by_foot));
+    });
+  });
+
+  test("Analyze walk with some wild movements, 2 trips", () async {
+    List<RawPhoneData> points = DataBuilder()
+        .stay(1.hours)
+        .walk(50.meters)
+        .walk(forward: false, 50.meters)
+        .stay(1.hours)
+        .walk(500.meters)
+        .walk(30.meters)
+        .walk(forward: false, 32.meters)
+        .stay(27.minutes)
+        .collect();
+
+    await TrackingTestUtil.sendDataDiverse(points, (trips) {
+      expect(trips.length, 2);
     });
   });
 }

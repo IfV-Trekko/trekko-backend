@@ -1,6 +1,9 @@
 import 'package:trekko_backend/controller/utils/position_utils.dart';
 import 'package:trekko_backend/controller/wrapper/manual/manual_trip_wrapper.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
+import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
 import 'package:trekko_backend/model/trip/transport_type.dart';
@@ -13,11 +16,18 @@ class SimplePositionWrapper implements ManualTripWrapper {
   TransportType? _nextType;
   bool _endSoon = false;
 
+  SimplePositionWrapper(Iterable<RawPhoneData> initialData) {
+    this.add(initialData);
+  }
+
   @override
-  Future add(Position position) async {
+  Future add(Iterable<RawPhoneData> position) async {
     if (this._type == null) return;
 
-    _positions.add(position);
+    _positions.addAll(position
+        .where((p) => p.getType() == RawPhoneDataType.position)
+        .map((e) => e as Position));
+
     if (_nextType != null &&
         _positions.length > 1 &&
         PositionUtils.distanceBetweenPoints(_positions) > 0) {
@@ -30,13 +40,16 @@ class SimplePositionWrapper implements ManualTripWrapper {
   }
 
   @override
-  Future<double> calculateEndProbability() async {
-    return _endSoon ? 1 : 0;
+  Future<WrapperResult<Trip>> get() async {
+    return WrapperResult(_endSoon ? 1 : 0,
+        Trip.withData(_legs)..comment = "Tracked manually", []);
   }
 
   @override
-  Future<Trip> get({bool preliminary = false}) async {
-    return Trip.withData(_legs)..comment = "Tracked manually";
+  Future<Iterable<RawPhoneData>> getAnalysisData() async {
+    return _legs
+        .expand((element) => element.trackedPoints.map((e) => e.toPosition()))
+        .followedBy(_positions);
   }
 
   @override

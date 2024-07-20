@@ -8,7 +8,7 @@ import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:test/test.dart';
 
-import '../trekko_test_utils.dart';
+import '../utils/trekko_test_utils.dart';
 
 Future<void> checkTrip(
     Trekko trekko, int tripId, Distance distance, Duration duration) async {

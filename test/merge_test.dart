@@ -4,12 +4,12 @@ import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:fling_units/fling_units.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'trekko_test_utils.dart';
+import 'utils/trekko_test_utils.dart';
 
 void main() {
   late Trekko trekko;
   setUp(() async {
-    trekko = await TrekkoTestUtils.initTrekko();
+    trekko = await TrekkoTestUtils.initTrekko(online: true);
   });
 
   // Create 2 ways which are after each other

@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:trekko_backend/model/cache/analyzer_cache.dart';
-import 'package:trekko_backend/model/cache/cache_object.dart';
+import 'package:trekko_backend/model/tracking/analyzer/analyzer_cache.dart';
+import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
 import 'package:trekko_backend/model/log/log_entry.dart';
 import 'package:trekko_backend/model/profile/profile.dart';
-import 'package:trekko_backend/model/cache/tracking_options.dart';
+import 'package:trekko_backend/model/tracking/cache/tracking_options.dart';
 import 'package:trekko_backend/model/trip/trip.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';

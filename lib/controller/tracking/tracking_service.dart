@@ -1,63 +1,98 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:isar/isar.dart';
 import 'package:trekko_backend/controller/utils/database_utils.dart';
 import 'package:trekko_backend/controller/utils/logging.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
-import 'package:trekko_backend/model/cache/cache_object.dart';
-import 'package:trekko_backend/model/position.dart' as Trekko;
+import 'package:trekko_backend/controller/utils/queued_executor.dart';
 import 'package:trekko_backend/model/profile/battery_usage_setting.dart';
-import 'package:trekko_backend/model/cache/tracking_options.dart';
+import 'package:trekko_backend/model/tracking/activity_data.dart';
+import 'package:trekko_backend/model/tracking/cache/cache_object.dart';
+import 'package:trekko_backend/model/tracking/cache/raw_phone_data_type.dart';
+import 'package:trekko_backend/model/tracking/cache/tracking_options.dart';
+import 'package:trekko_backend/model/tracking/position.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 
 class TrackingTask extends TaskHandler {
   final BatteryUsageSetting options;
   DateTime? lastTimestamp;
+  List<StreamSubscription> _subscriptions = [];
+  QueuedExecutor executor = QueuedExecutor();
 
   TrackingTask(this.options);
 
-  Future<void> _sendData(SendPort? sendPort, List<Trekko.Position> locs) async {
-    List<Trekko.Position> valids = [];
-    for (Trekko.Position p in locs) {
+  Future<void> _sendData(SendPort? sendPort, List<RawPhoneData> data) async {
+    List<RawPhoneData> valids = [];
+    for (RawPhoneData p in data) {
       if (lastTimestamp == null ||
-          (p.timestamp.isAfter(lastTimestamp!) &&
-              !p.timestamp.isAtSameMomentAs(lastTimestamp!))) {
-        lastTimestamp = p.timestamp;
+          (p.getTimestamp().isAfter(lastTimestamp!) &&
+              !p.getTimestamp().isAtSameMomentAs(lastTimestamp!))) {
+        lastTimestamp = p.getTimestamp();
         valids.add(p);
       } else {
-        await Logging.warning("Skipping position: ${p.toJson()}");
+        await Logging.warning(
+            "Skipping data point: ${p.toJson()} of type ${p.getType()}");
       }
     }
 
     if (valids.isEmpty) return;
-    Isar cache = (await Databases.cache.getInstance());
     if (!await FlutterForegroundTask.isAppOnForeground) {
-      await Logging.info("Sending ${valids.length} positions to cache");
+      Isar cache = (await Databases.cache.getInstance());
+      await Logging.info("Sending ${valids.length} data points to cache");
       List<Map<String, dynamic>> data = valids.map((e) => e.toJson()).toList();
       await cache.writeTxn(() async => await cache.cacheObjects
           .putAll(data.map(CacheObject.fromJson).toList()));
     } else {
-      await Logging.info("Sending ${valids.length} positions directly");
-      valids.forEach((element) => sendPort!.send(element.toJson()));
+      await Logging.info("Sending ${valids.length} data points directly");
+      String encode = jsonEncode(valids.map((e) => e.toJson()).toList());
+      sendPort!.send(encode);
     }
   }
 
   @override
   void onDestroy(DateTime timestamp, SendPort? sendPort) {
+    _subscriptions.forEach((s) => s.cancel());
     Logging.warning("Tracking service destroyed");
   }
 
   @override
-  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
-    PositionUtils.getPosition(options.accuracy)
-        .then((value) => _sendData(sendPort, [value!]));
+  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) {
+    executor.add(() async => await _sendData(
+        sendPort, [(await PositionUtils.getPosition(options.accuracy))!]));
   }
 
   @override
-  void onStart(DateTime timestamp, SendPort? sendPort) async {
+  void onStart(DateTime timestamp, SendPort? sendPort) {
+    _subscriptions
+        .add(FlutterActivityRecognition.instance.activityStream.listen((event) {
+      executor.add(() async {
+        DateTime now = DateTime.now();
+        Position? pos = await PositionUtils.getPosition(options.accuracy);
+        await _sendData(sendPort, [
+          Position(
+              latitude: pos!.latitude,
+              longitude: pos.longitude,
+              timestamp: now.add(Duration(seconds: -1)),
+              accuracy: pos.accuracy),
+          ActivityData(
+              activity: event.type,
+              confidence: event.confidence,
+              timestamp: now),
+          Position(
+              latitude: pos.latitude,
+              longitude: pos.longitude,
+              timestamp: now.add(Duration(seconds: 1)),
+              accuracy: pos.accuracy),
+        ]);
+      });
+    }));
+
     Logging.warning("Tracking service started");
   }
 }
@@ -73,7 +108,7 @@ void startCallback() async {
 class TrackingService {
   static String debugIsolateName = "tracking_service";
   static bool debug = false;
-  static List<Future Function(Trekko.Position)> callbacks = [];
+  static List<Function(Iterable<RawPhoneData>)> callbacks = [];
   static ReceivePort? receivePort;
 
   static void init(BatteryUsageSetting options) {
@@ -88,7 +123,6 @@ class TrackingService {
         priority: NotificationPriority.MIN,
         isSticky: true,
         visibility: NotificationVisibility.VISIBILITY_SECRET,
-        foregroundServiceType: AndroidForegroundServiceType.LOCATION,
         showWhen: false,
         playSound: false,
         iconData: const NotificationIconData(
@@ -126,14 +160,17 @@ class TrackingService {
       receivePort = FlutterForegroundTask.receivePort!;
     } else {
       receivePort = ReceivePort();
+      IsolateNameServer.removePortNameMapping(debugIsolateName);
       bool register = IsolateNameServer.registerPortWithName(
           receivePort!.sendPort, debugIsolateName);
       if (!register) throw Exception("Failed to register port");
     }
 
-    receivePort!.listen((dynamic data) async {
-      for (Future Function(Trekko.Position) callback in callbacks) {
-        await callback.call(Trekko.Position.fromJson(data));
+    receivePort!.listen((dynamic data) {
+      List<dynamic> strings = jsonDecode(data);
+      Iterable<RawPhoneData> parsed = strings.map(RawPhoneDataType.parseData);
+      for (Function(Iterable<RawPhoneData>) callback in callbacks) {
+        callback.call(parsed);
       }
     });
     return 0;
@@ -152,7 +189,7 @@ class TrackingService {
   }
 
   static void getLocationUpdates(
-      Future Function(Trekko.Position) locationCallback) {
+      Function(Iterable<RawPhoneData>) locationCallback) {
     callbacks.add(locationCallback);
   }
 }

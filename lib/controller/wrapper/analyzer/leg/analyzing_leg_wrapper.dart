@@ -1,144 +1,136 @@
 import 'dart:async';
 
+import 'package:fling_units/fling_units.dart';
 import 'package:trekko_backend/controller/utils/position_utils.dart';
+import 'package:trekko_backend/controller/utils/time_utils.dart';
 import 'package:trekko_backend/controller/wrapper/analyzer/leg/leg_wrapper.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/transport_type_data.dart';
-import 'package:trekko_backend/controller/wrapper/analyzer/leg/position/weighted_transport_type_evaluator.dart';
-import 'package:trekko_backend/model/position.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_data_provider.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/transport_type_part.dart';
+import 'package:trekko_backend/controller/wrapper/analyzer/leg/transport/weighted_transport_type_evaluator.dart';
+import 'package:trekko_backend/controller/wrapper/wrapper_result.dart';
+import 'package:trekko_backend/model/tracking/raw_phone_data.dart';
 import 'package:trekko_backend/model/trip/leg.dart';
 import 'package:trekko_backend/model/trip/tracked_point.dart';
-import 'package:fling_units/fling_units.dart';
-import 'package:trekko_backend/model/trip/transport_type.dart';
 
 class AnalyzingLegWrapper implements LegWrapper {
-  static const Duration _stayDuration = Duration(minutes: 3);
-  static Distance _stayDistance = meters(50);
+  static Distance _minDistance = 50.meters;
 
-  List<Position> _positions = List.empty(growable: true);
-  Position? _startedMoving;
+  TransportTypeEvaluator _evaluator;
 
-  Future<double> _calculateProbability(
-      List<Position> positions, TransportTypeData data) {
-    WeightedTransportTypeEvaluator evaluator =
-        WeightedTransportTypeEvaluator(data);
-    Leg leg = Leg();
-    leg.trackedPoints = positions.map(TrackedPoint.fromPosition).toList();
-    return evaluator.evaluate(leg);
-  }
+  AnalyzingLegWrapper(Iterable<RawPhoneData> initialData)
+      : _evaluator = WeightedTransportTypeEvaluator(initialData.toList());
 
-  Future<TransportType> _calculateMaxProbability(
-      List<Position> positions) async {
-    // Calculating probability
-    double maxProbability = 0;
-    TransportTypeData maxData = TransportTypeData.by_foot;
-    for (TransportTypeData data in TransportTypeData.values) {
-      double probability = await _calculateProbability(positions, data);
-      if (probability > maxProbability) {
-        maxProbability = probability;
-        maxData = data;
+  Iterable<TransportTypePart> _smoothData(List<TransportTypePart> data) {
+    TransportTypeDataProvider previous = TransportTypeData.stationary;
+    TransportTypePart? firstRemove =
+        data.cast<TransportTypePart?>().firstWhere((element) {
+      if (element!.included.length < 2) return true;
+
+      if (element.duration.inSeconds <
+          previous.getMaximumStopTime().as(seconds)) return true;
+
+      double distance = PositionUtils.maxDistance(element.included);
+      if (element.transportType != TransportTypeData.stationary &&
+          distance.meters < _minDistance)
+        return true;
+
+      previous = element.transportType;
+      return false;
+    }, orElse: () => null);
+
+    if (firstRemove == null) return data;
+
+    int indexOfRemove = data.indexOf(firstRemove);
+    data.removeAt(indexOfRemove);
+    if (indexOfRemove > 0 && indexOfRemove < data.length) {
+      TransportTypePart before = data[indexOfRemove - 1];
+      TransportTypePart after = data[indexOfRemove];
+
+      // Connect the two parts if transport type is the same
+      if (before.transportType == after.transportType) {
+        TransportTypePart part = TransportTypePart(
+            before.start,
+            after.end,
+            (before.confidence + after.confidence) / 2,
+            before.transportType,
+            before.included.followedBy(after.included));
+        data[indexOfRemove - 1] = part;
+        data.removeAt(indexOfRemove);
       }
     }
-    return maxData.transportType;
+    return _smoothData(data);
   }
 
-  Position? _cluster(List<Position> positions, {bool reverse = false}) {
-    List<Position> firstIn = PositionUtils.getFirstIn(_stayDistance, positions);
-    return firstIn.isEmpty
-        ? null
-        : PositionUtils.getCenter(firstIn, reverse: reverse);
+  bool _isTransportPartValid(TransportTypePart part) {
+    // Get first TransportTypePart where the duration is longer than _minTransportUsage
+    double distance = PositionUtils.distanceBetweenPoints(part.included);
+    return part.transportType.getTransportType() != null &&
+        part.included.length >= 2 &&
+        distance.meters > _minDistance;
   }
 
-  Future<bool> _checkStartedMoving() async {
-    if (_startedMoving != null) return true;
-    // Check if first and last position are at least _stayDuration apart
-    if (_positions.isEmpty) return false;
-    if (_positions.last.timestamp
-        .isBefore(_positions.first.timestamp.add(_stayDuration))) return false;
-    return PositionUtils.maxDistance(_positions) >= _stayDistance.as(meters);
+  Future<TransportTypePart?> _calculateFirstMainTransportPart(
+      Iterable<TransportTypePart> analysis) async {
+    return analysis.where(_isTransportPartValid).firstOrNull;
   }
 
   @override
-  Future<Position?> getLegStart() async {
-    return _startedMoving;
+  add(Iterable<RawPhoneData> data) {
+    _evaluator.add(data);
   }
 
   @override
-  Future<double> calculateEndProbability() {
+  Future<WrapperResult<Leg>> get() async {
     return Future.microtask(() async {
-      if (_startedMoving == null) return 0;
-      DateTime last = _positions.last.timestamp;
-      DateTime from = last.subtract(_stayDuration);
-      // Check if last point is longer than _stayDuration away from _startedMoving
-      if (last.difference(_startedMoving!.timestamp) < _stayDuration) return 0;
-      return await PositionUtils.calculateSingleHoldProbability(
-          from, _stayDuration, _stayDistance, _positions);
+      WrapperResult<List<TransportTypePart>> result = await _evaluator.get();
+      List<RawPhoneData> analysisData = (await this.getAnalysisData()).toList();
+      WrapperResult<Leg> invalid = WrapperResult(result.confidence, null, []);
+
+      if (result.result == null) return invalid;
+
+      Iterable<TransportTypePart> data = _smoothData(result.result!);
+
+      TransportTypePart? mainPart =
+          await _calculateFirstMainTransportPart(data);
+
+      if (mainPart == null) return invalid;
+
+      TransportTypePart? endPart = data.cast<TransportTypePart?>().firstWhere(
+          (element) => element!.end.isAfter(mainPart.end),
+          orElse: () => null);
+
+      if (endPart == null) return invalid;
+
+      List<TrackedPoint> positionsInTime =
+          mainPart.included.map(TrackedPoint.fromPosition).toList();
+
+      Leg leg = Leg.withData(
+          mainPart.transportType.getTransportType()!, positionsInTime);
+      return WrapperResult(
+          1, // TODO: Linear confidence growth instead of 1
+          // mainPart.confidence,
+          leg,
+          analysisData
+              .where((e) => e.getTimestamp().isAfterIncluding(mainPart.end)));
     });
   }
 
   @override
-  add(Position position) async {
-    if (_positions.isNotEmpty &&
-        position.timestamp.isBefore(_positions.last.timestamp)) {
-      throw Exception(
-          "Positions must be added in chronological order. Last timestamp: ${_positions.last.timestamp}, new timestamp: ${position.timestamp}");
-    }
-
-    _positions.add(position);
-    if (_startedMoving == null && await _checkStartedMoving()) {
-      Position? centerStart = _cluster(_positions);
-      if (centerStart == null) throw Exception("No center start found");
-      _startedMoving = centerStart;
-    }
-  }
-
-  @override
-  Future<Leg> get({bool preliminary = false}) async {
-    return Future.microtask(() async {
-      if (preliminary) {
-        return Leg.withData(await _calculateMaxProbability(_positions),
-            _positions.map(TrackedPoint.fromPosition).toList());
-      }
-
-      if (_startedMoving == null) throw Exception("Not started moving");
-
-      // Trimming positions
-      List<Position> trimmedPositions = List.empty(growable: true);
-      DateTime start = _startedMoving!.timestamp;
-      trimmedPositions.add(_startedMoving!);
-
-      Position endCenter = _cluster(_positions.reversed
-          .where((element) => element.timestamp.isAfter(start))
-          .toList())!;
-      DateTime end = endCenter.timestamp;
-      for (int i = 0; i < _positions.length - 1; i++) {
-        if (_positions[i].timestamp.isAfter(start) &&
-            _positions[i].timestamp.isBefore(end)) {
-          trimmedPositions.add(_positions[i]);
-        }
-      }
-
-      trimmedPositions.add(endCenter);
-      return Leg.withData(await _calculateMaxProbability(trimmedPositions),
-          trimmedPositions.map(TrackedPoint.fromPosition).toList());
-    });
+  Future<Iterable<RawPhoneData>> getAnalysisData() {
+    return _evaluator.getAnalysisData();
   }
 
   @override
   Map<String, dynamic> save() {
     Map<String, dynamic> json = Map<String, dynamic>();
-    json["positions"] = _positions.map((e) => e.toJson()).toList();
-    if (_startedMoving != null)
-      json["startedMoving"] = _startedMoving!.toJson();
+    json["evaluator"] = _evaluator.save();
     return json;
   }
 
   @override
   void load(Map<String, dynamic> json) {
-    List<dynamic> positions = json["positions"];
-    _positions.clear();
-    _positions.addAll(positions.map((e) => Position.fromJson(e)));
-    if (json.containsKey("startedMoving")) {
-      _startedMoving = Position.fromJson(json["startedMoving"]);
-    }
+    _evaluator.load(json["evaluator"]);
   }
 }

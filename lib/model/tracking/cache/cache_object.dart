@@ -17,7 +17,7 @@ class CacheObject {
   }
 
   Map<String, dynamic> toJson() => {
-    'value': value,
-    'timestamp': timestamp,
-  };
+        'value': value,
+        'timestamp': timestamp,
+      };
 }
