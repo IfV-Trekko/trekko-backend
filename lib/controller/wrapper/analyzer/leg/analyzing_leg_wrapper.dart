@@ -22,45 +22,46 @@ class AnalyzingLegWrapper implements LegWrapper {
   AnalyzingLegWrapper(Iterable<RawPhoneData> initialData)
       : _evaluator = WeightedTransportTypeEvaluator(initialData.toList());
 
-  Iterable<TransportTypePart> _smoothData(List<TransportTypePart> data) {
-    TransportTypeDataProvider previous = TransportTypeData.stationary;
-    TransportTypePart? firstRemove =
-        data.cast<TransportTypePart?>().firstWhere((element) {
-      if (element!.included.length < 2) return true;
+  bool shallRemove(
+      TransportTypePart element, TransportTypeDataProvider previous) {
+    if (element.included.length < 2) return true;
 
-      if (element.duration.inSeconds <
-          previous.getMaximumStopTime().as(seconds)) return true;
+    if (element.duration.inSeconds < previous.getMaximumStopTime().as(seconds))
+      return true;
 
-      double distance = PositionUtils.maxDistance(element.included);
-      if (element.transportType != TransportTypeData.stationary &&
-          distance.meters < _minDistance)
-        return true;
+    double distance = PositionUtils.maxDistance(element.included);
+    if (element.transportType != TransportTypeData.stationary &&
+        distance.meters < _minDistance) return true;
 
-      previous = element.transportType;
-      return false;
-    }, orElse: () => null);
+    return false;
+  }
 
-    if (firstRemove == null) return data;
+  Iterable<TransportTypePart> _smoothData(Iterable<TransportTypePart> data) {
+    Set<TransportTypePart> removed = Set();
+    Iterable<TransportTypePart> nonRemoved =
+        data.where((p) => !removed.contains(p));
+    return nonRemoved.map((part) {
+      while (true) {
+        TransportTypePart? next =
+            nonRemoved.where((next) => next.end.isAfter(part.end)).firstOrNull;
 
-    int indexOfRemove = data.indexOf(firstRemove);
-    data.removeAt(indexOfRemove);
-    if (indexOfRemove > 0 && indexOfRemove < data.length) {
-      TransportTypePart before = data[indexOfRemove - 1];
-      TransportTypePart after = data[indexOfRemove];
-
-      // Connect the two parts if transport type is the same
-      if (before.transportType == after.transportType) {
-        TransportTypePart part = TransportTypePart(
-            before.start,
-            after.end,
-            (before.confidence + after.confidence) / 2,
-            before.transportType,
-            before.included.followedBy(after.included));
-        data[indexOfRemove - 1] = part;
-        data.removeAt(indexOfRemove);
+        if (next != null &&
+            next.transportType == part.transportType &&
+            shallRemove(next, part.transportType)) {
+          removed.add(next);
+          part = TransportTypePart(
+              part.start,
+              next.end,
+              (part.confidence + next.confidence) / 2,
+              part.transportType,
+              part.included.followedBy(next.included));
+        } else {
+          break;
+        }
       }
-    }
-    return _smoothData(data);
+
+      return part;
+    });
   }
 
   bool _isTransportPartValid(TransportTypePart part) {
@@ -84,7 +85,8 @@ class AnalyzingLegWrapper implements LegWrapper {
   @override
   Future<WrapperResult<Leg>> get() async {
     return Future.microtask(() async {
-      WrapperResult<List<TransportTypePart>> result = await _evaluator.get();
+      WrapperResult<Iterable<TransportTypePart>> result =
+          await _evaluator.get();
       List<RawPhoneData> analysisData = (await this.getAnalysisData()).toList();
       WrapperResult<Leg> invalid = WrapperResult(result.confidence, null, []);
 
