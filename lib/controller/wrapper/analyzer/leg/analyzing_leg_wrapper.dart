@@ -45,16 +45,17 @@ class AnalyzingLegWrapper implements LegWrapper {
         TransportTypePart? next =
             nonRemoved.where((next) => next.end.isAfter(part.end)).firstOrNull;
 
-        if (next != null &&
-            next.transportType == part.transportType &&
-            shallRemove(next, part.transportType)) {
+        if (next != null && shallRemove(next, part.transportType)) {
           removed.add(next);
-          part = TransportTypePart(
-              part.start,
-              next.end,
-              (part.confidence + next.confidence) / 2,
-              part.transportType,
-              part.included.followedBy(next.included));
+          if (next.transportType == part.transportType) {
+            // TODO: Add a time limit for connecting two parts
+            part = TransportTypePart(
+                part.start,
+                next.end,
+                (part.confidence + next.confidence) / 2,
+                part.transportType,
+                part.included.followedBy(next.included));
+          }
         } else {
           break;
         }
