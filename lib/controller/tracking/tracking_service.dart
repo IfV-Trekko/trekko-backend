@@ -27,7 +27,7 @@ class TrackingTask extends TaskHandler {
 
   TrackingTask(this.options);
 
-  Future<void> _sendData(SendPort? sendPort, List<RawPhoneData> data) async {
+  Future<void> _sendData(List<RawPhoneData> data) async {
     List<RawPhoneData> valids = [];
     for (RawPhoneData p in data) {
       if (lastTimestamp == null ||
@@ -51,30 +51,29 @@ class TrackingTask extends TaskHandler {
     } else {
       await Logging.info("Sending ${valids.length} data points directly");
       String encode = jsonEncode(valids.map((e) => e.toJson()).toList());
-      sendPort!.send(encode);
+      FlutterForegroundTask.sendDataToMain(encode);
     }
   }
 
   @override
-  void onDestroy(DateTime timestamp, SendPort? sendPort) {
-    _subscriptions.forEach((s) => s.cancel());
+  Future<void> onDestroy(DateTime timestamp) async {
+    _subscriptions.forEach((s) async => await s.cancel());
     Logging.warning("Tracking service destroyed");
   }
 
   @override
-  void onRepeatEvent(DateTime timestamp, SendPort? sendPort) {
-    executor.add(() async => await _sendData(
-        sendPort, [(await PositionUtils.getPosition(options.accuracy))!]));
+  void onRepeatEvent(DateTime timestamp) {
+    executor.add(() async => await _sendData([(await PositionUtils.getPosition(options.accuracy))!]));
   }
 
   @override
-  void onStart(DateTime timestamp, SendPort? sendPort) {
+  Future<void> onStart(DateTime timestamp, TaskStarter start) async {
     _subscriptions
         .add(FlutterActivityRecognition.instance.activityStream.listen((event) {
       executor.add(() async {
         DateTime now = DateTime.now();
         Position? pos = await PositionUtils.getPosition(options.accuracy);
-        await _sendData(sendPort, [
+        FlutterForegroundTask.sendDataToMain([
           Position(
               latitude: pos!.latitude,
               longitude: pos.longitude,
@@ -131,8 +130,8 @@ class TrackingService {
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
         allowWifiLock: true,
-        interval: options.getInterval().inMilliseconds,
-        isOnceEvent: false,
+        eventAction: ForegroundTaskEventAction.repeat(
+            options.getInterval().inMilliseconds),
         autoRunOnBoot: true,
         allowWakeLock: true,
       ),
@@ -145,28 +144,33 @@ class TrackingService {
 
     if (!debug) {
       if (!await FlutterForegroundTask.isRunningService) {
-        ServiceRequestResult service = await FlutterForegroundTask.startService(
+        await FlutterForegroundTask.startService(
             notificationTitle: "Trekko",
             notificationText: "Trekko verfolgt dich... Gib acht!",
             callback: startCallback);
-        if (!service.success) throw Exception("Failed to start service");
       }
-      receivePort = FlutterForegroundTask.receivePort!;
+      FlutterForegroundTask.initCommunicationPort();
+      FlutterForegroundTask.addTaskDataCallback((dynamic data) {
+        List<dynamic> strings = jsonDecode(data);
+        Iterable<RawPhoneData> parsed = strings.map(RawPhoneDataType.parseData);
+        for (Function(Iterable<RawPhoneData>) callback in callbacks) {
+          callback.call(parsed);
+        }
+      });
     } else {
       receivePort = ReceivePort();
       IsolateNameServer.removePortNameMapping(debugIsolateName);
       bool register = IsolateNameServer.registerPortWithName(
           receivePort!.sendPort, debugIsolateName);
       if (!register) throw Exception("Failed to register port");
+      receivePort!.listen((dynamic data) {
+        List<dynamic> strings = jsonDecode(data);
+        Iterable<RawPhoneData> parsed = strings.map(RawPhoneDataType.parseData);
+        for (Function(Iterable<RawPhoneData>) callback in callbacks) {
+          callback.call(parsed);
+        }
+      });
     }
-
-    receivePort!.listen((dynamic data) {
-      List<dynamic> strings = jsonDecode(data);
-      Iterable<RawPhoneData> parsed = strings.map(RawPhoneDataType.parseData);
-      for (Function(Iterable<RawPhoneData>) callback in callbacks) {
-        callback.call(parsed);
-      }
-    });
     return 0;
   }
 
