@@ -54,7 +54,7 @@ const AnalyzerCacheSchema = CollectionSchema(
   getId: _analyzerCacheGetId,
   getLinks: _analyzerCacheGetLinks,
   attach: _analyzerCacheAttach,
-  version: '3.1.7',
+  version: '3.1.8',
 );
 
 int _analyzerCacheEstimateSize(

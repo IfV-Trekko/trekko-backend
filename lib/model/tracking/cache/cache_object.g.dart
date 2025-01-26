@@ -39,7 +39,7 @@ const CacheObjectSchema = CollectionSchema(
   getId: _cacheObjectGetId,
   getLinks: _cacheObjectGetLinks,
   attach: _cacheObjectAttach,
-  version: '3.1.7',
+  version: '3.1.8',
 );
 
 int _cacheObjectEstimateSize(

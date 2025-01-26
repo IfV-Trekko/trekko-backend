@@ -89,7 +89,7 @@ const ProfileSchema = CollectionSchema(
   getId: _profileGetId,
   getLinks: _profileGetLinks,
   attach: _profileAttach,
-  version: '3.1.7',
+  version: '3.1.8',
 );
 
 int _profileEstimateSize(
